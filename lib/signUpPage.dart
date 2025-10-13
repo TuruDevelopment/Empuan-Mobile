@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tumpuan/genderVerif.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/genderVerif.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class SignUpPage extends StatefulWidget {
@@ -54,7 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     title: const Align(
                       alignment: Alignment.bottomLeft,
                       child: Text(
-                        'Tumpuan',
+                        'Empuan',
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           fontFamily: 'Brodies',

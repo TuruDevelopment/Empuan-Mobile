@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/contactBox.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/styles/style.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({

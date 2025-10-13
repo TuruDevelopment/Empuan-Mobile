@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tumpuan/screens/home.dart';
-import 'package:tumpuan/screens/navScreen.dart';
-import 'package:tumpuan/screens/mapScreen.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/services/tumpuanServices.dart';
-import 'package:tumpuan/signUp/intro.dart';
-import 'package:tumpuan/signUp/intro1.dart';
-import 'package:tumpuan/utils/snackbar_helper.dart';
+import 'package:Empuan/screens/home.dart';
+import 'package:Empuan/screens/navScreen.dart';
+import 'package:Empuan/screens/mapScreen.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/services/empuanServices.dart';
+import 'package:Empuan/signUp/intro.dart';
+import 'package:Empuan/signUp/intro1.dart';
+import 'package:Empuan/utils/snackbar_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:whatsapp/whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
@@ -108,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Tumpuan',
+                  'Empuan',
                   style: TextStyle(
                       fontFamily: 'Brodies',
                       color: Color.fromRGBO(251, 111, 146, 1),

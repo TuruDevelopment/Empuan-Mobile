@@ -1,7 +1,7 @@
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:tumpuan/signUp/intro3.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/signUp/intro3.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Intro2 extends StatefulWidget {
   const Intro2({super.key});
@@ -16,7 +16,7 @@ class _Intro2State extends State<Intro2> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
-        child: Center(
+          child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -33,7 +33,7 @@ class _Intro2State extends State<Intro2> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Tumpuan App Fosters Women\'s\nEmpowerment and Equality',
+              'Empuan App Fosters Women\'s\nEmpowerment and Equality',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontFamily: 'Satoshi',
@@ -78,8 +78,8 @@ class _Intro2State extends State<Intro2> {
                     width: 75,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const Intro3()));
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const Intro3()));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(

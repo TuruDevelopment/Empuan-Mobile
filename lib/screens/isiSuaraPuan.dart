@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tumpuan/components/bannerSuaraPuan.dart';
+import 'package:Empuan/components/bannerSuaraPuan.dart';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
-import 'package:tumpuan/components/content_suaraPuan.dart';
+import 'package:Empuan/components/content_suaraPuan.dart';
 import 'package:video_player/video_player.dart';
-import 'package:tumpuan/services/auth_service.dart';
+import 'package:Empuan/services/auth_service.dart';
 
 class Comment {
   String text;

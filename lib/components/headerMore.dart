@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/screens/editProfile.dart';
-import 'package:tumpuan/screens/settings.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/screens/editProfile.dart';
+import 'package:Empuan/screens/settings.dart';
+import 'package:Empuan/styles/style.dart';
 
 class HeaderMore extends StatelessWidget {
   HeaderMore({

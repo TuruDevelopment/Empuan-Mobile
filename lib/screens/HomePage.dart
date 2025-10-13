@@ -1,15 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/dailyQuiz.dart';
-import 'package:tumpuan/components/widgetUntukPuan.dart';
-import 'package:tumpuan/screens/catatanHaid.dart';
-import 'package:tumpuan/screens/newUntukPuan.dart';
-import 'package:tumpuan/screens/suaraPuan.dart';
-import 'package:tumpuan/screens/untukPuan.dart';
-import 'package:tumpuan/screens/home.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/dailyQuiz.dart';
+import 'package:Empuan/components/widgetUntukPuan.dart';
+import 'package:Empuan/screens/catatanHaid.dart';
+import 'package:Empuan/screens/newUntukPuan.dart';
+import 'package:Empuan/screens/suaraPuan.dart';
+import 'package:Empuan/screens/untukPuan.dart';
+import 'package:Empuan/screens/home.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
         title: const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Text(
-            'Tumpuan',
+            'Empuan',
             style: TextStyle(
                 fontFamily: 'Brodies', color: Color.fromRGBO(251, 111, 146, 1)),
           ),

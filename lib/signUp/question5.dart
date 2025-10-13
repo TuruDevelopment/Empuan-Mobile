@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tumpuan/components/checkBoxSignUp.dart';
-import 'package:tumpuan/signUp/allSetPage.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/checkBoxSignUp.dart';
+import 'package:Empuan/signUp/allSetPage.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Question5 extends StatefulWidget {
   const Question5({Key? key}) : super(key: key);
@@ -53,7 +53,7 @@ class _Question5State extends State<Question5> {
                   title: const Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      'Tumpuan',
+                      'Empuan',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontFamily: 'Brodies',
@@ -211,7 +211,8 @@ class _Question5State extends State<Question5> {
               },
             ),
             TextButton(
-              child: const Text('Yes', style: TextStyle(color: AppColors.pink1)),
+              child:
+                  const Text('Yes', style: TextStyle(color: AppColors.pink1)),
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const StartPage()),

@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tumpuan/services/auth_service.dart';
+import 'package:Empuan/services/auth_service.dart';
 
-import 'package:tumpuan/signUp/question3.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/signUp/question3.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class Question2 extends StatefulWidget {
@@ -79,7 +79,7 @@ class _Question2State extends State<Question2> {
                   title: const Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      'Tumpuan',
+                      'Empuan',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontFamily: 'Brodies',

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class CatatanHaid extends StatefulWidget {
@@ -122,7 +122,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
         title: const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Text(
-            'Tumpuan',
+            'Empuan',
             style: TextStyle(
                 fontFamily: 'Brodies', color: Color.fromRGBO(251, 111, 146, 1)),
           ),

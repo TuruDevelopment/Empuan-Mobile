@@ -4,13 +4,13 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:sticky_headers/sticky_headers/widget.dart';
-import 'package:tumpuan/components/cardMore.dart';
-import 'package:tumpuan/components/headerMore.dart';
-import 'package:tumpuan/components/middleBarMore.dart';
-import 'package:tumpuan/components/searchCard.dart';
-import 'package:tumpuan/screens/takePhoto.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/cardMore.dart';
+import 'package:Empuan/components/headerMore.dart';
+import 'package:Empuan/components/middleBarMore.dart';
+import 'package:Empuan/components/searchCard.dart';
+import 'package:Empuan/screens/takePhoto.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class More extends StatefulWidget {
@@ -21,7 +21,6 @@ class More extends StatefulWidget {
     return _MoreState();
   }
 }
-
 
 class _MoreState extends State<More> {
   final ScrollController _scrollController = ScrollController();
@@ -139,7 +138,8 @@ class _MoreState extends State<More> {
                                   ),
                                 );
                                 setState(() {
-                                  _image = pickedImage ?? File('images/ktp.png');
+                                  _image =
+                                      pickedImage ?? File('images/ktp.png');
                                 });
                               },
                               icon: _image != null
@@ -198,7 +198,7 @@ class _MoreState extends State<More> {
     );
   }
 
-Future<void> submitData({required File? imageFile}) async {
+  Future<void> submitData({required File? imageFile}) async {
     final threadName = threadNameController.text;
     final threadDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
@@ -249,8 +249,6 @@ Future<void> submitData({required File? imageFile}) async {
 
     getData();
   }
-
-
 
   Future<void> getData() async {
     setState(() {
@@ -310,5 +308,3 @@ Future<void> submitData({required File? imageFile}) async {
     }
   }
 }
-
-

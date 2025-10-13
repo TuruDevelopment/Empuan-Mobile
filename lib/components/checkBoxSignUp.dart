@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/styles/style.dart';
 
 class LabeledCheckbox extends StatelessWidget {
   const LabeledCheckbox({

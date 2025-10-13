@@ -1,15 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/contactBox.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class AddContact extends StatefulWidget {
   final Function() onContactAdded; // Callback function
-  
-  const AddContact({Key? key, required this.onContactAdded,}) : super(key: key);
+
+  const AddContact({
+    Key? key,
+    required this.onContactAdded,
+  }) : super(key: key);
 
   @override
   State<AddContact> createState() => _AddContactState();
@@ -176,11 +179,10 @@ class _AddContactState extends State<AddContact> {
     print(response.statusCode);
     print(response.body);
     getData();
-      setState(() {
+    setState(() {
       isLoading = false;
     });
     widget.onContactAdded();
-
   }
 
   Future<void> getData() async {

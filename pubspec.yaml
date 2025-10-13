@@ -1,4 +1,4 @@
-name: tumpuan
+name: Empuan
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ^0.19.0
-  whatsapp_share: 
+  whatsapp_share:
   percent_indicator: ^4.0.1
   dots_indicator: ^3.0.0
   sticky_headers: "^0.3.0"
@@ -50,10 +50,10 @@ dependencies:
   path: ^1.8.3
   flutter_floating_bottom_bar: ^1.2.0
   dio: ^5.4.0
-  uuid: 
+  uuid:
   location: ^5.0.3
   google_maps_flutter: ^2.0.6
-  whatsapp_sender_flutter: 
+  whatsapp_sender_flutter:
   puppeteer: ^2.24.0
   whatsapp: ^2.0.0
   geolocator: ^11.0.0
@@ -62,10 +62,10 @@ dependencies:
   telephony:
   # flutter_qpython:
   direct_sms:
-  permission_handler: 
-  flutter_sound: 
+  permission_handler:
+  flutter_sound:
   video_player:
-  
+
   # image_picker: ^1.0.7
 
 dev_dependencies:
@@ -98,7 +98,7 @@ flutter:
   assets:
     - images/
     - assets/
-  
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -117,7 +117,6 @@ flutter:
     - family: Satoshi
       fonts:
         - asset: fonts/Satoshi-Regular.otf
-  
 
   #
   # For details regarding fonts from package dependencies,

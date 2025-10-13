@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/contactBox.dart';
-import 'package:tumpuan/screens/addContact.dart';
-import 'package:tumpuan/services/auth_service.dart';
+import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/screens/addContact.dart';
+import 'package:Empuan/services/auth_service.dart';
 
 class PanggilPuan extends StatefulWidget {
   const PanggilPuan({super.key});
@@ -89,7 +89,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
         title: const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Text(
-            'Tumpuan',
+            'Empuan',
             style: TextStyle(
                 fontFamily: 'Brodies', color: Color.fromRGBO(251, 111, 146, 1)),
           ),

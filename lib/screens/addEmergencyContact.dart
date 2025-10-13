@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/contactBox.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class AddEmergencyContact extends StatefulWidget {

@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tumpuan/newSignUpPage.dart';
-import 'package:tumpuan/signUp/bridgetoQ.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/newSignUpPage.dart';
+import 'package:Empuan/signUp/bridgetoQ.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class AccountCred extends StatefulWidget {
@@ -67,7 +67,7 @@ class _AccountCredState extends State<AccountCred> {
                     title: const Align(
                       alignment: Alignment.bottomLeft,
                       child: Text(
-                        'Tumpuan',
+                        'Empuan',
                         textAlign: TextAlign.left,
                         style: TextStyle(
                             fontFamily: 'Brodies',

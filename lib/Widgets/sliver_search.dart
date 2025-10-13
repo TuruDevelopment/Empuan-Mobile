@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/screensUntukPuan/foodPage.dart';
-import 'package:tumpuan/screensUntukPuan/saloonPage.dart';
-import 'package:tumpuan/screensUntukPuan/spaPage.dart';
+import 'package:Empuan/screensUntukPuan/foodPage.dart';
+import 'package:Empuan/screensUntukPuan/saloonPage.dart';
+import 'package:Empuan/screensUntukPuan/spaPage.dart';
 
 class SliverSearch extends StatelessWidget {
   const SliverSearch({

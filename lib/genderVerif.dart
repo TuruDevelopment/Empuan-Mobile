@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:tumpuan/accountCred.dart';
-import 'package:tumpuan/screens/takePhoto.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/accountCred.dart';
+import 'package:Empuan/screens/takePhoto.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 
 class GenderVerifPage extends StatefulWidget {
   // const GenderVerifPage({Key? key}) : super(key: key);
@@ -57,7 +57,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                   title: const Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      'Tumpuan',
+                      'Empuan',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontFamily: 'Brodies',

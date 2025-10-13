@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/Widgets/sliver_list.dart';
-import 'package:tumpuan/Widgets/sliver_list2.dart';
-import 'package:tumpuan/Widgets/sliver_list3.dart';
-import 'package:tumpuan/components/bannerSuaraPuan.dart';
-import 'package:tumpuan/components/bannerUntukPuan.dart';
-import 'package:tumpuan/components/content_suaraPuan.dart';
+import 'package:Empuan/Widgets/sliver_list.dart';
+import 'package:Empuan/Widgets/sliver_list2.dart';
+import 'package:Empuan/Widgets/sliver_list3.dart';
+import 'package:Empuan/components/bannerSuaraPuan.dart';
+import 'package:Empuan/components/bannerUntukPuan.dart';
+import 'package:Empuan/components/content_suaraPuan.dart';
 
 class WidgetUntukPuan extends StatefulWidget {
   final String nama;

@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/checkBoxSignUp.dart';
-import 'package:tumpuan/screens/HomePage.dart';
-import 'package:tumpuan/screens/home.dart';
-import 'package:tumpuan/screens/navScreen.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/signUp/question2.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/checkBoxSignUp.dart';
+import 'package:Empuan/screens/HomePage.dart';
+import 'package:Empuan/screens/home.dart';
+import 'package:Empuan/screens/navScreen.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/signUp/question2.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class JawabanDailyQuiz extends StatefulWidget {

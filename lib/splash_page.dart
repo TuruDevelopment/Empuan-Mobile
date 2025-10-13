@@ -32,7 +32,7 @@ class _SplashPageState extends State<SplashPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Tumpuan',
+              'Empuan',
               style: TextStyle(
                   fontFamily: 'Brodies',
                   color: Color.fromRGBO(251, 111, 146, 1),

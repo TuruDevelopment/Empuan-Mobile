@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/login_page.dart';
+import 'package:Empuan/login_page.dart';
 
 class AllSetPage extends StatefulWidget {
   const AllSetPage({super.key});
@@ -25,8 +25,8 @@ class _AllSetPageState extends State<AllSetPage> {
               width: 300,
               child: FilledButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const LoginPage()));
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => const LoginPage()));
                 },
                 style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:tumpuan/components/checkBoxSignUp.dart';
-import 'package:tumpuan/signUp/Question5.dart';
-import 'package:tumpuan/signUp/allSetPage.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/checkBoxSignUp.dart';
+import 'package:Empuan/signUp/Question5.dart';
+import 'package:Empuan/signUp/allSetPage.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Question4 extends StatefulWidget {
   const Question4({Key? key}) : super(key: key);
@@ -54,7 +54,7 @@ class _Question4State extends State<Question4> {
                   title: const Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      'Tumpuan',
+                      'Empuan',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                         fontFamily: 'Brodies',

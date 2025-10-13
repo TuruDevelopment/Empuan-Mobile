@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/emergencyContactBox.dart';
-import 'package:tumpuan/screens/addEmergencyContact.dart';
-import 'package:tumpuan/services/auth_service.dart';
+import 'package:Empuan/components/emergencyContactBox.dart';
+import 'package:Empuan/screens/addEmergencyContact.dart';
+import 'package:Empuan/services/auth_service.dart';
 
 class EmergencyContact extends StatefulWidget {
   const EmergencyContact({super.key});

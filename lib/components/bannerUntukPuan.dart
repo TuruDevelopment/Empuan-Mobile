@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/callView.dart';
-import 'package:tumpuan/components/editContact.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/callView.dart';
+import 'package:Empuan/components/editContact.dart';
+import 'package:Empuan/styles/style.dart';
 
 Widget getDataBannerUntukPuan(List<String> dataBannerUntuk) {
   String image;

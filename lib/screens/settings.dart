@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/contactBox.dart';
-import 'package:tumpuan/screens/editProfile.dart';
-import 'package:tumpuan/screens/emergencyContact.dart';
-import 'package:tumpuan/screens/navScreen.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/splash_page.dart';
-import 'package:tumpuan/start_page.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/screens/editProfile.dart';
+import 'package:Empuan/screens/emergencyContact.dart';
+import 'package:Empuan/screens/navScreen.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/splash_page.dart';
+import 'package:Empuan/start_page.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Settings extends StatefulWidget {
   const Settings({

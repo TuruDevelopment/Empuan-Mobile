@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/components/callView.dart';
-import 'package:tumpuan/components/editContact.dart';
-import 'package:tumpuan/screens/isiSuaraPuan.dart';
-import 'package:tumpuan/services/auth_service.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/components/callView.dart';
+import 'package:Empuan/components/editContact.dart';
+import 'package:Empuan/screens/isiSuaraPuan.dart';
+import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 // Widget getDataSuaraPuan(List<dynamic> dataSuaraPuan) {

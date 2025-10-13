@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:tumpuan/login_page.dart';
-import 'package:tumpuan/screens/playVideo.dart';
-import 'package:tumpuan/signUp/intro1.dart';
+import 'package:Empuan/login_page.dart';
+import 'package:Empuan/screens/playVideo.dart';
+import 'package:Empuan/signUp/intro1.dart';
 
 // Temporary
-import 'package:tumpuan/signUp/intro.dart';
+import 'package:Empuan/signUp/intro.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
@@ -24,7 +24,7 @@ class _StartPageState extends State<StartPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Tumpuan',
+              'Empuan',
               style: TextStyle(
                   fontFamily: 'Brodies',
                   color: Color.fromRGBO(251, 111, 146, 1),
@@ -52,8 +52,8 @@ class _StartPageState extends State<StartPage> {
                         const Color.fromRGBO(251, 111, 146, 1))),
                 child: const Text(
                   'Login',
-                  style: TextStyle(fontFamily: 'Satoshi',
-                  fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontFamily: 'Satoshi', fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -72,8 +72,8 @@ class _StartPageState extends State<StartPage> {
                         const Color.fromRGBO(251, 111, 146, 1))),
                 child: const Text(
                   'Sign Up',
-                  style: TextStyle(fontFamily: 'Satoshi',
-                  fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontFamily: 'Satoshi', fontWeight: FontWeight.bold),
                 ),
               ),
             ),

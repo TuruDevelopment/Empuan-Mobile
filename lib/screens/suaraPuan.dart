@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-// import 'package:tumpuan/components/content_suaraPuan.dart';
-import 'package:tumpuan/screens/isiSuaraPuan.dart';
-import 'package:tumpuan/services/auth_service.dart';
+// import 'package:Empuan/components/content_suaraPuan.dart';
+import 'package:Empuan/screens/isiSuaraPuan.dart';
+import 'package:Empuan/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class SuaraPuan extends StatefulWidget {

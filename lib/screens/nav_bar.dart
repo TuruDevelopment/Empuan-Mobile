@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/styles/style.dart';
 
 class NavBar extends StatelessWidget {
   final int pageIndex;

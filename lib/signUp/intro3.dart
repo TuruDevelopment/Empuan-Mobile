@@ -1,7 +1,7 @@
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:tumpuan/signUpPage.dart';
-import 'package:tumpuan/styles/style.dart';
+import 'package:Empuan/signUpPage.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Intro3 extends StatefulWidget {
   const Intro3({super.key});
@@ -33,7 +33,7 @@ class _Intro3State extends State<Intro3> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Tumpuan App Bridges Gaps, Advocates for\nWomen\'s Rights and Well-being.',
+              'Empuan App Bridges Gaps, Advocates for\nWomen\'s Rights and Well-being.',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontFamily: 'Satoshi',
