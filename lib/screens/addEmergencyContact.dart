@@ -161,7 +161,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
       'relation': relation,
     };
 
-    final url = "http://10.0.2.2:8000/api/kontakamans";
+    final url = "http://192.168.8.96:8000/api/kontakamans";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/kontakamans';
+    final url = 'http://192.168.8.96:8000/api/kontakamans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

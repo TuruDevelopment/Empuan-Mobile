@@ -338,7 +338,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Gender Verificationsssss',
+                              'Gender Verification',
                               style: TextStyle(
                                 fontFamily: 'Satoshi',
                                 fontWeight: FontWeight.bold,
@@ -811,7 +811,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "token": token,
     };
 
-    final url = 'http://10.0.2.2:8000/api/users';
+    final url = 'http://192.168.8.96:8000/api/users';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

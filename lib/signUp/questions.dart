@@ -1,16 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/signUp/allSetPage.dart';
-import 'package:Empuan/signUp/question3.dart';
-import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
+import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 
 class questions extends StatefulWidget {
   // questions({Key? key}) : super(key: key);
@@ -70,6 +67,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   late TextEditingController dateInputControllerend;
   bool dontKnowSelected = false;
   bool dontKnowSelectedEnd = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -94,563 +92,800 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     print("q password: ${widget.password}");
 
     return Scaffold(
-        body: Stack(alignment: Alignment.center, children: [
-      Column(children: [
-        AppBar(
-          toolbarHeight: 70,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              onPressed: () {
-                _showCloseDialog(context);
-              },
-              icon: const Icon(
-                Icons.close,
-                color: Colors.black,
-              ),
-            )
-          ],
-          title: const Align(
-            alignment: Alignment.bottomLeft,
-            child: Text(
-              'Empuan',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontFamily: 'Brodies',
-                color: Color.fromRGBO(251, 111, 146, 1),
-                fontSize: 30,
-              ),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.15),
+            ],
           ),
         ),
-        SizedBox(
-          height: 10,
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 10, right: 10),
-          child: LinearPercentIndicator(
-            lineHeight: 3.0,
-            percent:
-                _currentProgressPercent(_currentPageIndex, progressPercentage),
-            backgroundColor: Colors.grey,
-            progressColor: AppColors.pink1,
-          ),
-        )
-      ]),
-      Positioned.fill(
-          child: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _pageViewController,
-        onPageChanged: _handlePageViewChanged,
-        children: [
-          Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: SafeArea(
+          child: Column(
             children: [
-              const Text(
-                'Is your menstrual cycle regular\n(varies by no more 7 days) ?',
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
+              // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    question1.length,
-                    (index) => LabeledCheckboxExample(
-                      sentences: question1[index]["title"],
-                      value: question1[index]["selected"],
-                      onChanged: (value) {
-                        setState(() {
-                          for (var i = 0; i < question1.length; i++) {
-                            if (i == index) {
-                              question1[i]["selected"] = true;
-                            } else {
-                              question1[i]["selected"] = false;
-                            }
-                          }
-                        });
-                      },
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.15),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.favorite_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Empuan',
+                          style: TextStyle(
+                            fontFamily: 'Brodies',
+                            fontSize: 28,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
+                    // Close Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          showCancelDialog(context: context);
+                        },
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppColors.textPrimary,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Progress Indicator
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.accent.withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Question ${_currentPageIndex + 1} of 5',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            '${(((_currentPageIndex + 1) / 5) * 100).toInt()}%',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 13,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearPercentIndicator(
+                          padding: EdgeInsets.zero,
+                          lineHeight: 8.0,
+                          percent: (_currentPageIndex + 1) / 5,
+                          backgroundColor: AppColors.accent.withOpacity(0.3),
+                          linearGradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryVariant,
+                            ],
+                          ),
+                          barRadius: const Radius.circular(8),
+                          animation: true,
+                          animationDuration: 400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // PageView Content
+              Expanded(
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _pageViewController,
+                  onPageChanged: _handlePageViewChanged,
+                  children: [
+                    _buildQuestionPage(
+                      questionNumber: 1,
+                      question: 'Is your menstrual cycle regular?',
+                      subtitle: '(varies by no more than 7 days)',
+                      options: question1,
+                    ),
+                    _buildDateQuestionPage(),
+                    _buildQuestionPage(
+                      questionNumber: 3,
+                      question:
+                          'Is there anything you want to improve about your sleep?',
+                      options: question3,
+                    ),
+                    _buildQuestionPage(
+                      questionNumber: 4,
+                      question:
+                          'Do you experience discomfort due to any of the following?',
+                      options: question4,
+                    ),
+                    _buildQuestionPage(
+                      questionNumber: 5,
+                      question: 'What\'s your fitness goal?',
+                      options: question5,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Bottom Navigation
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    children: [
+                      // Back Button (hidden on first page)
+                      if (_currentPageIndex > 0)
+                        Expanded(
+                          child: Container(
+                            height: 56,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.accent.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _updateCurrentPageIndex(_currentPageIndex - 1);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.surface,
+                                foregroundColor: AppColors.textPrimary,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Back',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // Next Button
+                      Expanded(
+                        flex: _currentPageIndex == 0 ? 1 : 1,
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: _canProceed()
+                                ? LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryVariant,
+                                    ],
+                                  )
+                                : null,
+                            color: _canProceed() ? null : Colors.grey,
+                            boxShadow: _canProceed()
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: ElevatedButton(
+                            onPressed: (_canProceed() && !_isSubmitting)
+                                ? _handleNext
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: _isSubmitting
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    _currentPageIndex == 4
+                                        ? 'Finish'
+                                        : 'Save & Next',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
-          )),
-          Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'When did your last period start ?',
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 17.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 20.0),
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.calendar_month),
-                            ),
-                            controller: dateInputController,
-                            readOnly: true,
-                            onTap: () async {
-                              setState(() {
-                                dontKnowSelected = false;
-                              });
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(1950),
-                                lastDate: DateTime(2050),
-                              );
-
-                              if (pickedDate != null) {
-                                dateInputController.text =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              const Text(
-                'When did your last period end ?',
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 17.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 20.0),
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.calendar_month),
-                            ),
-                            controller: dateInputControllerend,
-                            readOnly: true,
-                            onTap: () async {
-                              setState(() {
-                                dontKnowSelectedEnd = false;
-                              });
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(1950),
-                                lastDate: DateTime(2050),
-                              );
-
-                              if (pickedDate != null) {
-                                dateInputControllerend.text =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ],
-          )),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Is there anything you want to\nimprove about your sleep?',
-                  style: TextStyle(
-                    fontFamily: 'Satoshi',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      question3.length,
-                      (index) => LabeledCheckboxExample(
-                        sentences: question3[index]["title"],
-                        value: question3[index]["selected"],
-                        onChanged: (value) {
-                          setState(() {
-                            for (var i = 0; i < question3.length; i++) {
-                              if (i == index) {
-                                question3[i]["selected"] = value ?? false;
-                              } else {
-                                question3[i]["selected"] = false;
-                              }
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Do you experience discomfort due\nto any of the following?',
-                  style: TextStyle(
-                    fontFamily: 'Satoshi',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      question4.length,
-                      (index) => LabeledCheckboxExample(
-                        sentences: question4[index]["title"],
-                        value: question4[index]["selected"],
-                        onChanged: (value) {
-                          setState(() {
-                            for (var i = 0; i < question4.length; i++) {
-                              if (i == index) {
-                                question4[i]["selected"] = value ?? false;
-                              } else {
-                                question4[i]["selected"] = false;
-                              }
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Center(
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Text(
-                'What\'s your fitness goal?',
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    question5.length,
-                    (index) => LabeledCheckboxExample(
-                      sentences: question5[index]["title"],
-                      value: question5[index]["selected"],
-                      onChanged: (value) {
-                        setState(() {
-                          for (var i = 0; i < question5.length; i++) {
-                            if (i == index) {
-                              question5[i]["selected"] = value ?? false;
-                            } else {
-                              question5[i]["selected"] = false;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ]),
-          ),
-        ],
-      )),
-      Positioned(
-        bottom: 125,
-        child: PageIndicator(
-          tabController: _tabController,
-          currentPageIndex: _currentPageIndex,
-          onUpdateCurrentPageIndex: _updateCurrentPageIndex,
-          isAnyOptionSelected: _isAnyOptionSelected(_currentPageIndex),
-          dateInputController: dateInputController,
-          dateInputControllerend: dateInputControllerend,
-          dontKnowSelected: dontKnowSelected,
-          dontKnowSelectedEnd: dontKnowSelectedEnd, username: widget.username,
-          password: widget.password,
-          // isOnDesktopAndWeb: _isOnDesktopAndWeb,
         ),
-      )
-    ]));
-  }
-
-  bool _isAnyOptionSelected(int currentPageIndex) {
-    if (currentPageIndex == 0) {
-      if (question1.any((item) => item['selected'] == true)) {
-        return true;
-      }
-      ;
-      return false;
-    } else if (currentPageIndex == 2) {
-      if (question3.any((item) => item['selected'] == true)) {
-        return true;
-      }
-      ;
-      return false;
-    } else if (currentPageIndex == 3) {
-      if (question4.any((item) => item['selected'] == true)) {
-        return true;
-      }
-      ;
-      return false;
-    } else if (currentPageIndex == 4) {
-      if (question5.any((item) => item['selected'] == true)) {
-        return true;
-      }
-      ;
-      return false;
-    }
-
-    return false;
-  }
-
-  void _handlePageViewChanged(int currentPageIndex) {
-    _tabController.index = currentPageIndex;
-    setState(() {
-      _currentPageIndex = currentPageIndex;
-    });
-  }
-
-  void _updateCurrentPageIndex(int index) {
-    _tabController.index = index;
-    _pageViewController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
+      ),
     );
   }
-}
 
-_currentProgressPercent(var currentPageIndex, var progressPercentage) {
-  if (currentPageIndex == 4) {
-    return progressPercentage = 1.0;
-  } else if (currentPageIndex == 3) {
-    return progressPercentage = 0.8;
-  } else if (currentPageIndex == 2) {
-    return progressPercentage = 0.6;
-  } else if (currentPageIndex == 1) {
-    return progressPercentage = 0.4;
-  } else if (currentPageIndex == 0) {
-    return progressPercentage = 0.2;
+  Widget _buildQuestionPage({
+    required int questionNumber,
+    required String question,
+    String? subtitle,
+    required List<Map<String, dynamic>> options,
+  }) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+
+            // Question Number Badge
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                'Question $questionNumber',
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Question Text
+            Text(
+              question,
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 15,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 32),
+
+            // Options
+            Column(
+              children: List.generate(
+                options.length,
+                (index) => _buildModernOption(
+                  title: options[index]["title"],
+                  isSelected: options[index]["selected"],
+                  onTap: () {
+                    setState(() {
+                      for (var i = 0; i < options.length; i++) {
+                        options[i]["selected"] = i == index;
+                      }
+                    });
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
   }
-}
 
-class PageIndicator extends StatelessWidget {
-  PageIndicator({
-    super.key,
-    required this.tabController,
-    required this.currentPageIndex,
-    required this.onUpdateCurrentPageIndex,
-    required this.isAnyOptionSelected,
-    required this.dateInputController,
-    required this.dateInputControllerend,
-    required this.dontKnowSelected,
-    required this.dontKnowSelectedEnd,
-    required this.username,
-    required this.password,
-  });
+  Widget _buildDateQuestionPage() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
 
-  late TextEditingController dateInputController;
-  late TextEditingController dateInputControllerend;
-  final int currentPageIndex;
-  final TabController tabController;
-  final void Function(int) onUpdateCurrentPageIndex;
-  bool isAnyOptionSelected;
-  bool dontKnowSelected;
-  bool dontKnowSelectedEnd;
+            // Question Number Badge
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                'Question 2',
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
 
-  final String username;
-  final String password;
+            const SizedBox(height: 24),
 
-  bool _isVisible = true;
+            // Question 1: Start Date
+            Text(
+              'When did your last period start?',
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+            ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                  padding: const EdgeInsets.only(right: 7.0),
-                  child: Visibility(
-                    visible: visibleButton(currentPageIndex, _isVisible),
-                    child: SizedBox(
-                      width: 109,
-                      child: FilledButton(
-                        onPressed: () {
-                          if (currentPageIndex == 0) {
-                            return;
-                          } else if (currentPageIndex != 0) {
-                            progressPercentage -= 0.2;
-                          }
-                          onUpdateCurrentPageIndex(currentPageIndex - 1);
-                        },
-                        style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                                const Color.fromRGBO(251, 111, 146, 1))),
-                        child: Text(
-                          'Back',
-                          style: const TextStyle(
-                            fontFamily: 'Satoshi',
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+            const SizedBox(height: 24),
+
+            // Start Date Picker
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextFormField(
+                controller: dateInputController,
+                readOnly: true,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 15,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Select start date',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Satoshi',
+                    color: AppColors.textSecondary.withOpacity(0.6),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.calendar_today_rounded,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                ),
+                onTap: () async {
+                  setState(() {
+                    dontKnowSelected = false;
+                  });
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(1950),
+                    lastDate: DateTime(2050),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: AppColors.primary,
+                            onPrimary: Colors.white,
+                            onSurface: AppColors.textPrimary,
                           ),
                         ),
-                      ),
-                    ),
-                  )),
-              Padding(
-                padding: const EdgeInsets.only(right: 7.0),
-                child: SizedBox(
-                  width: 109,
-                  child: FilledButton(
-                    onPressed: () async {
-                      if (isAnyOptionSelected == false &&
-                          currentPageIndex != 1) {
-                        return;
-                      }
-
-                      if (currentPageIndex == 1) {
-                        if (dateInputController.text.isEmpty ||
-                            (dontKnowSelected == true &&
-                                dontKnowSelectedEnd == true)) {
-                          return;
-                        }
-                      }
-
-                      if (currentPageIndex == 4) {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const AllSetPage()));
-                        return;
-                      }
-
-                      if (dateInputController.text.isNotEmpty ||
-                          dontKnowSelected) {
-                        // Lakukan login otomatis dengan username dan password yang diberikan
-                        await doLogin();
-
-                        // Ambil ID berdasarkan username
-                        final userId = await getIdByUsername(username);
-
-                        // Jika ID berhasil diperoleh, kirimkan data catatan haid
-                        if (userId != null) {
-                          print("masuk submit");
-                          await submitData();
-                        }
-                        print("KESKIPPPP");
-                        // Lakukan logout setelah submit data catatan haid
-                        AuthService.logout();
-
-                        // Pindah ke halaman selanjutnya
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const Question3()));
-                      }
-
-                      onUpdateCurrentPageIndex(currentPageIndex + 1);
+                        child: child!,
+                      );
                     },
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                            const Color.fromRGBO(251, 111, 146, 1))),
-                    child: Text(
-                      'Next',
-                      style: const TextStyle(
-                        fontFamily: 'Satoshi',
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  );
+
+                  if (pickedDate != null) {
+                    setState(() {
+                      dateInputController.text =
+                          DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Question 2: End Date
+            Text(
+              'When did your last period end?',
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // End Date Picker
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextFormField(
+                controller: dateInputControllerend,
+                readOnly: true,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 15,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Select end date',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Satoshi',
+                    color: AppColors.textSecondary.withOpacity(0.6),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.calendar_today_rounded,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                ),
+                onTap: () async {
+                  setState(() {
+                    dontKnowSelectedEnd = false;
+                  });
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(1950),
+                    lastDate: DateTime(2050),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: AppColors.primary,
+                            onPrimary: Colors.white,
+                            onSurface: AppColors.textPrimary,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+
+                  if (pickedDate != null) {
+                    setState(() {
+                      dateInputControllerend.text =
+                          DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
+              ),
+            ),
+
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernOption({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.1)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.accent.withOpacity(0.3),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.textSecondary.withOpacity(0.3),
+                    width: 2,
+                  ),
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                ),
+                child: isSelected
+                    ? Icon(
+                        Icons.check,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 16,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color:
+                        isSelected ? AppColors.primary : AppColors.textPrimary,
                   ),
                 ),
               ),
             ],
           ),
-        ]));
+        ),
+      ),
+    );
   }
 
-  doLogin() async {
-    final username2 = username;
-    final password2 = password;
+  bool _canProceed() {
+    if (_currentPageIndex == 1) {
+      return dateInputController.text.isNotEmpty &&
+          dateInputControllerend.text.isNotEmpty;
+    }
+    return _isAnyOptionSelected(_currentPageIndex);
+  }
+
+  Future<void> _handleNext() async {
+    if (_isSubmitting) return;
+
+    print('[DEBUG] _handleNext called, page: $_currentPageIndex');
+    print('[DEBUG] Can proceed: ${_canProceed()}');
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      if (_currentPageIndex == 4) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const AllSetPage()),
+        );
+        return;
+      }
+
+      if (_currentPageIndex == 1 && dateInputController.text.isNotEmpty) {
+        print('[DEBUG] Submitting period data...');
+
+        // Lakukan login otomatis dengan username dan password yang diberikan
+        await doLogin();
+
+        // Ambil ID berdasarkan username
+        final userId = await getIdByUsername(widget.username);
+
+        // Jika ID berhasil diperoleh, kirimkan data catatan haid
+        if (userId != null) {
+          print("[DEBUG] User ID: $userId, submitting data...");
+          await submitData();
+        } else {
+          print("[DEBUG] Failed to get user ID");
+        }
+
+        // Lakukan logout setelah submit data catatan haid
+        AuthService.logout();
+      }
+
+      _updateCurrentPageIndex(_currentPageIndex + 1);
+    } catch (e, stackTrace) {
+      print('[ERROR] _handleNext failed: $e');
+      print('[ERROR] Stack trace: $stackTrace');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred. Please try again.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> doLogin() async {
+    final username2 = widget.username;
+    final password2 = widget.password;
 
     bool isSuccess =
         await AuthService().login(username: username2, password: password2);
 
     if (!isSuccess) {
       print(isSuccess);
-    } else {}
+    }
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://10.0.2.2:8000/api/users/username/$username';
+    final url = 'http://192.168.8.96:8000/api/users/username/$username';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -677,7 +912,7 @@ class PageIndicator extends StatelessWidget {
       'end_date': dateEnd,
     };
 
-    final url = "http://10.0.2.2:8000/api/catatanhaids";
+    final url = "http://192.168.8.96:8000/api/catatanhaids";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -687,94 +922,33 @@ class PageIndicator extends StatelessWidget {
     print(response.statusCode);
     print(response.body);
   }
-}
 
-visibleButton(var currentPageIndex, bool isVisible) {
-  if (currentPageIndex == 0) {
-    return isVisible = false;
+  bool _isAnyOptionSelected(int currentPageIndex) {
+    if (currentPageIndex == 0) {
+      return question1.any((item) => item['selected'] == true);
+    } else if (currentPageIndex == 2) {
+      return question3.any((item) => item['selected'] == true);
+    } else if (currentPageIndex == 3) {
+      return question4.any((item) => item['selected'] == true);
+    } else if (currentPageIndex == 4) {
+      return question5.any((item) => item['selected'] == true);
+    }
+    return false;
   }
-  return true;
-}
 
-Future<void> _showCloseDialog(BuildContext context) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        content: const SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Image(image: AssetImage('images/cancelRegist.png')),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.pink1),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Yes', style: TextStyle(color: AppColors.pink1)),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const StartPage()),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+  void _handlePageViewChanged(int currentPageIndex) {
+    _tabController.index = currentPageIndex;
+    setState(() {
+      _currentPageIndex = currentPageIndex;
+    });
+  }
 
-class LabeledCheckboxExample extends StatelessWidget {
-  final String sentences;
-  final bool? value;
-  final ValueChanged<bool?>? onChanged;
-
-  const LabeledCheckboxExample({
-    required this.sentences,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.bg1,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: CheckboxListTile(
-            dense: true,
-            title: Text(
-              sentences,
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                fontFamily: 'Satoshi',
-              ),
-            ),
-            value: value,
-            onChanged: onChanged,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              side: const BorderSide(color: Colors.pink),
-            ),
-            activeColor: const Color.fromRGBO(251, 111, 146, 1),
-            checkboxShape: const CircleBorder(),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
+  void _updateCurrentPageIndex(int index) {
+    _tabController.index = index;
+    _pageViewController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
     );
   }
 }

@@ -15,56 +15,76 @@ class NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData queryData;
-    queryData = MediaQuery.of(context);
     return Container(
-      height: queryData.size.height / 10 - 18,
-      color: Color.fromARGB(0, 0, 0, 0),
       margin: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: Platform.isAndroid ? 16 : 0,
+        left: 20,
+        right: 20,
+        bottom: Platform.isAndroid ? 20 : 8,
       ),
-      child: BottomAppBar(
-        color: Colors.transparent,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 0,
-        elevation: 0.0,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: 80, // ubah tinggi kontainer
-            color: Color.fromRGBO(255, 255, 255, 1),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround, // tambahkan ini
-              children: [
-                navItem(
-                  Icons.home_outlined,
-                  'Home', // tambahkan teks di sini
-                  pageIndex == 0,
-                  onTap: () => onTap(0),
-                ),
-                navItem(
-                  Icons.calendar_month,
-                  'Catatan Haid', // tambahkan teks di sini
-                  pageIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-                const SizedBox(width: 80),
-                navItem(
-                  Icons.call_outlined,
-                  'Panggil Puan', // tambahkan teks di sini
-                  pageIndex == 2,
-                  onTap: () => onTap(2),
-                ),
-                navItem(
-                  Icons.more_horiz,
-                  'More', // tambahkan teks di sini
-                  pageIndex == 3,
-                  onTap: () => onTap(3),
-                ),
-              ],
-            ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.surface,
+            AppColors.surface,
+            AppColors.accent.withOpacity(0.05),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: -4,
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              navItem(
+                Icons.home_rounded,
+                'Home',
+                pageIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              navItem(
+                Icons.calendar_month_rounded,
+                'Catatan',
+                pageIndex == 1,
+                onTap: () => onTap(1),
+              ),
+              const SizedBox(width: 60),
+              navItem(
+                Icons.phone_rounded,
+                'Panggil',
+                pageIndex == 2,
+                onTap: () => onTap(2),
+              ),
+              navItem(
+                Icons.more_horiz_rounded,
+                'More',
+                pageIndex == 3,
+                onTap: () => onTap(3),
+              ),
+            ],
           ),
         ),
       ),
@@ -73,31 +93,80 @@ class NavBar extends StatelessWidget {
 
   Widget navItem(
     IconData icon,
-    String text, // tambahkan parameter teks di sini
+    String text,
     bool selected, {
     Function()? onTap,
   }) {
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: selected ? AppColors.pink1 : Colors.grey,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: AppColors.primary.withOpacity(0.1),
+          highlightColor: AppColors.accent.withOpacity(0.05),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: selected
+                  ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.primary.withOpacity(0.08),
+                        AppColors.accent.withOpacity(0.12),
+                      ],
+                    )
+                  : null,
             ),
-            SizedBox(height: 4), // tambahkan jarak di sini
-            Text(
-              text,
-              style: TextStyle(
-                fontFamily: 'Satoshi',
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
-                color: selected ? AppColors.pink1 : Colors.grey,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon with animation
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: EdgeInsets.all(selected ? 4 : 3),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? AppColors.primary.withOpacity(0.12)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: selected ? 24 : 22,
+                    color: selected
+                        ? AppColors.primary
+                        : AppColors.textSecondary.withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                // Text with animation
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                    fontSize: selected ? 10.5 : 9.5,
+                    color: selected
+                        ? AppColors.primary
+                        : AppColors.textSecondary.withOpacity(0.7),
+                    letterSpacing: 0.2,
+                    height: 1.1,
+                  ),
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

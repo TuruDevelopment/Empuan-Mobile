@@ -35,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool obscurePassword = false; // Added to track password visibility
+  bool _isLoggingIn = false; // Track login state
   WhatsApp whatsapp = WhatsApp();
   String? _currentAddress;
   Position? _currentPosition;
@@ -183,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                     buildModernTextField(
                       controller: usernameController,
                       obscureText: false,
-                      hintText: 'Email',
+                      hintText: 'Username',
                       prefixIcon: Icons.person_outline,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -235,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: doLogin,
+                        onPressed: _isLoggingIn ? null : doLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -243,16 +244,27 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontFamily: 'Satoshi',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        child: _isLoggingIn
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Log In',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -443,19 +455,133 @@ class _LoginPageState extends State<LoginPage> {
 
   doLogin() async {
     bool isValid = _formKey.currentState!.validate();
-    if (isValid) {
+    if (!isValid) return;
+
+    setState(() {
+      _isLoggingIn = true;
+    });
+
+    try {
       final username = usernameController.text;
       final password = passwordController.text;
+
+      print('[DEBUG] Attempting login for user: $username');
 
       bool isSuccess =
           await AuthService().login(username: username, password: password);
 
+      print('[DEBUG] Login result: $isSuccess');
+      print('[DEBUG] Token: ${AuthService.token}');
+
       if (!isSuccess) {
-        print(isSuccess);
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Login failed. Please check your credentials.',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
       } else {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => const MainScreen(),
-        ));
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text(
+                    'Login successful! Welcome back.',
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.secondary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Small delay for UX
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Navigate to main screen
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      print('[ERROR] Login exception: $e');
+      print('[ERROR] Stack trace: $stackTrace');
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.warning_rounded, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'An error occurred. Please try again.',
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingIn = false;
+        });
       }
     }
   }
@@ -463,7 +589,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> getData() async {
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/ruangPuans';
+    final url = 'http://192.168.8.96:8000/api/ruangPuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

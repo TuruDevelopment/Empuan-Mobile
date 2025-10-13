@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:Empuan/components/checkBoxSignUp.dart';
 import 'package:Empuan/signUp/question2.dart';
-import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
+import 'package:Empuan/components/cancel_dialog.dart';
 
 class Question1 extends StatefulWidget {
   // const Question1({Key? key}) : super(key: key);
@@ -30,162 +29,438 @@ class _Question1State extends State<Question1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.15),
+            ],
+          ),
+        ),
         child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 10),
-                AppBar(
-                  toolbarHeight: 70,
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  automaticallyImplyLeading: false,
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        _showCloseDialog(context);
-                      },
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.black,
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.15),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.favorite_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Empuan',
+                          style: TextStyle(
+                            fontFamily: 'Brodies',
+                            fontSize: 28,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Close Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
-                    )
+                      child: IconButton(
+                        onPressed: () {
+                          showCancelDialog(context: context);
+                        },
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppColors.textPrimary,
+                          size: 24,
+                        ),
+                      ),
+                    ),
                   ],
-                  title: const Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      'Empuan',
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontFamily: 'Brodies',
-                        color: Color.fromRGBO(251, 111, 146, 1),
-                        fontSize: 30,
-                      ),
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // Progress Indicator
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accent.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Question 1 of 4',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    '25%',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontSize: 13,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: LinearPercentIndicator(
+                                  padding: EdgeInsets.zero,
+                                  lineHeight: 8.0,
+                                  percent: 0.25,
+                                  backgroundColor:
+                                      AppColors.accent.withOpacity(0.3),
+                                  linearGradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryVariant,
+                                    ],
+                                  ),
+                                  barRadius: const Radius.circular(8),
+                                  animation: true,
+                                  animationDuration: 800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // Question Number Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.primary.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            'Question 1',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Question Text
+                        Text(
+                          'Is your menstrual cycle regular?',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '(varies by no more than 7 days)',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 15,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Options
+                        Column(
+                          children: List.generate(
+                            checkListItems.length,
+                            (index) => _buildModernOption(
+                              title: checkListItems[index]["title"],
+                              isSelected: checkListItems[index]["selected"],
+                              onTap: () {
+                                setState(() {
+                                  for (var i = 0;
+                                      i < checkListItems.length;
+                                      i++) {
+                                    checkListItems[i]["selected"] = i == index;
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: LinearPercentIndicator(
-                    lineHeight: 3.0,
-                    percent: 0.25,
-                    backgroundColor: Colors.grey,
-                    progressColor: AppColors.pink1,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Padding(
-                  padding: EdgeInsets.only(left: 25.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Question 1',
-                      style: TextStyle(
-                        fontFamily: 'Satoshi',
-                        fontWeight: FontWeight.w900,
-                        fontSize: 25,
-                      ),
+              ),
+
+              // Bottom Navigation
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
                     ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    children: [
+                      // Back Button
+                      Expanded(
+                        child: Container(
+                          height: 56,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.surface,
+                              foregroundColor: AppColors.textPrimary,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              'Back',
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Next Button
+                      Expanded(
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: _isAnyOptionSelected()
+                                ? LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryVariant,
+                                    ],
+                                  )
+                                : null,
+                            color: _isAnyOptionSelected() ? null : Colors.grey,
+                            boxShadow: _isAnyOptionSelected()
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _isAnyOptionSelected()
+                                ? () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => Question2(
+                                          username: widget.username,
+                                          password: widget.password,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              'Save & Next',
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 100),
-                const Text(
-                  'Is your menstrual cycle regular\n(varies by no more 7 days) ?',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernOption({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.1)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.accent.withOpacity(0.3),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.textSecondary.withOpacity(0.3),
+                    width: 2,
+                  ),
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                ),
+                child: isSelected
+                    ? Icon(
+                        Icons.check,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
                   style: TextStyle(
                     fontFamily: 'Satoshi',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      checkListItems.length,
-                      (index) => LabeledCheckboxExample(
-                        sentences: checkListItems[index]["title"],
-                        value: checkListItems[index]["selected"],
-                        onChanged: (value) {
-                          setState(() {
-                            for (var i = 0; i < checkListItems.length; i++) {
-                              if (i == index) {
-                                checkListItems[i]["selected"] = true;
-                              } else {
-                                checkListItems[i]["selected"] = false;
-                              }
-                            }
-                          });
-                        },
-                      ),
-                    ),
+                    fontSize: 16,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color:
+                        isSelected ? AppColors.primary : AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 150),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: Container(
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: const Color.fromRGBO(251, 111, 146, 1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextButton(
-                          onPressed: _isAnyOptionSelected()
-                              ? () {
-                                  Navigator.pop(context);
-                                }
-                              : null,
-                          child: const Text(
-                            'Back',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: Container(
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: _isAnyOptionSelected()
-                              ? const Color.fromRGBO(251, 111, 146, 1)
-                              : Colors.grey,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextButton(
-                          onPressed: _isAnyOptionSelected()
-                              ? () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => Question2(
-                                        username: widget.username,
-                                        password: widget.password,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              : null,
-                          child: const Text(
-                            'Save & Next',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -194,88 +469,5 @@ class _Question1State extends State<Question1> {
 
   bool _isAnyOptionSelected() {
     return checkListItems.any((item) => item['selected'] == true);
-  }
-}
-
-Future<void> _showCloseDialog(BuildContext context) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        content: const SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Image(image: AssetImage('images/cancelRegist.png')),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.pink1),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Yes', style: TextStyle(color: AppColors.pink1)),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const StartPage()),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-class LabeledCheckboxExample extends StatelessWidget {
-  final String sentences;
-  final bool? value;
-  final ValueChanged<bool?>? onChanged;
-
-  const LabeledCheckboxExample({
-    required this.sentences,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.bg1,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: CheckboxListTile(
-            dense: true,
-            title: Text(
-              sentences,
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                fontFamily: 'Satoshi',
-              ),
-            ),
-            value: value,
-            onChanged: onChanged,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              side: const BorderSide(color: Colors.pink),
-            ),
-            activeColor: const Color.fromRGBO(251, 111, 146, 1),
-            checkboxShape: const CircleBorder(),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
   }
 }

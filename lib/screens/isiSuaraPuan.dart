@@ -574,7 +574,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://10.0.2.2:8000/api/users/$userId';
+    final url = 'http://192.168.8.96:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -596,7 +596,8 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/suarapuans/${widget.id}/commentpuans';
+    final url =
+        'http://192.168.8.96:8000/api/suarapuans/${widget.id}/commentpuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -642,7 +643,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/users/current';
+    final url = 'http://192.168.8.96:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -686,7 +687,8 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     final id = widget.id;
     print(id);
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/suarapuans/${widget.id}/commentpuans';
+    final url =
+        'http://192.168.8.96:8000/api/suarapuans/${widget.id}/commentpuans';
     print('url: ' + url);
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {

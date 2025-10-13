@@ -258,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://10.0.2.2:8000/api/users/current';
+    final url = 'http://192.168.8.96:8000/api/users/current';
     final uri = Uri.parse(url);
 
     final response =
@@ -280,7 +280,7 @@ class _MainScreenState extends State<MainScreen> {
       isLoading = true;
     });
 
-    final url = 'http://10.0.2.2:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.96:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -390,7 +390,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/kontakamans';
+    final url = 'http://192.168.8.96:8000/api/kontakamans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

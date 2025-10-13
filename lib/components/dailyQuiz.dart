@@ -192,7 +192,7 @@ class _DailyQuizState extends State<DailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://10.0.2.2:8000/api/questions';
+    final url = 'http://192.168.8.96:8000/api/questions';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -234,7 +234,7 @@ class _DailyQuizState extends State<DailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://10.0.2.2:8000/api/questions/$idQuestion/options';
+      final url = 'http://192.168.8.96:8000/api/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {
