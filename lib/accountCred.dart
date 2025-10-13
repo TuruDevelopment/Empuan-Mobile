@@ -2,11 +2,9 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
-import 'package:Empuan/newSignUpPage.dart';
 import 'package:Empuan/signUp/bridgetoQ.dart';
-import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
+import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
 
 class AccountCred extends StatefulWidget {
@@ -30,191 +28,383 @@ class AccountCred extends StatefulWidget {
 }
 
 class _AccountCredState extends State<AccountCred> {
-  @override
   TextEditingController dateInputController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(237, 237, 237, 1),
-      // ignore: prefer_const_constructors
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.15),
+            ],
+          ),
+        ),
         child: SafeArea(
           child: Form(
             key: _formKey,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 10),
-                  AppBar(
-                    toolbarHeight: 70,
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    automaticallyImplyLeading: false,
-                    actions: [
-                      IconButton(
-                          onPressed: () {
-                            _showCloseDialog(context);
-                          },
-                          icon: const Icon(
-                            Icons.close,
-                            color: Colors.black,
-                          ))
-                    ],
-                    title: const Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Text(
-                        'Empuan',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                            fontFamily: 'Brodies',
-                            color: Color.fromRGBO(251, 111, 146, 1),
-                            fontSize: 30),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(left: 25.0),
-                  //   child: Align(
-                  //       alignment: Alignment.bottomLeft,
-                  //       child:
-                  //           Image(image: AssetImage('images/progressbar3.png'))),
-                  // ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: LinearPercentIndicator(
-                      // width: ,
-                      lineHeight: 3.0,
-                      percent: 1,
-                      backgroundColor: Colors.grey,
-                      progressColor: AppColors.pink1,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 25.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Account Credentials',
-                        style: TextStyle(
-                            fontFamily: 'Satoshi',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  buildTextField(
-                    controller: usernameController,
-                    hintText: 'Username',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your username';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  //password
-                  buildTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 200),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        child: Container(
-                          width: 100,
-                          // padding: EdgeInsets.only(left: 0),
-                          decoration: BoxDecoration(
-                            color: const Color.fromRGBO(251, 111, 146, 1),
-                            borderRadius: BorderRadius.circular(12),
+                      // Logo
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.15),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.favorite_rounded,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
                           ),
-                          child: Center(
-                            child: TextButton(
-                              child: const Text(
-                                'Back',
-                                style: TextStyle(color: Colors.white),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Empuan',
+                            style: TextStyle(
+                              fontFamily: 'Brodies',
+                              fontSize: 28,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Close Button
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.accent.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: IconButton(
+                          onPressed: () {
+                            showCancelDialog(context: context);
+                          },
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: AppColors.textPrimary,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // Progress Indicator
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.accent.withOpacity(0.3),
+                                width: 1,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.accent.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Step 3 of 3',
+                                      style: TextStyle(
+                                        fontFamily: 'Satoshi',
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      '100%',
+                                      style: TextStyle(
+                                        fontFamily: 'Satoshi',
+                                        fontSize: 13,
+                                        color: AppColors.secondary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: LinearProgressIndicator(
+                                    value: 1.0,
+                                    minHeight: 8,
+                                    backgroundColor:
+                                        AppColors.accent.withOpacity(0.3),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.secondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          // Title
+                          Text(
+                            'Account Credentials',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Create your login credentials to secure your account',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 15,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+
+                          const SizedBox(height: 40),
+
+                          // Form Fields
+                          _buildModernTextField(
+                            controller: usernameController,
+                            hintText: 'Username',
+                            label: 'Username',
+                            prefixIcon: Icons.person_outline,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your username';
+                              }
+                              if (value.length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+
+                          _buildModernTextField(
+                            controller: passwordController,
+                            hintText: 'Password',
+                            label: 'Password',
+                            prefixIcon: Icons.lock_outline,
+                            isPassword: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Password hint
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.secondary.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: AppColors.secondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Use at least 6 characters with a mix of letters and numbers',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 60),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Bottom Navigation
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Row(
+                      children: [
+                        // Back Button
+                        Expanded(
+                          child: Container(
+                            height: 56,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.accent.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.surface,
+                                foregroundColor: AppColors.textPrimary,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Back',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        child: Container(
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: const Color.fromRGBO(251, 111, 146, 1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                RegistrationUser();
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => BridgetoQ(
-                                    username: usernameController.text,
-                                    password: passwordController.text,
-                                  ),
-                                ));
-                              }
-                            },
-                            child: const Text(
-                              'Save & Next',
-                              style: TextStyle(color: Colors.white),
+                        // Complete Button
+                        Expanded(
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.secondary,
+                                  AppColors.secondary.withOpacity(0.8),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.secondary.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  RegistrationUser();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => BridgetoQ(
+                                      username: usernameController.text,
+                                      password: passwordController.text,
+                                    ),
+                                  ));
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Complete',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-
-                  // SizedBox(
-                  //   height: 15,
-                  // ),
-                  // // register button
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Text(
-                  //       'Have An Account?',
-                  //       style: TextStyle(fontWeight: FontWeight.bold),
-                  //     ),
-                  //     TextButton(
-                  //       child: const Text(
-                  //         'Login Here',
-                  //         style: TextStyle(
-                  //             color: Color.fromRGBO(251, 111, 146, 1),
-                  //             fontWeight: FontWeight.bold),
-                  //       ),
-                  //       onPressed: () {
-                  //         Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  //             builder: (context) => LoginPage()));
-                  //       },
-                  //     )
-                  //   ],
-                  // ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -256,68 +446,120 @@ class _AccountCredState extends State<AccountCred> {
     print(response.body);
   }
 
-  Widget buildTextField({
+  Widget _buildModernTextField({
     required TextEditingController controller,
     required String hintText,
+    required String label,
+    required IconData prefixIcon,
+    bool isPassword = false,
     String? Function(String?)? validator,
     Function()? onTap,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: TextFormField(
-        obscureText: hintText == 'Password' ? true : false,
-        controller: controller,
-        decoration: InputDecoration(
-          suffixIcon: hintText == 'Password'
-              ? Icon(Icons.remove_red_eye_outlined)
-              : null,
-          hintText: hintText,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Satoshi',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
-        validator: validator,
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-Future<void> _showCloseDialog(BuildContext context) async {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        // title: Text(
-        //   'Canceling Registration?',
-        //   style: TextStyle(fontFamily: 'Satoshi'),
-        // ),
-        content: const SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Image(image: AssetImage('images/cancelRegist.png')),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
             ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.pink1),
+          child: TextFormField(
+            controller: controller,
+            obscureText: isPassword && !_isPasswordVisible,
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 15,
+              color: AppColors.textPrimary,
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: TextStyle(
+                fontFamily: 'Satoshi',
+                color: AppColors.textSecondary.withOpacity(0.6),
+              ),
+              prefixIcon: Icon(
+                prefixIcon,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: AppColors.textSecondary,
+                        size: 22,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.error,
+                  width: 1.5,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.error,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+            validator: validator,
+            onTap: onTap,
           ),
-          TextButton(
-            child: const Text('Yes', style: TextStyle(color: AppColors.pink1)),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const StartPage()),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
+        ),
+      ],
+    );
+  }
 }

@@ -10,6 +10,7 @@ import 'package:Empuan/services/empuanServices.dart';
 import 'package:Empuan/signUp/intro.dart';
 import 'package:Empuan/signUp/intro1.dart';
 import 'package:Empuan/utils/snackbar_helper.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 import 'package:whatsapp/whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
@@ -99,116 +100,209 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(237, 237, 237, 1),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
+          ),
+        ),
+        child: SafeArea(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Empuan',
-                  style: TextStyle(
-                      fontFamily: 'Brodies',
-                      color: Color.fromRGBO(251, 111, 146, 1),
-                      fontSize: 40),
-                ),
-                const SizedBox(height: 40),
-                buildTextField(
-                  controller: usernameController,
-                  obscureText: false,
-                  hintText: 'Username',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(
-                  height: 20,
-                ),
-                //password
-                buildTextField(
-                  controller: passwordController,
-                  hintText: 'Password',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                  obscureText:
-                      obscurePassword, // Pass the obscurePassword value
-                  onTap: () {
-                    setState(() {
-                      obscurePassword =
-                          !obscurePassword; // Toggle obscurePassword value
-                    });
-                  },
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                //sign in button
-                SizedBox(
-                  width: 100,
-                  child: FilledButton(
-                    onPressed:
-                        // if (_formKey.currentState!.validate()) {
-                        //   Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        //     builder: (context) => const MainScreen(),
-                        //   ));
-                        // }
-                        doLogin,
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                            const Color.fromRGBO(251, 111, 146, 1))),
-                    child: const Text(
-                      'Login',
-                      style:
-                          TextStyle(fontFamily: 'Satoshi', color: Colors.white),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(
-                  height: 15,
-                ),
-                // register button
-                Row(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Not a member?',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextButton(
-                      child: const Text(
-                        'Register Now',
-                        style: TextStyle(
-                            color: Color.fromRGBO(251, 111, 146, 1),
-                            fontWeight: FontWeight.bold),
+                    // Logo Container
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      onPressed:
-                          // location
-                          // share
-                          () {
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                            builder: (context) => const Intro()));
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        size: 50,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Title
+                    const Text(
+                      'Empuan',
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        color: AppColors.primary,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Subtitle
+                    const Text(
+                      'Welcome Back',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Description
+                    Text(
+                      'Your holistic health journey awaits 🌸',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        color: AppColors.textSecondary.withOpacity(0.8),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Username Field
+                    buildModernTextField(
+                      controller: usernameController,
+                      obscureText: false,
+                      hintText: 'Email',
+                      prefixIcon: Icons.person_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your username';
+                        }
+                        return null;
                       },
-                      //     () {
-                      //   Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      //       builder: (context) => MapScreen()));
-                      // },
-                    )
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password Field
+                    buildModernTextField(
+                      controller: passwordController,
+                      hintText: 'Password',
+                      prefixIcon: Icons.lock_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                      obscureText: obscurePassword,
+                      onTap: () {
+                        setState(() {
+                          obscurePassword = !obscurePassword;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Login Button
+                    Container(
+                      width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primaryVariant,
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: doLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Register Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Not a member?',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const Intro(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Register Now',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Footer
+                    Text(
+                      '© 2025 Empuan | Designed for holistic wellbeing',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        color: AppColors.textSecondary.withOpacity(0.6),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
-                // Text('LAT: ${_currentPosition?.latitude ?? ""}'),
-                // Text('LNG: ${_currentPosition?.longitude ?? ""}'),
-              ],
+              ),
             ),
           ),
         ),
@@ -246,6 +340,103 @@ class _LoginPageState extends State<LoginPage> {
         ),
         validator: validator,
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget buildModernTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData prefixIcon,
+    String? Function(String?)? validator,
+    Function()? onTap,
+    bool? obscureText,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText ?? false,
+        style: const TextStyle(
+          fontFamily: 'Satoshi',
+          color: AppColors.textPrimary,
+          fontSize: 15,
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            fontFamily: 'Satoshi',
+            color: AppColors.textSecondary.withOpacity(0.5),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            prefixIcon,
+            color: AppColors.primary,
+            size: 22,
+          ),
+          suffixIcon: hintText == 'Password'
+              ? IconButton(
+                  icon: Icon(
+                    obscureText == true
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
+                  onPressed: onTap,
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppColors.primary,
+              width: 2,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppColors.error,
+              width: 1.5,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppColors.error,
+              width: 2,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+        ),
+        validator: validator,
       ),
     );
   }
@@ -323,8 +514,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> location() async {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission) return;
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     print('test');
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
         .then((Position position) {

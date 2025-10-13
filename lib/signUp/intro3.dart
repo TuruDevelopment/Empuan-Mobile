@@ -1,6 +1,7 @@
+import 'package:Empuan/tempSignUpPage.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:Empuan/signUpPage.dart';
+// import 'package:Empuan/signUpPage.dart';
 import 'package:Empuan/styles/style.dart';
 
 class Intro3 extends StatefulWidget {
@@ -79,7 +80,7 @@ class _Intro3State extends State<Intro3> {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const SignUpPage()));
+                            builder: (context) => const tempSignUpPage()));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(
