@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-// import 'package:Empuan/components/content_suaraPuan.dart';
 import 'package:Empuan/screens/isiSuaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
 class SuaraPuan extends StatefulWidget {
@@ -29,81 +29,157 @@ class _SuaraPuanState extends State<SuaraPuan> {
   @override
   Widget build(BuildContext context) {
     final PageController controller = PageController();
-    int currentTab = 0;
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: TextField(
-          decoration: InputDecoration(
-              suffixIcon: Icon(Icons.search, color: Colors.black)),
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.settings,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              // do something
-            },
-          )
-        ],
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 32),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'For You',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                      fontFamily: 'Satoshi-Bold',
-                      color: Color.fromRGBO(251, 111, 146, 1),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 30),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Modern Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    // Back Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Search Bar
+                    Expanded(
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.accent.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.accent.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Search articles...',
+                            hintStyle: TextStyle(
+                              fontFamily: 'Satoshi',
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppColors.primary,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Settings Button
+                    
+                  ],
                 ),
               ),
-            ),
-            Container(
-              height: 250,
-              child: PageView(
-                controller: controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentTab = index;
-                  });
-                },
-                children: dataSuaraPuan
-                    .map((item) => BannerWidget(data: item))
-                    .toList(),
-              ),
-            ),
-            Container(
+
+              // Content
+              Expanded(
                 child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  getDataSuaraPuan(dataSuaraPuan),
-                ],
+                  child: Column(
+                    children: [
+                      // Section Title
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 16.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.auto_awesome_rounded,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'For You',
+                              style: TextStyle(
+                                fontFamily: 'Brodies',
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Banner Carousel
+                      Container(
+                        height: 260,
+                        child: PageView(
+                          controller: controller,
+                          children: dataSuaraPuan
+                              .map((item) => BannerWidget(data: item))
+                              .toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Article List
+                      Container(
+                        child: Column(
+                          children: [
+                            getDataSuaraPuan(dataSuaraPuan),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
-            )),
-            SizedBox(
-              height: 30,
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -115,7 +191,7 @@ class _SuaraPuanState extends State<SuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/suarapuans';
+    final url = 'http://192.168.8.83:8000/api/suarapuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -169,80 +245,144 @@ class BannerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(33, 17, 33, 0),
+      margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        // color: Colors.blue,
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
-        // mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 325,
-            height: 148,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => IsiSuaraPuan(
-                          id: data['id'].toString(),
-                          title: data['title'].toString(),
-                          content: data['content'].toString(),
-                          media: data['media'].toString(),
-                          dop: data['dop'].toString(),
-                          kategori_id: data['kategori_id'].toString(),
-                          user_id: data['user_id'].toString(),
-                          video: data['video'].toString(),
-                        )));
-              },
-              child: Image.network(
-                data['media'].toString(),
-                fit: BoxFit.cover,
+          // Image
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => IsiSuaraPuan(
+                        id: data['id'].toString(),
+                        title: data['title'].toString(),
+                        content: data['content'].toString(),
+                        media: data['media'].toString(),
+                        dop: data['dop'].toString(),
+                        kategori_id: data['kategori_id'].toString(),
+                        user_id: data['user_id'].toString(),
+                        video: data['video'].toString(),
+                      )));
+            },
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+              child: Container(
+                width: double.infinity,
+                height: 160,
+                child: Image.network(
+                  data['media'].toString(),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.accent.withOpacity(0.1),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_rounded,
+                          color: AppColors.textSecondary,
+                          size: 48,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
-          SizedBox(height: 4),
+          // Info Section
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0),
-            child: Row(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  data['dop'].toString(),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontFamily: 'Satoshi',
-                    fontWeight: FontWeight.w900,
-                    color: const Color.fromRGBO(251, 111, 146, 1),
-                    fontSize: 12,
+                // Category Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primaryVariant,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.label_rounded,
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        getCategory(int.parse(data['kategori_id'].toString())),
+                        style: const TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 10),
+                // Title
                 Text(
-                  " | " +
-                      getCategory(int.parse(data['kategori_id'].toString())),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
+                  data['title'].toString(),
+                  style: const TextStyle(
                     fontFamily: 'Satoshi',
-                    fontWeight: FontWeight.w900,
-                    color: const Color.fromRGBO(251, 111, 146, 1),
-                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                // Date
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      data['dop'].toString(),
+                      style: const TextStyle(
+                        fontFamily: 'Satoshi',
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          SizedBox(height: 3),
-          Text(
-            data['title'].toString(),
-            style: TextStyle(
-                fontFamily: 'Satoshi',
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
-                fontSize: 20),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

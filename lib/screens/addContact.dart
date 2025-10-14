@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/contactBox.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
@@ -40,118 +39,275 @@ class _AddContactState extends State<AddContact> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
           ),
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.check,
-              color: AppColors.pink1,
-            ),
-            onPressed: () {
-              submitData();
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 20,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: SafeArea(
+          child: Column(
             children: [
-              Text(
-                'Add Contact',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontFamily: 'Satoshi',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25),
+              // Modern Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'Add Contact',
+                        style: TextStyle(
+                          fontFamily: 'Brodies',
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+
+                      // Avatar with gradient border
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [AppColors.primary, AppColors.secondary],
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: AppColors.surface,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const CircleAvatar(
+                            backgroundImage:
+                                AssetImage('images/profileDefault.jpg'),
+                            radius: 50,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // Name Field
+                      _buildModernTextField(
+                        controller: nameController,
+                        hintText: 'Full Name',
+                        icon: Icons.person_rounded,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Phone Number Field
+                      _buildModernTextField(
+                        controller: numberController,
+                        hintText: 'Phone Number',
+                        icon: Icons.phone_rounded,
+                        keyboardType: TextInputType.phone,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Relation Field
+                      _buildModernTextField(
+                        controller: relationController,
+                        hintText: 'Relation (e.g., Mother, Father)',
+                        icon: Icons.people_rounded,
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // Save Button
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryVariant,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (nameController.text.trim().isEmpty ||
+                                numberController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: const [
+                                      Icon(Icons.warning_rounded,
+                                          color: Colors.white),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Please fill name and phone number',
+                                        style: TextStyle(
+                                          fontFamily: 'Satoshi',
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: AppColors.error,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                              return;
+                            }
+                            submitData();
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 24,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Save Contact',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
-          SizedBox(height: 20),
-          CircleAvatar(
-            backgroundImage: AssetImage('images/profileDefault.jpg'),
-            radius: 40,
-          ),
-          SizedBox(height: 30),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Name',
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: TextField(
-                  controller: numberController,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Phone Number',
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: TextField(
-                  controller: relationController,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Relation',
-                  ),
-                ),
-              ),
-            ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(
+          fontFamily: 'Satoshi',
+          fontSize: 15,
+          color: AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hintText,
+          hintStyle: TextStyle(
+            fontFamily: 'Satoshi',
+            fontSize: 15,
+            color: AppColors.textSecondary.withOpacity(0.5),
+          ),
+          prefixIcon: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
+        ),
       ),
     );
   }
@@ -160,29 +316,93 @@ class _AddContactState extends State<AddContact> {
     setState(() {
       isLoading = true;
     });
-    final name = nameController.text;
-    final number = numberController.text;
-    final relation = relationController.text;
+    final name = nameController.text.trim();
+    final number = numberController.text.trim();
+    final relation = relationController.text.trim();
+
     final body = {
       'name': name,
       'phoneNumber': number,
       'relation': relation,
     };
 
-    final url = "http://192.168.8.96:8000/api/kontakpalsus";
+    final url = "http://192.168.8.83:8000/api/kontakpalsus";
     final uri = Uri.parse(url);
-    final response = await http.post(uri, body: jsonEncode(body), headers: {
-      'Content-Type': 'application/json',
-      'Authorization': '${AuthService.token}'
-    });
 
-    print(response.statusCode);
-    print(response.body);
-    getData();
-    setState(() {
-      isLoading = false;
-    });
-    widget.onContactAdded();
+    try {
+      final response = await http.post(uri, body: jsonEncode(body), headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '${AuthService.token}'
+      });
+
+      print(response.statusCode);
+      print(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text(
+                    'Contact added successfully!',
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.secondary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        widget.onContactAdded();
+      }
+    } catch (e) {
+      print('Error submitting data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to add contact. Please try again.',
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> getData() async {
@@ -191,7 +411,7 @@ class _AddContactState extends State<AddContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/kontakpalsus';
+    final url = 'http://192.168.8.83:8000/api/kontakpalsus';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

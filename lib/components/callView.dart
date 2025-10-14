@@ -1,144 +1,234 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/services.dart';
-import 'dart:typed_data';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:Empuan/styles/style.dart';
 
 class CallView extends StatelessWidget {
-  CallView({super.key, required this.name, required this.number});
-
   final String name;
   final String number;
 
-  final player = AudioPlayer();
+  const CallView({
+    Key? key,
+    required this.name,
+    required this.number,
+  }) : super(key: key);
 
-  Future<void> playSound() async {
-    String soundPath = "ringtone.mp3";
-    // await player.play(AssetSource(soundPath));
-    player.play(AssetSource(soundPath));
-  }
-
-  Future<void> stopSound() async {
-    player.stop();
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(
+          launchUri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        print('Cannot launch phone dialer for: $phoneNumber');
+      }
+    } catch (e) {
+      print('Error making phone call: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    playSound();
-    return Container(
+    return Scaffold(
+      body: Container(
         decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage("images/bgQuiz.png"), fit: BoxFit.fill)),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
+          ),
+        ),
         child: SafeArea(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Text(
+                      'Ready to Call',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 48), // Balance the back button
+                  ],
+                ),
+              ),
+
+              // Contact Info
               Column(
                 children: [
-                  SizedBox(
-                    height: 30,
+                  // Avatar
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary,
+                          AppColors.primaryVariant,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppColors.surface,
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 60,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 32),
+                  // Name
                   Text(
                     name,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Satoshi',
-                        fontSize: 50,
-                        decoration: TextDecoration.none),
+                    style: const TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                  SizedBox(
-                    height: 10,
+                  const SizedBox(height: 8),
+                  // Phone Number
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.phone_rounded,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          number,
+                          style: const TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    number,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Satoshi',
-                        fontSize: 20,
-                        fontWeight: FontWeight.normal,
-                        decoration: TextDecoration.none),
-                  )
                 ],
               ),
-              SizedBox(
-                height: 420,
-              ),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton(
-                  style: ButtonStyle(
-                      // iconSize: MaterialStatePropertyAll,
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black12),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ))),
-                  onPressed: () {
-                    // Navigator.pop(context);
-                    // await player.play(AssetSource('audios/ringtone.mp3'));
-                    // await player.setSourceAsset('audios/ringtone.mp3');
-                    // player.play;
-                    // playSound();
-                  },
-                  child: Icon(
-                    Icons.volume_up_rounded,
-                    size: 50,
-                  ),
-                ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                      // iconSize: MaterialStatePropertyAll,
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black12),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ))),
-                  onPressed: () {
-                    // Navigator.pop(context);
-                  },
-                  child: Icon(
-                    Icons.pause,
-                    size: 50,
-                  ),
-                ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                      // iconSize: MaterialStatePropertyAll,
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black12),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ))),
-                  onPressed: () {
-                    // Navigator.pop(context);
-                  },
-                  child: Icon(
-                    Icons.mic_off,
-                    size: 50,
-                  ),
-                ),
-              ]),
-              SizedBox(height: 30),
-              ElevatedButton(
-                style: ButtonStyle(
-                    // iconSize: MaterialStatePropertyAll,
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.red),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ))),
-                onPressed: () {
-                  stopSound();
-                  Navigator.pop(context);
-                },
-                child: Icon(
-                  Icons.call_end,
-                  size: 50,
+
+              // Call Button
+              Padding(
+                padding: const EdgeInsets.all(40.0),
+                child: Column(
+                  children: [
+                    // Call Button
+                    GestureDetector(
+                      onTap: () => _makePhoneCall(number),
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.secondary,
+                              AppColors.secondary.withOpacity(0.8),
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.secondary.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.phone_rounded,
+                          size: 36,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Tap to Call',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Cancel Button
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

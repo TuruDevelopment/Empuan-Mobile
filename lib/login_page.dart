@@ -589,7 +589,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> getData() async {
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/ruangPuans';
+    final url = 'http://192.168.8.83:8000/api/ruangPuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

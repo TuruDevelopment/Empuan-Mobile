@@ -296,7 +296,7 @@ class _Question2State extends State<Question2> {
                                 }
                                 print("KESKIPPPP");
                                 // Lakukan logout setelah submit data catatan haid
-                                AuthService.logout();
+                                await AuthService.logout();
 
                                 // Pindah ke halaman selanjutnya
                                 Navigator.of(context).push(MaterialPageRoute(
@@ -341,7 +341,7 @@ class _Question2State extends State<Question2> {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.8.96:8000/api/users/username/$username';
+    final url = 'http://192.168.8.83:8000/api/users/username/$username';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -368,7 +368,7 @@ class _Question2State extends State<Question2> {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.8.96:8000/api/catatanhaids";
+    final url = "http://192.168.8.83:8000/api/catatanhaids";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

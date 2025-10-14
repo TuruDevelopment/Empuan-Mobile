@@ -1,13 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/checkBoxSignUp.dart';
 import 'package:Empuan/components/jawabanDailyQuiz.dart';
-import 'package:Empuan/screens/HomePage.dart';
-import 'package:Empuan/screens/home.dart';
 import 'package:Empuan/services/auth_service.dart';
-import 'package:Empuan/signUp/question2.dart';
-import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,7 +16,8 @@ class DailyQuiz extends StatefulWidget {
 class _DailyQuizState extends State<DailyQuiz> {
   TextEditingController dateInputController = TextEditingController();
   bool isLoading = true;
-  int selectedIndex = 0; // Tambahkan variabel selectedIndex
+  int? selectedIndex; // Ubah ke nullable untuk validasi
+  bool hasAnswered = false; // Tambah flag untuk track apakah user sudah pilih
 
   void initState() {
     super.initState();
@@ -62,124 +58,425 @@ class _DailyQuizState extends State<DailyQuiz> {
     print(dataQuestion);
     print(dataOption);
     print(checkListItems);
-    var appBar = AppBar();
+
+    // Check if no questions available after loading
+    bool hasNoQuestions = !isLoading && dataQuestion.isEmpty;
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
+          ),
+        ),
         child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppBar(
-                  toolbarHeight: 70,
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  automaticallyImplyLeading: false,
-                  leading: IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: (MediaQuery.of(context).size.height -
-                      appBar.preferredSize.height),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        // 'Is your menstrual cycle regular\n(varies by no more 7 days) ?',
-                        dataQuestion.isNotEmpty
-                            ? dataQuestion[0]['questions'].toString()
-                            : '',
-                        style: TextStyle(
-                            fontFamily: 'Satoshi',
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                      Column(
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                checkListItems.length,
-                                (index) => LabeledCheckboxExample(
-                                  index: index,
-                                  sentences: checkListItems[index]["title"],
-                                  value: checkListItems[index]["selected"],
-                                  onChanged: (value) {
-                                    setState(() {
-                                      for (var i = 0;
-                                          i < checkListItems.length;
-                                          i++) {
-                                        if (i == index) {
-                                          checkListItems[i]["selected"] = true;
-                                          selectedIndex =
-                                              index; // Update selectedIndex
-                                        } else {
-                                          checkListItems[i]["selected"] = false;
-                                        }
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
+          child: Column(
+            children: [
+              // Modern Header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
-                          const SizedBox(height: 30),
-                          Row(
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Daily Quiz',
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Scrollable Content
+              Expanded(
+                child: hasNoQuestions
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 25),
-                                child: Container(
-                                  width: 100,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        const Color.fromRGBO(251, 111, 146, 1),
-                                    borderRadius: BorderRadius.circular(12),
+                              // Empty state icon
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: AppColors.accent.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.quiz_outlined,
+                                  size: 64,
+                                  color: AppColors.accent.withOpacity(0.5),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'No Questions Available',
+                                style: TextStyle(
+                                  fontFamily: 'Brodies',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'There are no quiz questions available at the moment. Please check back later!',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 15,
+                                  color:
+                                      AppColors.textSecondary.withOpacity(0.8),
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 32),
+                              Container(
+                                width: double.infinity,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primary.withOpacity(0.8),
+                                    ],
                                   ),
-                                  child: Center(
-                                    child: TextButton(
-                                      child: const Text(
-                                        'Save & Next',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      onPressed: () {
-                                        // Perform action based on selected option
-                                        // For example, navigate to the next page
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .push(MaterialPageRoute(
-                                                builder: (context) =>
-                                                    JawabanDailyQuiz(
-                                                      selectedindex:
-                                                          selectedIndex, // Gunakan selectedIndex
-                                                    )));
-                                      },
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
                                     ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.arrow_back_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Go Back',
+                                        style: TextStyle(
+                                          fontFamily: 'Satoshi',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+
+                            // Quiz Icon
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.error,
+                                    AppColors.error.withOpacity(0.8),
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.error.withOpacity(0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.quiz_rounded,
+                                color: Colors.white,
+                                size: 48,
+                              ),
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Question Card
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.accent.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                dataQuestion.isNotEmpty
+                                    ? dataQuestion[0]['questions'].toString()
+                                    : 'Loading question...',
+                                style: const TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Options List
+                            Column(
+                              children: isLoading
+                                  ? [
+                                      // Loading skeleton for options
+                                      for (int i = 0; i < 4; i++)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 12),
+                                          child: Container(
+                                            height: 60,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.surface,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: AppColors.accent
+                                                    .withOpacity(0.2),
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    AppColors.accent
+                                                        .withOpacity(0.5),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ]
+                                  : List.generate(
+                                      checkListItems.length,
+                                      (index) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12),
+                                        child: LabeledCheckboxExample(
+                                          index: index,
+                                          sentences: checkListItems[index]
+                                              ["title"],
+                                          value: checkListItems[index]
+                                              ["selected"],
+                                          onChanged: (value) {
+                                            setState(() {
+                                              for (var i = 0;
+                                                  i < checkListItems.length;
+                                                  i++) {
+                                                if (i == index) {
+                                                  checkListItems[i]
+                                                      ["selected"] = true;
+                                                  selectedIndex = index;
+                                                  hasAnswered = true;
+                                                } else {
+                                                  checkListItems[i]
+                                                      ["selected"] = false;
+                                                }
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Save Button
+                            Container(
+                              width: double.infinity,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  colors: (isLoading || !hasAnswered)
+                                      ? [
+                                          AppColors.accent.withOpacity(0.5),
+                                          AppColors.accent.withOpacity(0.3),
+                                        ]
+                                      : [
+                                          AppColors.error,
+                                          AppColors.error.withOpacity(0.8),
+                                        ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (isLoading || !hasAnswered)
+                                        ? AppColors.accent.withOpacity(0.1)
+                                        : AppColors.error.withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                onPressed: (isLoading ||
+                                        !hasAnswered ||
+                                        selectedIndex == null)
+                                    ? null
+                                    : () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                JawabanDailyQuiz(
+                                              selectedindex: selectedIndex!,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                child: isLoading
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                Colors.white70,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            'Loading...',
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            hasAnswered
+                                                ? 'Save & Next'
+                                                : 'Select an answer',
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: hasAnswered
+                                                  ? Colors.white
+                                                  : Colors.white70,
+                                            ),
+                                          ),
+                                          if (hasAnswered) ...[
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 32),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -192,7 +489,7 @@ class _DailyQuizState extends State<DailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/questions';
+    final url = 'http://192.168.8.83:8000/api/questions';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -234,7 +531,7 @@ class _DailyQuizState extends State<DailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://192.168.8.96:8000/api/questions/$idQuestion/options';
+      final url = 'http://192.168.8.83:8000/api/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {
@@ -299,34 +596,77 @@ class LabeledCheckboxExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-              color: AppColors.bg1, borderRadius: BorderRadius.circular(10)),
-          child: CheckboxListTile(
-            // controlAffinity: ListTileControlAffinity.leading,
-            // contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(
-              sentences,
-              style: const TextStyle(
-                  fontSize: 16.0, color: Colors.black, fontFamily: 'Satoshi'),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 0),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value == true
+              ? AppColors.error.withOpacity(0.5)
+              : AppColors.accent.withOpacity(0.2),
+          width: value == true ? 2 : 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: value == true
+                ? AppColors.error.withOpacity(0.15)
+                : AppColors.accent.withOpacity(0.08),
+            blurRadius: value == true ? 12 : 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onChanged?.call(!value!),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: value == true
+                          ? AppColors.error
+                          : AppColors.accent.withOpacity(0.5),
+                      width: 2,
+                    ),
+                    color: value == true ? AppColors.error : Colors.transparent,
+                  ),
+                  child: value == true
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    sentences,
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontSize: 15,
+                      fontWeight:
+                          value == true ? FontWeight.bold : FontWeight.w500,
+                      color: value == true
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            value: value,
-            onChanged: onChanged,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0), // Optionally
-              side: const BorderSide(color: Colors.pink),
-            ),
-            activeColor: const Color.fromRGBO(251, 111, 146, 1),
-            checkboxShape: CircleBorder(),
           ),
         ),
-        SizedBox(
-          height: 10,
-        )
-      ],
+      ),
     );
   }
 }

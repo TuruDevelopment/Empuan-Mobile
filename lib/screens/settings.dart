@@ -22,10 +22,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  late String username;
-  late String userID;
-  late String profilePicture;
-
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -159,8 +156,8 @@ class _SettingsState extends State<Settings> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => EditProfile(
-                                        username: username,
-                                        profilePicture: profilePicture,
+                                        username: widget.username,
+                                        profilePicture: widget.profilePicture,
                                       ),
                                     ),
                                   );
@@ -574,8 +571,8 @@ class _SettingsState extends State<Settings> {
                       ),
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        AuthService.logout();
+                      onPressed: () async {
+                        await AuthService.logout();
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
                             builder: (context) => const StartPage(),

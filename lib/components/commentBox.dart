@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/callView.dart';
-import 'package:Empuan/components/editContact.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +18,7 @@ Widget getDataComment(List<dynamic> dataComment) {
   String comment;
   String dop;
   // String like;
-  int ruangpuan_id;
+  int? ruangpuan_id;
 
   List<Widget> dataCommentBoxes = [];
   for (var i = 0; i < dataComment.length; i++) {
@@ -36,7 +34,7 @@ Widget getDataComment(List<dynamic> dataComment) {
     comment = dataComment[i]['comment'].toString();
     dop = dataComment[i]['dop'].toString();
     // like = dataComment[i]['like'].toString();
-    ruangpuan_id = dataComment[i]['ruangpuan_id'];
+    ruangpuan_id = dataComment[i]['ruangpuan_id'] as int?;
 
     dataCommentBoxes.add(CommentBox(
       // username: username,
@@ -66,13 +64,13 @@ class CommentBox extends StatelessWidget {
       required this.user_id,
       required this.comment,
       required this.dop,
-      required this.ruangpuan_id})
+      this.ruangpuan_id})
       : super(key: key);
 
   final String user_id;
   final String comment;
   final String dop;
-  final int ruangpuan_id;
+  final int? ruangpuan_id;
 
   @override
   Widget build(BuildContext context) {
@@ -80,94 +78,125 @@ class CommentBox extends StatelessWidget {
       future: getUsernameById(user_id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(); // Menampilkan loading spinner selama proses penungguan
+          return Container(
+            padding: EdgeInsets.all(16),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            ),
+          );
         } else if (snapshot.hasError) {
-          return Text(
-              'Error: ${snapshot.error}'); // Menampilkan pesan error jika terjadi kesalahan
+          return Container(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Error loading comment',
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 14,
+                color: AppColors.error,
+              ),
+            ),
+          );
         } else {
-          final username = snapshot.data ??
-              'Unknown User'; // Mendapatkan hasil dari fungsi getUsernameById
-          return Center(
-            child: Container(
-              decoration: BoxDecoration(color: Colors.white),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      child: Row(
-                        children: [
-                          SizedBox(width: 10),
-                          CircleAvatar(
-                            backgroundImage:
-                                AssetImage('images/profilePict.png'),
-                            radius: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Container(
-                            width: 270,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      username,
-                                      style: TextStyle(
-                                          fontFamily: 'Satoshi',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15),
-                                    ),
-                                    Text(
-                                      dop,
-                                      style: TextStyle(
-                                          fontFamily: 'Satoshi', fontSize: 15),
-                                    )
-                                  ],
-                                ),
-                                Container(
-                                  width: 270,
-                                  child: Text(
-                                    comment,
-                                    style: TextStyle(
-                                        fontFamily: 'Satoshi', fontSize: 15),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
+          final username = snapshot.data ?? 'Unknown User';
+          return Container(
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.accent.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accent.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.secondary,
+                      ],
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      backgroundImage: AssetImage('images/profilePict.png'),
+                      radius: 20,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        child: Row(
-                          children: [
-                            SizedBox(width: 5),
-                          ],
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              username,
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              dop,
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 15),
-                      Container(
-                        child: Row(
-                          children: [
-                            Icon(Icons.favorite_border),
-                            SizedBox(width: 5),
-                            Text('10')
-                          ],
+                      SizedBox(height: 8),
+                      Text(
+                        comment,
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          height: 1.4,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
@@ -176,7 +205,7 @@ class CommentBox extends StatelessWidget {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.96:8000/api/users/$userId';
+    final url = 'http://192.168.8.83:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

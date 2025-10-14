@@ -58,13 +58,14 @@ dependencies:
   whatsapp: ^2.0.0
   geolocator: ^11.0.0
   geocoding: ^2.0.4
-  url_launcher:
+  url_launcher: ^6.2.0
   telephony:
   # flutter_qpython:
   direct_sms:
   permission_handler:
   flutter_sound:
   video_player:
+  shared_preferences: ^2.2.2
 
   # image_picker: ^1.0.7
 

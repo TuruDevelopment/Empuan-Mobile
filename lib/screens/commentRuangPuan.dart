@@ -2,9 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sticky_headers/sticky_headers/widget.dart';
 import 'package:Empuan/components/commentBox.dart';
-import 'package:Empuan/components/searchCard.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
@@ -21,7 +19,6 @@ class Comment extends StatefulWidget {
 }
 
 class _CommentState extends State<Comment> {
-  final ScrollController _scrollController = ScrollController();
   bool isLoading = true;
 
   TextEditingController _commentController = TextEditingController();
@@ -59,81 +56,226 @@ class _CommentState extends State<Comment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.surface,
         title: Text(
           'Comments',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(
+            fontFamily: 'Brodies',
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+            fontSize: 20,
+          ),
         ),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
           icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+            Icons.arrow_back_rounded,
+            color: AppColors.primary,
           ),
         ),
       ),
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.surface,
+              AppColors.background,
+              AppColors.accent.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: 10),
+              Expanded(
+                child: isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : dataComment.isEmpty
+                        ? _buildEmptyState()
+                        : SingleChildScrollView(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              children: [
+                                getDataComment(dataComment),
+                                SizedBox(height: 20),
+                              ],
+                            ),
+                          ),
+              ),
+              _buildCommentInput(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 10,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    getDataComment(dataComment),
-                  ],
-                ),
-              ),
-            ),
             Container(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10))),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 7.0),
-                            child: TextField(
-                                controller: _commentController,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Write your Comment',
-                                )),
-                          )),
-                    ),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all(AppColors.pink1)),
-                      onPressed: () {
-                        submitComment();
-                      },
-                      child: Text('Post'),
-                    ),
-                  ],
-                ),
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
-            )
+              child: Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 64,
+                color: AppColors.accent.withOpacity(0.5),
+              ),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'No Comments Yet',
+              style: TextStyle(
+                fontFamily: 'Brodies',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Be the first to share your thoughts!\nStart the conversation below.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 14,
+                color: AppColors.textSecondary.withOpacity(0.8),
+                height: 1.5,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildCommentInput() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.1),
+            blurRadius: 12,
+            offset: Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: TextField(
+                controller: _commentController,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Write your comment...',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 14,
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  AppColors.primaryVariant,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              onPressed: () {
+                if (_commentController.text.trim().isNotEmpty) {
+                  submitComment();
+                }
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.send_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Post',
+                    style: TextStyle(
+                      fontFamily: 'Satoshi',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.96:8000/api/users/$userId';
+    final url = 'http://192.168.8.83:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -156,7 +298,7 @@ class _CommentState extends State<Comment> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.8.96:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.83:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -183,7 +325,7 @@ class _CommentState extends State<Comment> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/users/current';
+    final url = 'http://192.168.8.83:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -210,6 +352,8 @@ class _CommentState extends State<Comment> {
     // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik' + response.body);
+
+    return null;
   }
 
   Future<void> submitComment() async {
@@ -224,7 +368,7 @@ class _CommentState extends State<Comment> {
     };
 
     final url =
-        'http://192.168.8.96:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.83:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
     print('url: ' + url);
     final uri = Uri.parse(url);
 
@@ -241,7 +385,7 @@ class _CommentState extends State<Comment> {
       'Authorization': '${AuthService.token}'
     });
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       setState(() {
         dataComment.add({
           'comment': comment,
@@ -251,9 +395,64 @@ class _CommentState extends State<Comment> {
         });
         _commentController.clear();
       });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Comment posted successfully!',
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     } else {
       print('Error submitting comment: ${response.statusCode}');
       print(response.body);
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Failed to post comment. Please try again.',
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+          ),
+        );
+      }
     }
   }
   // Future<void> submitData() async {
@@ -266,7 +465,7 @@ class _CommentState extends State<Comment> {
   //     'relation': relation,
   //   };
 
-  //   final url = "http://192.168.8.96:8000/api/kontakpalsus";
+  //   final url = "http://192.168.8.83:8000/api/kontakpalsus";
   //   final uri = Uri.parse(url);
   //   final response = await http.post(uri, body: jsonEncode(body), headers: {
   //     'Content-Type': 'application/json',

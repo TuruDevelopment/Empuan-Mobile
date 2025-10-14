@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:async';
 
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:Empuan/screens/HomePage.dart';
@@ -11,7 +11,6 @@ import 'package:Empuan/screens/nav_model.dart';
 import 'package:Empuan/screens/panggilPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:whatsapp_share/whatsapp_share.dart';
 import 'package:whatsapp/whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:telephony/telephony.dart';
@@ -61,26 +60,6 @@ class _MainScreenState extends State<MainScreen> {
   late DateTime _enddate = DateTime.now();
 
   bool sosActive = false;
-  Gradient _gradient = LinearGradient(colors: [
-    const Color.fromRGBO(251, 111, 146, 1),
-    const Color.fromRGBO(255, 143, 171, 1)
-  ]);
-
-  Gradient _gradient2 = LinearGradient(colors: [
-    Color.fromARGB(255, 37, 159, 70),
-    Color.fromARGB(255, 37, 159, 70)
-  ]);
-
-  Icon icon1 = Icon(
-    Icons.crisis_alert_rounded,
-    size: 30,
-    color: Colors.white,
-  );
-  Icon icon2 = Icon(
-    Icons.close,
-    size: 30,
-    color: Colors.white,
-  );
 
   @override
   void initState() {
@@ -122,9 +101,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   WhatsApp whatsapp = WhatsApp();
-  String? _currentAddress;
   Position? _currentPosition;
-  static const platform = const MethodChannel('sendSms');
   final Telephony telephony = Telephony.instance;
   var directSms = DirectSms();
 
@@ -137,23 +114,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // print(${_startdate} + '-' + ${_enddate});
-    AlertDialog alert = AlertDialog(
-      // title: Text("My title"),
-      content: Text(
-        "Your Location is Now Shared to Your Contacts",
-        style: TextStyle(
-            fontFamily: 'Satoshi', fontWeight: FontWeight.bold, fontSize: 15),
-      ),
-      actions: [
-        // okButton,
-      ],
-      // backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.only(top: 440, left: 80, right: 80),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(32.0))),
-    );
-
     return WillPopScope(
       onWillPop: () {
         if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
@@ -164,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color.fromRGBO(237, 237, 237, 1),
+        backgroundColor: AppColors.background,
         body: IndexedStack(
           index: selectedTab,
           children: items
@@ -181,60 +141,61 @@ class _MainScreenState extends State<MainScreen> {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Container(
           margin: const EdgeInsets.only(top: 10),
-          height: 64,
-          width: 64,
+          height: 70,
+          width: 70,
           child: FloatingActionButton(
             elevation: 0,
             backgroundColor: Colors.transparent,
-            // shape: RoundedRectangleBorder(
-            //   side: const BorderSide(
-            //       width: 0, color: Color.fromRGBO(237, 237, 237, 1)),
-            //   borderRadius: BorderRadius.circular(100),
-            // ),
             child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: sosActive ? _gradient2 : _gradient),
-                child: sosActive ? icon2 : icon1),
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: sosActive
+                      ? [
+                          AppColors.secondary,
+                          AppColors.secondary.withOpacity(0.8),
+                        ]
+                      : [
+                          AppColors.error,
+                          AppColors.error.withOpacity(0.8),
+                        ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: sosActive
+                        ? AppColors.secondary.withOpacity(0.4)
+                        : AppColors.error.withOpacity(0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                sosActive ? Icons.close_rounded : Icons.crisis_alert_rounded,
+                size: 36,
+                color: Colors.white,
+              ),
+            ),
             onPressed: () {
-              setState(() {
-                sosActive = !sosActive;
-                if (sosActive) {
-                  location();
-                  showDialog(
-                      barrierColor: Color(0x01000000),
-                      context: context,
-                      builder: (BuildContext context) {
-                        Future.delayed(Duration(seconds: 3), () {
-                          Navigator.of(context).pop(true);
-                        });
-                        location();
-                        return alert;
-                      });
-                }
-              });
-              // isInstalled();
+              if (sosActive) {
+                // Just toggle off
+                setState(() {
+                  sosActive = false;
+                });
+              } else {
+                // Toggle on and show dialog
+                setState(() {
+                  sosActive = true;
+                });
+                location();
+                _showLocationSharedDialog();
+              }
             },
           ),
-          // FloatingActionButton(
-          //   backgroundColor: AppColors.pink1,
-          //   elevation: 0,
-          //   onPressed: () => debugPrint("Add Button pressed"),
-          //   shape: RoundedRectangleBorder(
-          //     // side: const BorderSide(
-          //     //   width: 3,
-          //     //   color: Color.fromRGBO(237, 237, 237, 1),
-          //     // ),
-          //     borderRadius: BorderRadius.circular(100),
-          //   ),
-          //   child: const Icon(
-          //     Icons.crisis_alert_rounded,
-          //     color: Color.fromARGB(255, 255, 255, 255),
-          //     size: 40,
-          //   ),
-          // ),
         ),
         bottomNavigationBar: selectedTab == 99
             ? null
@@ -258,7 +219,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.96:8000/api/users/current';
+    final url = 'http://192.168.8.83:8000/api/users/current';
     final uri = Uri.parse(url);
 
     final response =
@@ -280,7 +241,7 @@ class _MainScreenState extends State<MainScreen> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.96:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.83:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -339,9 +300,6 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> location() async {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission || !mounted) return;
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    print('test');
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
         .then((Position position) {
       setState(() => _currentPosition = position);
@@ -390,7 +348,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/kontakamans';
+    final url = 'http://192.168.8.83:8000/api/kontakamans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -422,5 +380,74 @@ class _MainScreenState extends State<MainScreen> {
     // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik kontak' + response.body);
+  }
+
+  void _showLocationSharedDialog() {
+    showDialog(
+      barrierColor: Colors.black26,
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        // Use Timer to auto-close dialog
+        Timer(const Duration(seconds: 3), () {
+          // Check if dialog context is still mounted
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext).pop();
+          }
+        });
+
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.secondary,
+                        AppColors.secondary.withOpacity(0.8),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_on_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Location Shared",
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Your location has been shared\nwith your emergency contacts",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

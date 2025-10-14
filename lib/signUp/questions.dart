@@ -849,7 +849,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
         }
 
         // Lakukan logout setelah submit data catatan haid
-        AuthService.logout();
+        await AuthService.logout();
       }
 
       _updateCurrentPageIndex(_currentPageIndex + 1);
@@ -885,7 +885,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.8.96:8000/api/users/username/$username';
+    final url = 'http://192.168.8.83:8000/api/users/username/$username';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -912,7 +912,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.8.96:8000/api/catatanhaids";
+    final url = "http://192.168.8.83:8000/api/catatanhaids";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

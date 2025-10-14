@@ -22,50 +22,13 @@ class _MoreState extends State<More> {
   // late String? username;
   String? username;
   bool isLoading = true;
+  List<dynamic> posts = []; // Add posts state variable
+
   void initState() {
     super.initState();
     getData();
     getUserData();
   }
-
-  List<dynamic> dataMore = [
-    // [
-    //   'author',
-    //   'images/profilePict.png',
-    //   'images/suaraPuanImg.png',
-    //   'date',
-    //   'teks',
-    //   'idPost',
-    //   '1',
-    //   '2'
-    // ],
-    // [
-    //   'author2',
-    //   'images/profilePict.png',
-    //   'images/suaraPuanImg.png',
-    //   'date2',
-    //   'teks2',
-    //   'idPost2',
-    //   '3',
-    //   '4'
-    // ],
-    // [
-    //   'author2',
-    //   'images/profilePict.png',
-    //   '',
-    //   'date2',
-    //   'teks2',
-    //   'idPost2',
-    //   '3',
-    //   '4'
-    // ],
-  ];
-
-  // List<String> dataUser = [
-  //   // 'author',
-  //   // 'images/profilePict.png',
-  //   // 'idPost'
-  // ];
 
   late List<String> dataUser;
 
@@ -73,7 +36,6 @@ class _MoreState extends State<More> {
 
   @override
   Widget build(BuildContext context) {
-    print(dataMore);
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -241,7 +203,29 @@ class _MoreState extends State<More> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: getDataMore(dataMore),
+                      child: posts.isEmpty
+                          ? _buildEmptyState()
+                          : Column(
+                              children: posts
+                                  .map((post) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12.0),
+                                        child: MoreBox(
+                                          teks: post['threadName'] ?? '',
+                                          date: post['threadDate'] ?? '',
+                                          likeCount:
+                                              post['like']?.toString() ?? '0',
+                                          commentCount:
+                                              (post['commentRuangPuans'] != null
+                                                      ? post['commentRuangPuans']
+                                                          .length
+                                                      : 0)
+                                                  .toString(),
+                                          idRuangPuan: post['id'] ?? 0,
+                                        ),
+                                      ))
+                                  .toList(),
+                            ),
                     ),
                   ),
 
@@ -512,6 +496,51 @@ class _MoreState extends State<More> {
     );
   }
 
+  // Empty State Widget
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.forum_outlined,
+              size: 64,
+              color: AppColors.accent.withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No Posts Yet',
+            style: TextStyle(
+              fontFamily: 'Brodies',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Be the first to share your thoughts!\nCreate a post above to get started.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 14,
+              color: AppColors.textSecondary.withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> submitData() async {
     final threadName = threadNameController.text.trim();
 
@@ -519,7 +548,7 @@ class _MoreState extends State<More> {
 
     final threadDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final url = 'http://192.168.8.96:8000/api/ruangPuans';
+    final url = 'http://192.168.8.83:8000/api/ruangPuans';
     final uri = Uri.parse(url);
 
     final body = {
@@ -643,7 +672,7 @@ class _MoreState extends State<More> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/ruangPuans';
+    final url = 'http://192.168.8.83:8000/api/ruangPuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -651,21 +680,24 @@ class _MoreState extends State<More> {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
       final result = json['data'] ?? [] as List;
+
       setState(() {
-        dataMore = result;
+        posts = result;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
       });
     }
 
-    setState(() {
-      isLoading = false;
-    });
     // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik' + response.body);
   }
 
   Future<List<String>> getCurrentUser() async {
-    final url = 'http://192.168.8.96:8000/api/users/current';
+    final url = 'http://192.168.8.83:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});

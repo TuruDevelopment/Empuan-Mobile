@@ -1,13 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/checkBoxSignUp.dart';
-import 'package:Empuan/screens/HomePage.dart';
-import 'package:Empuan/screens/home.dart';
 import 'package:Empuan/screens/navScreen.dart';
 import 'package:Empuan/services/auth_service.dart';
-import 'package:Empuan/signUp/question2.dart';
-import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
@@ -63,122 +58,255 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     print(dataQuestion);
     print(dataOption);
     print(checkListItems);
-    var appBar = AppBar();
+
+    // Calculate correct answer
+    String correctAnswerText = dataQuestion.isNotEmpty
+        ? dataQuestion[0]['correct_answer'].toString()
+        : '';
+    bool isCorrect = widget.selectedindex.toString() == correctAnswerText;
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.accent.withOpacity(0.1),
+            ],
+          ),
+        ),
         child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppBar(
-                  toolbarHeight: 70,
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  automaticallyImplyLeading: false,
-                  leading: IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const MainScreen(),
-                      ));
-                    },
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: (MediaQuery.of(context).size.height -
-                      appBar.preferredSize.height),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        // 'Is your menstrual cycle regular\n(varies by no more 7 days) ?',
-                        dataQuestion.isNotEmpty
-                            ? dataQuestion[0]['questions'].toString()
-                            : '',
-                        style: TextStyle(
-                            fontFamily: 'Satoshi',
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                      Column(
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                checkListItems.length,
-                                (index) => LabeledCheckboxExample(
-                                  index: index,
-                                  sentences: checkListItems[index]["title"],
-                                  value: checkListItems[index]["selected"],
-                                  onChanged: (value) {
-                                    setState(() {
-                                      for (var i = 0;
-                                          i < checkListItems.length;
-                                          i++) {
-                                        if (i == index) {
-                                          checkListItems[i]["selected"] = true;
-                                        } else {
-                                          checkListItems[i]["selected"] = false;
-                                        }
-                                      }
-                                    });
-                                  },
-                                  selectedIndex: widget.selectedindex,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 25),
-                                child: Container(
-                                  width: 100,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        const Color.fromRGBO(251, 111, 146, 1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: TextButton(
-                                      child: const Text(
-                                        'Save & Next',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      onPressed: () {
-                                        // Perform action based on selected option
-                                        // For example, navigate to the next page
-                                        Navigator.of(context)
-                                            .pushReplacement(MaterialPageRoute(
-                                          builder: (context) =>
-                                              const MainScreen(),
-                                        ));
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+          child: Column(
+            children: [
+              // Modern Header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const MainScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Quiz Result',
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Scrollable Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+
+                      // Result Icon
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isCorrect
+                                ? [
+                                    AppColors.secondary,
+                                    AppColors.secondary.withOpacity(0.8),
+                                  ]
+                                : [
+                                    AppColors.error,
+                                    AppColors.error.withOpacity(0.8),
+                                  ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isCorrect
+                                      ? AppColors.secondary
+                                      : AppColors.error)
+                                  .withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isCorrect
+                              ? Icons.check_circle_rounded
+                              : Icons.cancel_rounded,
+                          color: Colors.white,
+                          size: 64,
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Result Text
+                      Text(
+                        isCorrect ? 'Correct!' : 'Incorrect',
+                        style: TextStyle(
+                          fontFamily: 'Brodies',
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color:
+                              isCorrect ? AppColors.secondary : AppColors.error,
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Question Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.accent.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          dataQuestion.isNotEmpty
+                              ? dataQuestion[0]['questions'].toString()
+                              : 'Loading question...',
+                          style: const TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Options List
+                      Column(
+                        children: List.generate(
+                          checkListItems.length,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: LabeledCheckboxExample(
+                              index: index,
+                              sentences: checkListItems[index]["title"],
+                              value: checkListItems[index]["selected"],
+                              onChanged: null, // Disabled
+                              selectedIndex: widget.selectedindex,
+                              correctIndex:
+                                  int.tryParse(correctAnswerText) ?? -1,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Continue Button
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primary.withOpacity(0.8),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const MainScreen(),
+                              ),
+                            );
+                          },
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Continue',
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -191,7 +319,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/questions';
+    final url = 'http://192.168.8.83:8000/api/questions';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -233,7 +361,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://192.168.8.96:8000/api/questions/$idQuestion/options';
+      final url = 'http://192.168.8.83:8000/api/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {
@@ -289,53 +417,111 @@ class LabeledCheckboxExample extends StatelessWidget {
   final bool? value;
   final ValueChanged<bool?>? onChanged;
   final int index;
-  final int selectedIndex; // Tambahkan variabel selectedIndex
+  final int selectedIndex;
+  final int correctIndex;
 
   const LabeledCheckboxExample({
     required this.sentences,
     required this.value,
     required this.onChanged,
     required this.index,
-    required this.selectedIndex, // Tambahkan parameter selectedIndex
+    required this.selectedIndex,
+    required this.correctIndex,
   });
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = index == selectedIndex
-        ? Colors.green // Jika indeks adalah selectedIndex, gunakan warna hijau
-        : Colors.red; // Jika tidak, gunakan warna merah
+    // Determine if this option is correct
+    bool isCorrect = index == correctIndex;
+    // Determine if this option was selected by user
+    bool isSelected = index == selectedIndex;
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(10),
+    // Determine background color based on state
+    Color backgroundColor;
+    Color borderColor;
+
+    if (isSelected && isCorrect) {
+      // User selected correct answer - green
+      backgroundColor = AppColors.secondary.withOpacity(0.15);
+      borderColor = AppColors.secondary;
+    } else if (isSelected && !isCorrect) {
+      // User selected wrong answer - red
+      backgroundColor = AppColors.error.withOpacity(0.15);
+      borderColor = AppColors.error;
+    } else if (!isSelected && isCorrect) {
+      // Correct answer but not selected - green outline
+      backgroundColor = AppColors.secondary.withOpacity(0.08);
+      borderColor = AppColors.secondary;
+    } else {
+      // Other options - default
+      backgroundColor = AppColors.surface;
+      borderColor = AppColors.accent.withOpacity(0.2);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 0),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: borderColor,
+          width: (isSelected || isCorrect) ? 2 : 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: borderColor.withOpacity(0.15),
+            blurRadius: (isSelected || isCorrect) ? 12 : 8,
+            offset: const Offset(0, 2),
           ),
-          child: CheckboxListTile(
-            dense: true,
-            title: Text(
-              sentences,
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                fontFamily: 'Satoshi',
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            // Icon indicator
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCorrect
+                    ? AppColors.secondary
+                    : (isSelected ? AppColors.error : Colors.transparent),
+                border: Border.all(
+                  color: isCorrect
+                      ? AppColors.secondary
+                      : (isSelected
+                          ? AppColors.error
+                          : AppColors.accent.withOpacity(0.3)),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                isCorrect
+                    ? Icons.check_rounded
+                    : (isSelected ? Icons.close_rounded : null),
+                color: Colors.white,
+                size: 20,
               ),
             ),
-            value: value,
-            onChanged: onChanged,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              side: const BorderSide(color: Colors.pink),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                sentences,
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 15,
+                  fontWeight: (isSelected || isCorrect)
+                      ? FontWeight.bold
+                      : FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ),
-            activeColor: const Color.fromRGBO(251, 111, 146, 1),
-            checkboxShape: CircleBorder(),
-          ),
+          ],
         ),
-        SizedBox(
-          height: 10,
-        )
-      ],
+      ),
     );
   }
 }

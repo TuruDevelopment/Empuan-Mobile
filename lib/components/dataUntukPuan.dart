@@ -1,12 +1,49 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/callView.dart';
-import 'package:Empuan/components/editContact.dart';
 import 'package:Empuan/components/widgetUntukPuan.dart';
-import 'package:Empuan/screens/commentRuangPuan.dart';
-import 'package:Empuan/screens/more.dart';
 import 'package:Empuan/styles/style.dart';
+
+Widget _buildFilterChip(String label, IconData icon) {
+  return Expanded(
+    child: Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: AppColors.primary,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
   String nama;
@@ -23,66 +60,54 @@ Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
   print('ini datanya : ${dataUntukPuan}');
 
   List<Widget> dataUntukPuanBoxes = [];
-  dataUntukPuanBoxes.add(SizedBox(height: 5));
-  dataUntukPuanBoxes.add(Container(
-      width: 300,
+  dataUntukPuanBoxes.add(const SizedBox(height: 16));
+
+  // Filter Chips Row
+  dataUntukPuanBoxes.add(
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 70,
-              height: 20,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
-              child: Center(
-                child: Text(
-                  'Near Me',
-                  style: TextStyle(fontFamily: 'Satoshi', fontSize: 10),
-                ),
-              ),
-            ),
+          _buildFilterChip('Near Me', Icons.location_on_rounded),
+          const SizedBox(width: 8),
+          _buildFilterChip('Rated 4★', Icons.star_rounded),
+          const SizedBox(width: 8),
+          _buildFilterChip('Best Price', Icons.local_offer_rounded),
+        ],
+      ),
+    ),
+  );
+
+  dataUntukPuanBoxes.add(const SizedBox(height: 24));
+
+  // Section Title
+  dataUntukPuanBoxes.add(
+    const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Icon(
+            Icons.recommend_rounded,
+            color: AppColors.primary,
+            size: 24,
           ),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 70,
-              height: 20,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
-              child: Center(
-                child: Text(
-                  'Rated 4 Star',
-                  style: TextStyle(fontFamily: 'Satoshi', fontSize: 10),
-                ),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 70,
-              height: 20,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
-              child: Center(
-                child: Text(
-                  'Cheapest Price',
-                  style: TextStyle(fontFamily: 'Satoshi', fontSize: 10),
-                ),
-              ),
+          SizedBox(width: 8),
+          Text(
+            'Our Recommendations',
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: AppColors.primary,
             ),
           ),
         ],
-      )));
-  dataUntukPuanBoxes.add(SizedBox(height: 15));
-  dataUntukPuanBoxes.add(Text(
-    'Our Recommendations For You',
-    style: TextStyle(
-        fontFamily: 'Satoshi', fontWeight: FontWeight.bold, fontSize: 20),
-  ));
-  dataUntukPuanBoxes.add(SizedBox(height: 15));
+      ),
+    ),
+  );
+
+  dataUntukPuanBoxes.add(const SizedBox(height: 16));
   for (var i = 0; i < dataUntukPuan.length; i++) {
     // name = DataUntukPuan[i]['threadName'].toString();
     // address = DataUntukPuan[i]['threadDate'].toString();
@@ -110,7 +135,7 @@ Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
       website: website,
       kategori_id: kategori_id,
     ));
-    dataUntukPuanBoxes.add(SizedBox(height: 15));
+    dataUntukPuanBoxes.add(const SizedBox(height: 16));
   }
   return Column(
     children: dataUntukPuanBoxes,
@@ -118,7 +143,7 @@ Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
 }
 
 class UntukPuanBox extends StatelessWidget {
-  UntukPuanBox({
+  const UntukPuanBox({
     Key? key,
     required this.nama,
     required this.alamat,
@@ -143,8 +168,6 @@ class UntukPuanBox extends StatelessWidget {
   final String website;
   final String kategori_id;
 
-  int checker = 1;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -164,120 +187,148 @@ class UntukPuanBox extends StatelessWidget {
                 )));
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: Stack(children: [
-          Container(
-            height: 250,
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(10)),
-            child: Column(
-              children: [
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                          image: AssetImage(foto), fit: BoxFit.fill)),
-                ),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: Container(
-                                width: MediaQuery.of(context).size.width - 100,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      nama,
-                                      style: TextStyle(
-                                          fontFamily: 'Satoshi',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15),
-                                    ),
-                                  ],
-                                )),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: Container(
-                                width: MediaQuery.of(context).size.width - 100,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      alamat,
-                                      style: TextStyle(
-                                          fontFamily: 'Satoshi',
-                                          fontWeight: FontWeight.w100,
-                                          fontSize: 12),
-                                    ),
-                                  ],
-                                )),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.accent.withOpacity(0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image Container
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(foto),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Rating Badge
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withOpacity(0.9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Stars
+                          ...List.generate(
+                            5,
+                            (index) => const Icon(
+                              Icons.star_rounded,
+                              color: Colors.amber,
+                              size: 14,
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 14,
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            color: Colors.white.withOpacity(0.3),
+                          ),
+                          // Price indicators
+                          ...List.generate(
+                            4,
+                            (index) => Icon(
+                              Icons.attach_money_rounded,
+                              color: AppColors.secondary,
+                              size: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                )
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 190, top: 190),
-            child: Container(
-                height: 20,
-                width: MediaQuery.of(context).size.width / 2 - 55,
-                decoration: BoxDecoration(
-                    color: AppColors.pink1,
-                    borderRadius: BorderRadius.circular(5)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                ],
+              ),
+
+              // Info Section
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 13,
+                    Text(
+                      nama,
+                      style: const TextStyle(
+                        fontFamily: 'Satoshi',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 13,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            alamat,
+                            style: const TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 13,
-                    ),
-                    Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 13,
-                    ),
-                    Icon(
-                      Icons.star,
-                      color: Colors.yellow,
-                      size: 13,
-                    ),
-                    VerticalDivider(
-                      color: Colors.white,
-                      thickness: 0.5,
-                    ),
-                    Icon(Icons.monetization_on, color: Colors.green, size: 13),
-                    Icon(Icons.monetization_on, color: Colors.green, size: 13),
-                    Icon(Icons.monetization_on, color: Colors.green, size: 13),
-                    Icon(Icons.monetization_on, color: Colors.green, size: 13),
                   ],
-                )),
-          )
-        ]),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:Empuan/components/content_suaraPuan.dart';
 import 'package:video_player/video_player.dart';
 import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/styles/style.dart';
 
 class Comment {
   String text;
@@ -159,422 +160,734 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     int currentTab = 0;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: TextField(
-          decoration: InputDecoration(
-              suffixIcon: Icon(Icons.search, color: Colors.black)),
+        backgroundColor: AppColors.surface,
+        title: Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.accent.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: TextField(
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              hintText: 'Search...',
+              hintStyle: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 14,
+                color: AppColors.textSecondary.withOpacity(0.5),
+              ),
+              suffixIcon: Icon(
+                Icons.search_rounded,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
         ),
-        actions: <Widget>[],
         leading: IconButton(
           onPressed: () {
             _videoController.pause();
             Navigator.pop(context);
           },
           icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+            Icons.arrow_back_rounded,
+            color: AppColors.primary,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Image.network(
-                  widget.media,
-                  width: MediaQuery.of(context).size.width,
-                  height: 200,
-                  fit: BoxFit.cover,
-                )),
-            Padding(
-              padding: const EdgeInsets.only(top: 9),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                widget.title,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-            SizedBox(height: 2),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.dop + " | ",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontFamily: 'Satoshi',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                          fontSize: 10,
-                        ),
-                      ),
-                      Text(
-                        getCategory(int.parse(widget.kategori_id)),
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontFamily: 'Satoshi',
-                          fontWeight: FontWeight.bold,
-                          color: const Color.fromRGBO(251, 111, 146, 1),
-                          fontSize: 10,
-                        ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.surface,
+              AppColors.background,
+              AppColors.accent.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Image Container
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                '____________________________________________________',
-                style: TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 15),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                widget.content,
-                textAlign: TextAlign.justify,
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height / 4,
-                child: _videoController.value.isInitialized
-                    ? AspectRatio(
-                        aspectRatio: _videoController.value.aspectRatio,
-                        child: VideoPlayer(_videoController),
-                      )
-                    : Container(
-                        // child: Text('gada'),
-                        ),
-              ),
-            ),
-            Container(
-              child: Center(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _videoController.value.isPlaying
-                            ? _videoController.pause()
-                            : _videoController.play();
-                      });
-                    },
-                    icon: Icon(
-                      !_videoController.value.isPlaying ||
-                              _videoController.value.isCompleted
-                          ? Icons.play_arrow
-                          : Icons.pause,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      widget.media,
+                      width: MediaQuery.of(context).size.width,
+                      height: 220,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                ],
-              )),
-            ),
-            // SizedBox(
-            //   height: 20,
-            // ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                '____________________________________________________',
-                style: TextStyle(
-                  color: Colors.grey,
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recommendation',
-                    style: TextStyle(
-                        fontFamily: 'Satoshi',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 20),
-                  ),
-                  // SizedBox(
-                  //   height: 20,
-                  //   width: 100,
-                  //   child: ElevatedButton(
-                  //     onPressed: () {
-                  //       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  //           builder: (context) => IsiSuaraPuan(
-                  //               id: 'id',
-                  //               title: 'title',
-                  //               content: 'content',
-                  //               media: 'media',
-                  //               dop: 'dop',
-                  //               kategori_id: 'kategori_id',
-                  //               user_id: 'user_id')));
-                  //     },
-                  //     style: ButtonStyle(
-                  //       backgroundColor: MaterialStateProperty.all(
-                  //           const Color.fromRGBO(251, 111, 146, 1)),
-                  //       shape:
-                  //           MaterialStateProperty.all<RoundedRectangleBorder>(
-                  //               RoundedRectangleBorder(
-                  //         borderRadius: BorderRadius.circular(18.0),
-                  //       )),
-                  //     ),
-                  //     child: const Text(
-                  //       'See More',
-                  //       style: TextStyle(fontFamily: 'Satoshi'),
-                  //     ),
-                  //   ),
-                  // ),
-                ],
-              ),
-            ),
-            Container(
-              height: 230,
-              child: PageView(
-                controller: controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentTab = index;
-                  });
-                },
-                children: [
-                  for (var item in dataBannerSuara) getDataBannerSuaraPuan(item)
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                '____________________________________________________',
-                style: TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 18,
-            ),
-            Text(
-              'What do you think?                          ',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontFamily: 'Satoshi',
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
-                fontSize: 21,
-              ),
-            ),
-            SizedBox(
-              height: 23,
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('images/Happy.png'),
-                  SizedBox(width: 24, height: 24, child: null),
-                  Image.asset('images/Shock.png'),
-                  SizedBox(width: 24, height: 24, child: null),
-                  Image.asset('images/Sad.png'),
-                  SizedBox(width: 24, height: 24, child: null),
-                  Image.asset('images/Angry.png'),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 18,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Text(
-                '____________________________________________________',
-                style: TextStyle(
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 13,
-            ),
-            Text(
-              'Comments                                       ',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontFamily: 'Satoshi',
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
-                fontSize: 21,
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height * 0.4,
-              child: SingleChildScrollView(
+
+              // Title and Meta Info
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: comments.length,
-                      itemBuilder: (context, index) {
-                        Comment comment = comments[index];
-                        return ListTile(
-                          leading: Padding(
-                            padding: const EdgeInsets.only(left: 13),
-                            child: CircleAvatar(
-                              backgroundImage:
-                                  AssetImage(comment.userProfilePic),
-                            ),
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 24,
+                        height: 1.3,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          title: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 0),
-                            child: Text(
-                              comment.userName,
-                              style: TextStyle(
-                                fontFamily: 'Satoshi',
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 19,
-                              ),
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 0),
-                                child: Text(
-                                  comment.text,
-                                  style: TextStyle(
-                                    fontFamily: 'Satoshi',
-                                    color: Colors.black,
-                                    fontSize: 15,
-                                  ),
-                                ),
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 12,
+                                color: AppColors.textSecondary,
                               ),
-                              SizedBox(height: 4),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 0),
-                                child: Text(
-                                  '${comment.date.toString().split('.')[0]}',
-                                  style: TextStyle(fontSize: 12),
+                              SizedBox(width: 6),
+                              Text(
+                                widget.dop,
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
-                    Divider(),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 35,
-                        right: 22.0,
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: TextField(
-                              controller: _commentController,
-                              decoration: InputDecoration(
-                                hintText: 'Add a comment...',
-                              ),
+                        ),
+                        SizedBox(width: 8),
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryVariant,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            getCategory(int.parse(widget.kategori_id)),
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 12,
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.send),
-                            onPressed: () {
-                              submitComment();
-                            },
-                          ),
-                          SizedBox(height: 15),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.only(
-                    //     left: 30,
-                    //     right: 40,
-                    //   ),
-                    //   child: Row(
-                    //     children: <Widget>[
-                    //       Padding(
-                    //         padding: const EdgeInsets.symmetric(horizontal: 0),
-                    //         child: Text('Name : ',
-                    //             style: TextStyle(
-                    //               fontFamily: 'Satoshi',
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 16,
-                    //             )),
-                    //       ),
-                    //       Expanded(
-                    //         child: TextField(
-                    //           controller: _userNameController,
-                    //           decoration: InputDecoration(
-                    //             hintText: 'Enter your display name...',
-                    //           ),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
-            ),
-          ],
+
+              SizedBox(height: 20),
+
+              // Divider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(
+                  color: AppColors.accent.withOpacity(0.2),
+                  thickness: 1,
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  widget.content,
+                  textAlign: TextAlign.justify,
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    height: 1.6,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Video Player
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.accent.withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _videoController.value.isInitialized
+                        ? AspectRatio(
+                            aspectRatio: _videoController.value.aspectRatio,
+                            child: VideoPlayer(_videoController),
+                          )
+                        : Container(
+                            height: 200,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+
+              // Video Controls
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _videoController.value.isPlaying
+                              ? _videoController.pause()
+                              : _videoController.play();
+                        });
+                      },
+                      icon: Icon(
+                        !_videoController.value.isPlaying ||
+                                _videoController.value.isCompleted
+                            ? Icons.play_arrow_rounded
+                            : Icons.pause_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              // Divider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(
+                  color: AppColors.accent.withOpacity(0.2),
+                  thickness: 1,
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Recommendation Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.secondary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.recommend_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Recommendation',
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              Container(
+                height: 230,
+                child: PageView(
+                  controller: controller,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentTab = index;
+                    });
+                  },
+                  children: [
+                    for (var item in dataBannerSuara)
+                      getDataBannerSuaraPuan(item)
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Divider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(
+                  color: AppColors.accent.withOpacity(0.2),
+                  thickness: 1,
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Reaction Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.secondary,
+                                AppColors.primary,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.secondary.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.emoji_emotions_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'What do you think?',
+                          style: TextStyle(
+                            fontFamily: 'Brodies',
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildReactionButton('images/Happy.png'),
+                        _buildReactionButton('images/Shock.png'),
+                        _buildReactionButton('images/Sad.png'),
+                        _buildReactionButton('images/Angry.png'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Divider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(
+                  color: AppColors.accent.withOpacity(0.2),
+                  thickness: 1,
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              // Comments Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.error,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.comment_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Comments',
+                      style: TextStyle(
+                        fontFamily: 'Brodies',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.accent.withOpacity(0.3),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accent.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.4,
+                      ),
+                      child: comments.isEmpty
+                          ? Padding(
+                              padding: EdgeInsets.all(40),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    size: 48,
+                                    color: AppColors.accent.withOpacity(0.5),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'No comments yet',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontSize: 14,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Be the first to comment!',
+                                    style: TextStyle(
+                                      fontFamily: 'Satoshi',
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary
+                                          .withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              physics: AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.all(16),
+                              itemCount: comments.length,
+                              separatorBuilder: (context, index) => Divider(
+                                color: AppColors.accent.withOpacity(0.2),
+                                height: 24,
+                              ),
+                              itemBuilder: (context, index) {
+                                Comment comment = comments[index];
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            AppColors.primary,
+                                            AppColors.secondary,
+                                          ],
+                                        ),
+                                      ),
+                                      child: Container(
+                                        padding: EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surface,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: CircleAvatar(
+                                          radius: 20,
+                                          backgroundImage: AssetImage(
+                                              comment.userProfilePic),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            comment.userName,
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            comment.text,
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 14,
+                                              color: AppColors.textPrimary,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                          SizedBox(height: 6),
+                                          Text(
+                                            comment.date
+                                                .toString()
+                                                .split('.')[0],
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                    ),
+                    Divider(
+                      color: AppColors.accent.withOpacity(0.2),
+                      height: 1,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.background,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: AppColors.accent.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _commentController,
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 14,
+                                  color: AppColors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Add a comment...',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'Satoshi',
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary
+                                        .withOpacity(0.5),
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primaryVariant,
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.send_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                submitComment();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReactionButton(String imagePath) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Image.asset(
+            imagePath,
+            width: 40,
+            height: 40,
+          ),
         ),
       ),
     );
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.96:8000/api/users/$userId';
+    final url = 'http://192.168.8.83:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -597,7 +910,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.8.96:8000/api/suarapuans/${widget.id}/commentpuans';
+        'http://192.168.8.83:8000/api/suarapuans/${widget.id}/commentpuans';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -643,7 +956,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.96:8000/api/users/current';
+    final url = 'http://192.168.8.83:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
         await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
@@ -670,6 +983,8 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik' + response.body);
+
+    return null;
   }
 
   Future<void> submitComment() async {
@@ -688,7 +1003,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     print(id);
     // submit data to the server
     final url =
-        'http://192.168.8.96:8000/api/suarapuans/${widget.id}/commentpuans';
+        'http://192.168.8.83:8000/api/suarapuans/${widget.id}/commentpuans';
     print('url: ' + url);
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {

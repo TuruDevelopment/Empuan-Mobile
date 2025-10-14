@@ -1,60 +1,34 @@
-// import 'dart:html';
-
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/callView.dart';
-import 'package:Empuan/components/editContact.dart';
 import 'package:Empuan/screens/commentRuangPuan.dart';
-import 'package:Empuan/screens/more.dart';
-import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:http/http.dart' as http;
 
 Widget getDataMore(List<dynamic> dataMore) {
-  // More objectMore = new More();
-
-  // objectMore.
-
-  String username;
-  String profilePict;
-  // String image;
   String date;
   String teks;
-  // String media;
   int idRuangPuan;
   String likeCount;
   String commentCount;
 
-  // print('ini datanya : ${dataMore[0][0]}');
   print('ini datanya : ${dataMore}');
 
   List<Widget> dataMoreBoxes = [];
   for (var i = 0; i < dataMore.length; i++) {
-    // username = dataMore[i][0];
-    // profilePict = dataMore[i][1];
     teks = dataMore[i]['threadName'].toString();
     date = dataMore[i]['threadDate'].toString();
-    // image = "lala";
-    // media = dataMore[i]['media'].toString();
-    // teks = dataMore[i][1] != null ? dataMore[i][1].toString() : '';
-    // date = dataMore[i][2] != null ? dataMore[i][1].toString() : '';
-    // image = dataMore[i][3] != null ? dataMore[i][1].toString() : '';
     idRuangPuan = dataMore[i]['id'];
-    // likeCount = dataMore[i][4] != null ? dataMore[i][1].toString() : '';
     likeCount = dataMore[i]['like'].toString();
-    // commentCount = dataMore[i][7];
-    print('${teks} - ${date} - ${likeCount} ');
+    // Get comment count from API, default to '0' if not available
+    commentCount = (dataMore[i]['commentRuangPuans'] != null
+            ? dataMore[i]['commentRuangPuans'].length
+            : 0)
+        .toString();
+    print('${teks} - ${date} - ${likeCount} - comments: ${commentCount}');
     dataMoreBoxes.add(MoreBox(
-      // username: username,
-      // profilePict: profilePict,
-      // media: media,
       date: date,
       teks: teks,
       idRuangPuan: idRuangPuan,
-      // idPost: idPost,
       likeCount: likeCount,
-      // commentCount: commentCount,
+      commentCount: commentCount,
     ));
     dataMoreBoxes.add(SizedBox(height: 10));
   }
@@ -64,149 +38,244 @@ Widget getDataMore(List<dynamic> dataMore) {
 }
 
 class MoreBox extends StatelessWidget {
-  // var username;
-
-  MoreBox({
+  const MoreBox({
     super.key,
-    // required this.username,
-    // required this.profilePict,
-    // required this.image,
     required this.date,
     required this.teks,
-    // required this.media,
-    // required this.idPost,
     required this.idRuangPuan,
     required this.likeCount,
-    // required this.commentCount
+    required this.commentCount,
   });
 
-  // late final String username;
-  // final String profilePict;
-  // final String image;
   final String date;
   final String teks;
-  // final String media;
-  // final String idPost;
   final String likeCount;
+  final String commentCount;
   final int idRuangPuan;
-  // final String commentCount;
-
-  int checker = 1;
-
-  // if(length(img) = 0)
 
   @override
   Widget build(BuildContext context) {
-    // late String userName;
-    // bool showImage = media.isNotEmpty;
-    return Center(
-        child: Container(
-      // height: 100,
-      decoration: BoxDecoration(color: Colors.white),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with date
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              // height: 100,
-              // decoration: BoxDecoration(color: Colors.amber),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 10,
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.forum_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Post',
+                      style: TextStyle(
+                        fontFamily: 'Satoshi',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  // CircleAvatar(
-                  //   backgroundImage: AssetImage(profilePict),
-                  //   radius: 30,
-                  // ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Container(
-                    width: 270,
-                    // decoration: BoxDecoration(color: Colors.grey),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Text(
-                            //   username,
-                            //   style: TextStyle(
-                            //       fontFamily: 'Satoshi',
-                            //       fontWeight: FontWeight.bold,
-                            //       fontSize: 15),
-                            // ),
-                            Text(
-                              date,
-                              style: TextStyle(
-                                  fontFamily: 'Satoshi', fontSize: 15),
-                            )
-                          ],
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        date,
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              teks,
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 15,
+                color: AppColors.textPrimary,
+                height: 1.5,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Divider
+          Divider(
+            height: 1,
+            color: AppColors.accent.withOpacity(0.2),
+          ),
+
+          // Action buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (context) => Comment(
+                            idRuangPuan: idRuangPuan,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.mode_comment_outlined,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Comment',
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              commentCount,
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 30,
+                  color: AppColors.accent.withOpacity(0.2),
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.favorite_border_rounded,
+                          size: 20,
+                          color: AppColors.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Like',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.error,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
                         Container(
-                          width: 270,
-                          // decoration: BoxDecoration(color: Colors.grey),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           child: Text(
-                            teks,
-                            style:
-                                TextStyle(fontFamily: 'Satoshi', fontSize: 15),
+                            likeCount,
+                            style: TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.error,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 10),
-          // if(checker = 0){}
-          // if (showImage) Image.asset(image),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.mode_comment_outlined),
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true)
-                            .push(MaterialPageRoute(
-                                builder: (context) => Comment(
-                                      idRuangPuan: idRuangPuan,
-                                    )));
-                      },
-                    ),
-                    // SizedBox(
-                    //   width: 5,
-                    // ),
-                    Text('1')
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 15,
-              ),
-              Container(
-                child: Row(
-                  children: [
-                    Icon(Icons.favorite_border),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text(likeCount)
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
         ],
       ),
-    ));
+    );
   }
 }

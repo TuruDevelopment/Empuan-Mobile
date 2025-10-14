@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'splash_page.dart';
 import 'styles/app_theme.dart';
+import 'services/auth_service.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter is initialized before calling async methods
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load saved token from disk
+  await AuthService.init();
+
   runApp(const MyApp());
 }
 
