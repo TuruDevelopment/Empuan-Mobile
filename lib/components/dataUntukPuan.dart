@@ -5,7 +5,8 @@ import 'package:Empuan/styles/style.dart';
 Widget _buildFilterChip(String label, IconData icon) {
   return Expanded(
     child: Container(
-      height: 36,
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -23,20 +24,25 @@ Widget _buildFilterChip(String label, IconData icon) {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
             color: AppColors.primary,
-            size: 14,
+            size: 13,
           ),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Satoshi',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -232,8 +238,8 @@ class UntukPuanBox extends StatelessWidget {
                     right: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -260,13 +266,13 @@ class UntukPuanBox extends StatelessWidget {
                             (index) => const Icon(
                               Icons.star_rounded,
                               color: Colors.amber,
-                              size: 14,
+                              size: 13,
                             ),
                           ),
                           Container(
                             width: 1,
-                            height: 14,
-                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            height: 12,
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
                             color: Colors.white.withOpacity(0.3),
                           ),
                           // Price indicators
@@ -275,7 +281,7 @@ class UntukPuanBox extends StatelessWidget {
                             (index) => Icon(
                               Icons.attach_money_rounded,
                               color: AppColors.secondary,
-                              size: 14,
+                              size: 13,
                             ),
                           ),
                         ],

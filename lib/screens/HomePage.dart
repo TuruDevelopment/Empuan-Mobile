@@ -297,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                               },
                               borderRadius: BorderRadius.circular(16),
                               child: Container(
-                                height: 120,
+                                height: 130,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
@@ -317,7 +317,7 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(14.0),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -325,7 +325,7 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
                                           borderRadius:
@@ -334,7 +334,7 @@ class _HomePageState extends State<HomePage> {
                                         child: const Icon(
                                           Icons.question_answer_rounded,
                                           color: Colors.white,
-                                          size: 28,
+                                          size: 26,
                                         ),
                                       ),
                                       const Column(
@@ -345,17 +345,17 @@ class _HomePageState extends State<HomePage> {
                                             'Suara Puan',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
                                           ),
-                                          SizedBox(height: 4),
+                                          SizedBox(height: 3),
                                           Text(
                                             'Ask Questions',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 11,
+                                              fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
                                           ),
@@ -377,7 +377,7 @@ class _HomePageState extends State<HomePage> {
                               },
                               borderRadius: BorderRadius.circular(16),
                               child: Container(
-                                height: 120,
+                                height: 130,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
@@ -398,7 +398,7 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(14.0),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -406,7 +406,7 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
                                           borderRadius:
@@ -415,7 +415,7 @@ class _HomePageState extends State<HomePage> {
                                         child: const Icon(
                                           Icons.article_rounded,
                                           color: Colors.white,
-                                          size: 28,
+                                          size: 26,
                                         ),
                                       ),
                                       const Column(
@@ -426,17 +426,17 @@ class _HomePageState extends State<HomePage> {
                                             'Untuk Puan',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
                                           ),
-                                          SizedBox(height: 4),
+                                          SizedBox(height: 3),
                                           Text(
                                             'Articles & Info',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 11,
+                                              fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
                                           ),
@@ -458,7 +458,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Expanded(
                             child: Container(
-                              height: 140,
+                              height: 150,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
@@ -478,7 +478,7 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0),
+                                padding: const EdgeInsets.all(14.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment:
@@ -489,7 +489,7 @@ class _HomePageState extends State<HomePage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.all(10),
+                                          padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary
                                                 .withOpacity(0.2),
@@ -499,13 +499,13 @@ class _HomePageState extends State<HomePage> {
                                           child: const Icon(
                                             Icons.access_time_rounded,
                                             color: AppColors.primary,
-                                            size: 24,
+                                            size: 22,
                                           ),
                                         ),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
+                                            horizontal: 10,
+                                            vertical: 5,
                                           ),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary
@@ -517,7 +517,7 @@ class _HomePageState extends State<HomePage> {
                                             'Period in',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 10,
+                                              fontSize: 9.5,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.primary,
                                             ),
@@ -533,7 +533,7 @@ class _HomePageState extends State<HomePage> {
                                           '$countdown Days',
                                           style: const TextStyle(
                                             fontFamily: 'Satoshi',
-                                            fontSize: 32,
+                                            fontSize: 30,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.primary,
                                           ),
@@ -542,7 +542,7 @@ class _HomePageState extends State<HomePage> {
                                           'Until next period',
                                           style: TextStyle(
                                             fontFamily: 'Satoshi',
-                                            fontSize: 11,
+                                            fontSize: 10.5,
                                             color: AppColors.textSecondary,
                                           ),
                                         ),
@@ -564,7 +564,7 @@ class _HomePageState extends State<HomePage> {
                               },
                               borderRadius: BorderRadius.circular(16),
                               child: Container(
-                                height: 140,
+                                height: 150,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
@@ -584,7 +584,7 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(14.0),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -592,7 +592,7 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
                                           borderRadius:
@@ -601,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                                         child: const Icon(
                                           Icons.quiz_rounded,
                                           color: Colors.white,
-                                          size: 28,
+                                          size: 26,
                                         ),
                                       ),
                                       const Column(
@@ -612,17 +612,17 @@ class _HomePageState extends State<HomePage> {
                                             'Daily Quiz',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 18,
+                                              fontSize: 17,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
                                           ),
-                                          SizedBox(height: 4),
+                                          SizedBox(height: 3),
                                           Text(
                                             'Test Your Knowledge',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 11,
+                                              fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
                                           ),
