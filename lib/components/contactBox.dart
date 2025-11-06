@@ -354,10 +354,10 @@ class ContactBox extends StatelessWidget {
   }
 
   Future<void> deleteContact(String id, VoidCallback onUpdate) async {
-    final url = "http://192.168.8.83:8000/api/kontakpalsus/$id";
+    final url = "http://192.168.8.48:8000/api/kontakpalsus/$id";
     final uri = Uri.parse(url);
     final response = await http
-        .delete(uri, headers: {'Authorization': '${AuthService.token}'});
+        .delete(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       print('delete success');

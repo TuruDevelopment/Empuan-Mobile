@@ -118,7 +118,6 @@ class _SuaraPuanState extends State<SuaraPuan> {
                     ),
                     const SizedBox(width: 12),
                     // Settings Button
-                    
                   ],
                 ),
               ),
@@ -191,10 +190,10 @@ class _SuaraPuanState extends State<SuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/suarapuans';
+    final url = 'http://192.168.8.48:8000/api/suarapuans';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body) as Map;
       final List<dynamic> resultList = jsonResponse['data'] ?? [];

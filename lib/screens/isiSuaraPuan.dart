@@ -887,10 +887,10 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.83:8000/api/users/$userId';
+    final url = 'http://192.168.8.48:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
@@ -910,10 +910,10 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.8.83:8000/api/suarapuans/${widget.id}/commentpuans';
+        'http://192.168.8.48:8000/api/suarapuans/${widget.id}/commentpuans';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -956,10 +956,10 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/users/current';
+    final url = 'http://192.168.8.48:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -1003,12 +1003,12 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     print(id);
     // submit data to the server
     final url =
-        'http://192.168.8.83:8000/api/suarapuans/${widget.id}/commentpuans';
+        'http://192.168.8.48:8000/api/suarapuans/${widget.id}/commentpuans';
     print('url: ' + url);
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
-      'Authorization': '${AuthService.token}'
+      'Authorization': 'Bearer ${AuthService.token}'
     });
     // showsuccess or fail message based on status
     print(response.statusCode);

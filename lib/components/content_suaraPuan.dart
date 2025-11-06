@@ -295,10 +295,10 @@ class SuaraPuanBox extends StatelessWidget {
 }
 
 Future<String?> getKategoriById(String kategoriId) async {
-  final url = 'http://192.168.8.83:8000/api/kategorisuarapuans/$kategoriId';
+  final url = 'http://192.168.8.48:8000/api/kategorisuarapuans/$kategoriId';
   final uri = Uri.parse(url);
   final response =
-      await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+      await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body) as Map;

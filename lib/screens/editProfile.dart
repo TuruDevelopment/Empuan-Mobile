@@ -53,12 +53,12 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      final url = 'http://192.168.8.83:8000/api/users/current';
+      final url = 'http://192.168.8.48:8000/api/users/current';
       final uri = Uri.parse(url);
       final response = await http.patch(
         uri,
         headers: {
-          'Authorization': '${AuthService.token}',
+          'Authorization': 'Bearer ${AuthService.token}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({

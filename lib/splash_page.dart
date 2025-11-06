@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:Empuan/start_page.dart';
+import 'package:Empuan/screens/navScreen.dart';
+import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -14,13 +18,67 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Timer(
-      const Duration(seconds: 4),
-      () => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const StartPage()),
-      ),
-    );
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Verify if user has valid token
+    final hasValidToken = await _verifyToken();
+
+    if (mounted) {
+      if (hasValidToken) {
+        // Token valid, langsung ke home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } else {
+        // Token invalid atau tidak ada, ke start page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const StartPage()),
+        );
+      }
+    }
+  }
+
+  /// Verify token validity and user ID match
+  Future<bool> _verifyToken() async {
+    final token = AuthService.token;
+
+    if (token == null || token.isEmpty) {
+      print('[TOKEN] No token found');
+      return false;
+    }
+
+    try {
+      final url = 'http://192.168.8.48:8000/api/users/current';
+      final uri = Uri.parse(url);
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['data'] != null) {
+          final userId = jsonData['data']['id'];
+          final username = jsonData['data']['username'];
+          print('[TOKEN] ✅ Valid token - User: $username (ID: $userId)');
+          return true;
+        }
+      } else {
+        print('[TOKEN] ❌ Invalid token - Status: ${response.statusCode}');
+        await AuthService.logout(); // Clear invalid token
+      }
+    } catch (e) {
+      print('[TOKEN] ❌ Error verifying token: $e');
+      // Don't logout on network error, just proceed to start page
+    }
+
+    return false;
   }
 
   @override

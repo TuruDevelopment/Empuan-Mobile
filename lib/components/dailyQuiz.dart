@@ -489,10 +489,10 @@ class _DailyQuizState extends State<DailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/questions';
+    final url = 'http://192.168.8.48:8000/api/questions';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body) as Map;
       final List<dynamic> resultList = jsonResponse['data'] ?? [];
@@ -531,12 +531,12 @@ class _DailyQuizState extends State<DailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://192.168.8.83:8000/api/questions/$idQuestion/options';
+      final url = 'http://192.168.8.48:8000/api/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {
         final response = await http
-            .get(uri, headers: {'Authorization': '${AuthService.token}'});
+            .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
         if (response.statusCode == 200) {
           final jsonResponse = jsonDecode(response.body) as Map;

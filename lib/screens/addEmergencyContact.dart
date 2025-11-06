@@ -324,17 +324,45 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
       'relation': relation,
     };
 
-    final url = "http://192.168.8.83:8000/api/kontakamans";
+    final url = "http://192.168.8.48:8000/api/kontakamans";
     final uri = Uri.parse(url);
+
+    // Debug: Print request details
+    print('═══════════════════════════════════════════════════════');
+    print('🔍 CREATE EMERGENCY CONTACT - Debug Info:');
+    print('───────────────────────────────────────────────────────');
+    print('Request URL: $url');
+    print('Request Body: ${jsonEncode(body)}');
+    print('Token (first 30 chars): ${AuthService.token?.substring(0, 30)}...');
+    print('═══════════════════════════════════════════════════════');
 
     try {
       final response = await http.post(uri, body: jsonEncode(body), headers: {
         'Content-Type': 'application/json',
-        'Authorization': '${AuthService.token}'
+        'Authorization': 'Bearer ${AuthService.token}'
       });
 
-      print(response.statusCode);
-      print(response.body);
+      print('─────────────────────────────────────────────────────');
+      print('📡 Response Status: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
+      // Parse response to check user_id
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['data'] != null) {
+          final savedUserId = responseData['data']['user_id'];
+          print('───────────────────────────────────────────────────');
+          print('✅ Data saved successfully!');
+          print('🆔 Saved with user_id: $savedUserId');
+          if (savedUserId == 1 || savedUserId == 2) {
+            print('⚠️  WARNING: Still using OLD user_id ($savedUserId)!');
+            print('⚠️  Please logout and login with Michael or Yongky!');
+          } else {
+            print('✅ Correct user_id! ($savedUserId)');
+          }
+          print('═══════════════════════════════════════════════════════');
+        }
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
@@ -408,10 +436,10 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/kontakamans';
+    final url = 'http://192.168.8.48:8000/api/kontakamans';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());

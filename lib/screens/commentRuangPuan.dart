@@ -275,10 +275,10 @@ class _CommentState extends State<Comment> {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.83:8000/api/users/$userId';
+    final url = 'http://192.168.8.48:8000/api/users/$userId';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
@@ -298,10 +298,10 @@ class _CommentState extends State<Comment> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.8.83:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.48:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -325,10 +325,10 @@ class _CommentState extends State<Comment> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/users/current';
+    final url = 'http://192.168.8.48:8000/api/users/current';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -368,7 +368,7 @@ class _CommentState extends State<Comment> {
     };
 
     final url =
-        'http://192.168.8.83:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.48:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
     print('url: ' + url);
     final uri = Uri.parse(url);
 
@@ -382,7 +382,7 @@ class _CommentState extends State<Comment> {
 
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
-      'Authorization': '${AuthService.token}'
+      'Authorization': 'Bearer ${AuthService.token}'
     });
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -465,11 +465,11 @@ class _CommentState extends State<Comment> {
   //     'relation': relation,
   //   };
 
-  //   final url = "http://192.168.8.83:8000/api/kontakpalsus";
+  //   final url = "http://192.168.8.48:8000/api/kontakpalsus";
   //   final uri = Uri.parse(url);
   //   final response = await http.post(uri, body: jsonEncode(body), headers: {
   //     'Content-Type': 'application/json',
-  //     'Authorization': '${AuthService.token}'
+  //     'Authorization': 'Bearer ${AuthService.token}'
   //   });
 
   //   print(response.statusCode);

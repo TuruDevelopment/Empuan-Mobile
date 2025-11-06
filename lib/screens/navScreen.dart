@@ -219,11 +219,11 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.83:8000/api/users/current';
+    final url = 'http://192.168.8.48:8000/api/users/current';
     final uri = Uri.parse(url);
 
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['data'] != null) {
@@ -241,10 +241,10 @@ class _MainScreenState extends State<MainScreen> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.83:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.48:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
@@ -348,10 +348,10 @@ class _MainScreenState extends State<MainScreen> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.83:8000/api/kontakamans';
+    final url = 'http://192.168.8.48:8000/api/kontakamans';
     final uri = Uri.parse(url);
     final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] ?? [] as List;

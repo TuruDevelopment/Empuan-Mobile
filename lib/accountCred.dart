@@ -436,7 +436,7 @@ class _AccountCredState extends State<AccountCred> {
       "token": token,
     };
 
-    final url = 'http://192.168.8.83:8000/api/users';
+    final url = 'http://192.168.8.48:8000/api/users';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

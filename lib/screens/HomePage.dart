@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:Empuan/components/dailyQuiz.dart';
 import 'package:Empuan/screens/catatanHaid.dart';
+import 'package:Empuan/screens/chatbot.dart';
 import 'package:Empuan/screens/newUntukPuan.dart';
 import 'package:Empuan/screens/suaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
@@ -43,11 +44,11 @@ class _HomePageState extends State<HomePage> {
   // late DateTime _enddate = DateTime.now();
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.83:8000/api/users/current';
+    final url = 'http://192.168.8.48:8000/api/users/current';
     final uri = Uri.parse(url);
 
-    final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['data'] != null) {
@@ -65,10 +66,10 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.83:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.48:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': '${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
@@ -453,12 +454,92 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 16),
 
-                      // Quick Actions Row 2
+                      // Quick Actions Row 2 - AI Chatbot
                       Row(
                         children: [
                           Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ChatbotScreen()));
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                height: 130,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFF7C4DFF),
+                                      Color(0xFF536DFE),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0xFF7C4DFF).withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(14.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(
+                                          Icons.smart_toy_rounded,
+                                          color: Colors.white,
+                                          size: 26,
+                                        ),
+                                      ),
+                                      const Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'AI Assistant',
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 3),
+                                          Text(
+                                            'Chat with AI',
+                                            style: TextStyle(
+                                              fontFamily: 'Satoshi',
+                                              fontSize: 10.5,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
                             child: Container(
-                              height: 150,
+                              height: 130,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
@@ -478,7 +559,7 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(14.0),
+                                padding: const EdgeInsets.all(12.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment:
@@ -489,23 +570,23 @@ class _HomePageState extends State<HomePage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.all(7),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary
                                                 .withOpacity(0.2),
                                             borderRadius:
-                                                BorderRadius.circular(12),
+                                                BorderRadius.circular(10),
                                           ),
                                           child: const Icon(
                                             Icons.access_time_rounded,
                                             color: AppColors.primary,
-                                            size: 22,
+                                            size: 20,
                                           ),
                                         ),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 5,
+                                            horizontal: 8,
+                                            vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary
@@ -517,7 +598,7 @@ class _HomePageState extends State<HomePage> {
                                             'Period in',
                                             style: TextStyle(
                                               fontFamily: 'Satoshi',
-                                              fontSize: 9.5,
+                                              fontSize: 9,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.primary,
                                             ),
@@ -533,16 +614,18 @@ class _HomePageState extends State<HomePage> {
                                           '$countdown Days',
                                           style: const TextStyle(
                                             fontFamily: 'Satoshi',
-                                            fontSize: 30,
+                                            fontSize: 26,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.primary,
+                                            height: 1.0,
                                           ),
                                         ),
+                                        const SizedBox(height: 2),
                                         const Text(
-                                          'Until next period',
+                                          'Next period',
                                           style: TextStyle(
                                             fontFamily: 'Satoshi',
-                                            fontSize: 10.5,
+                                            fontSize: 10,
                                             color: AppColors.textSecondary,
                                           ),
                                         ),
