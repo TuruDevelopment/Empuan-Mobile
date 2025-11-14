@@ -358,6 +358,6 @@
       "docs/ownership-security-changes.md"
     ],
     "test_script": "test-user-id.php",
-    "server_url": "http://192.168.8.48:8000"
+    "server_url": "http://192.168.1.7:8000"
   }
 }

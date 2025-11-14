@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   // late DateTime _enddate = DateTime.now();
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.48:8000/api/users/current';
+    final url = 'http://192.168.1.7:8000/api/users/current';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.48:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.1.7:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

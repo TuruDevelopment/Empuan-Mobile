@@ -24,8 +24,7 @@ class AuthService {
   Future<bool> login(
       {required String username, required String password}) async {
     try {
-      var response = await Dio().post(
-          "http://192.168.8.48:8000/api/users/login",
+      var response = await Dio().post("http://192.168.1.7:8000/api/users/login",
           options: Options(headers: {'Content-Type': 'application/json'}),
           data: {"username": username, 'password': password});
 

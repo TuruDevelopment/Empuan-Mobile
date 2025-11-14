@@ -341,10 +341,10 @@ class _Question2State extends State<Question2> {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.8.48:8000/api/users/username/$username';
+    final url = 'http://192.168.1.7:8000/api/users/username/$username';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
@@ -368,7 +368,7 @@ class _Question2State extends State<Question2> {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.8.48:8000/api/catatanhaids";
+    final url = "http://192.168.1.7:8000/api/catatanhaids";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

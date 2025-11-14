@@ -326,7 +326,7 @@ class _AddContactState extends State<AddContact> {
       'relation': relation,
     };
 
-    final url = "http://192.168.8.48:8000/api/kontakpalsus";
+    final url = "http://192.168.1.7:8000/api/kontakpalsus";
     final uri = Uri.parse(url);
 
     // Debug: Print request details
@@ -441,7 +441,7 @@ class _AddContactState extends State<AddContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.48:8000/api/kontakpalsus';
+    final url = 'http://192.168.1.7:8000/api/kontakpalsus';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

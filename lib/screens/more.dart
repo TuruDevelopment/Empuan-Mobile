@@ -548,7 +548,7 @@ class _MoreState extends State<More> {
 
     final threadDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final url = 'http://192.168.8.48:8000/api/ruangPuans';
+    final url = 'http://192.168.1.7:8000/api/ruangPuans';
     final uri = Uri.parse(url);
 
     final body = {
@@ -672,10 +672,10 @@ class _MoreState extends State<More> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.48:8000/api/ruangPuans';
+    final url = 'http://192.168.1.7:8000/api/ruangPuans';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -697,10 +697,10 @@ class _MoreState extends State<More> {
   }
 
   Future<List<String>> getCurrentUser() async {
-    final url = 'http://192.168.8.48:8000/api/users/current';
+    final url = 'http://192.168.1.7:8000/api/users/current';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] ?? [];

@@ -102,7 +102,7 @@ Setelah login, console HARUS menampilkan:
 ═══════════════════════════════════════════════════════
 🔍 CREATE EMERGENCY CONTACT - Debug Info:
 ───────────────────────────────────────────────────────
-Request URL: http://192.168.8.48:8000/api/kontakamans
+Request URL: http://192.168.1.7:8000/api/kontakamans
 Request Body: {"name":"Test","phoneNumber":"08123","relation":"Family"}
 Token (first 30 chars): eyJ0eXAiOiJKV1QiLCJhbGciOiJI...
 ═══════════════════════════════════════════════════════
@@ -256,7 +256,7 @@ Check these:
 1. **Backend logs:** Is backend receiving correct token?
 2. **Database:** Check users table - do Michael/Yongky exist?
 3. **Token payload:** Decode JWT token - what user_id is inside?
-4. **Network:** Is app reaching correct backend (192.168.8.48)?
+4. **Network:** Is app reaching correct backend (192.168.1.7)?
 
 **To decode JWT token:**
 

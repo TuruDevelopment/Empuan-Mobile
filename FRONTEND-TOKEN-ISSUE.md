@@ -18,7 +18,7 @@ Frontend **TIDAK mengirim Bearer token** di Authorization header!
 ```
 [2025-11-06 06:30:03] local.INFO: ApiTokenAuth Middleware {
     "token_received":"NULL",    // ❌ TOKEN TIDAK ADA!
-    "url":"http://192.168.8.48:8000/api/kontakpalsus",
+    "url":"http://192.168.1.7:8000/api/kontakpalsus",
     "method":"POST"
 }
 [2025-11-06 06:30:03] local.INFO: ApiTokenAuth: User authenticated {
@@ -92,7 +92,7 @@ print('✅ Token found: ${token.substring(0, 10)}...');
 ```dart
 // CORRECT ✅
 final response = await http.post(
-  Uri.parse('http://192.168.8.48:8000/api/kontakamans'),
+  Uri.parse('http://192.168.1.7:8000/api/kontakamans'),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -107,7 +107,7 @@ final response = await http.post(
 
 // WRONG ❌
 final response = await http.post(
-  Uri.parse('http://192.168.8.48:8000/api/kontakamans'),
+  Uri.parse('http://192.168.1.7:8000/api/kontakamans'),
   headers: {
     'Content-Type': 'application/json',
     // ❌ TIDAK ADA Authorization header!
@@ -206,7 +206,7 @@ if (loginResponse.statusCode == 200) {
 final testToken = 'c0649cdb-907f-4a15-8199-2ff3789a0c01';
 
 final response = await http.post(
-  Uri.parse('http://192.168.8.48:8000/api/kontakamans'),
+  Uri.parse('http://192.168.1.7:8000/api/kontakamans'),
   headers: {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer $testToken',
@@ -229,7 +229,7 @@ print('Body: ${response.body}');
 ```dart
 // Test: Request tanpa Authorization header
 final response = await http.post(
-  Uri.parse('http://192.168.8.48:8000/api/kontakamans'),
+  Uri.parse('http://192.168.1.7:8000/api/kontakamans'),
   headers: {
     'Content-Type': 'application/json',
     // ❌ Tidak ada Authorization header
@@ -252,27 +252,27 @@ assert(response.statusCode == 401, 'Should return 401 without token');
 
 ### Immediate Actions (Hari Ini!)
 
--   [ ] Check apakah token tersimpan setelah login
--   [ ] Verify Authorization header dikirim di SEMUA API calls
--   [ ] Add logging untuk debug token issue
--   [ ] Test dengan user 8 token: `c0649cdb-907f-4a15-8199-2ff3789a0c01`
--   [ ] Verify response 401 handled dengan benar
+- [ ] Check apakah token tersimpan setelah login
+- [ ] Verify Authorization header dikirim di SEMUA API calls
+- [ ] Add logging untuk debug token issue
+- [ ] Test dengan user 8 token: `c0649cdb-907f-4a15-8199-2ff3789a0c01`
+- [ ] Verify response 401 handled dengan benar
 
 ### Code Review Checklist
 
--   [ ] Setiap `http.post()` / `http.get()` harus include `Authorization` header
--   [ ] Token diambil dari SharedPreferences sebelum setiap request
--   [ ] Handle case token null/empty → redirect ke login
--   [ ] Handle response 401 → clear token & redirect ke login
--   [ ] Tidak ada hardcoded user_id di request body
+- [ ] Setiap `http.post()` / `http.get()` harus include `Authorization` header
+- [ ] Token diambil dari SharedPreferences sebelum setiap request
+- [ ] Handle case token null/empty → redirect ke login
+- [ ] Handle response 401 → clear token & redirect ke login
+- [ ] Tidak ada hardcoded user_id di request body
 
 ### Testing Checklist
 
--   [ ] Login dengan user "Yongky" (ID 8)
--   [ ] Create kontak baru
--   [ ] Verify di database: `user_id` harus = 8
--   [ ] Logout dan login lagi
--   [ ] Create data lagi, verify masih `user_id = 8`
+- [ ] Login dengan user "Yongky" (ID 8)
+- [ ] Create kontak baru
+- [ ] Verify di database: `user_id` harus = 8
+- [ ] Logout dan login lagi
+- [ ] Create data lagi, verify masih `user_id = 8`
 
 ---
 
@@ -313,9 +313,9 @@ Jika masih ada masalah:
 
 **Backend Test Scripts Available:**
 
--   `php test-frontend-request.php` - Test dengan token User 8
--   `php test-no-token.php` - Test tanpa token (harus 401)
--   `php test-user-id.php` - Verify user_id logic
+- `php test-frontend-request.php` - Test dengan token User 8
+- `php test-no-token.php` - Test tanpa token (harus 401)
+- `php test-user-id.php` - Verify user_id logic
 
 ---
 

@@ -201,7 +201,7 @@ await Future.delayed(const Duration(milliseconds: 30)); // ← Change this!
 In `chatbot_service.dart` line 10:
 
 ```dart
-static const String baseUrl = 'http://192.168.8.48:8000/api';
+static const String baseUrl = 'http://192.168.1.7:8000/api';
 ```
 
 Update this to match your backend server address.
