@@ -14,7 +14,7 @@
 
 ```dart
 // Request yang dikirim mobile app:
-POST http://192.168.8.48:8000/api/kontakpalsus
+POST http://192.168.1.7:8000/api/kontakpalsus
 Headers: {
   "Authorization": "Bearer eyJ0eXAi... (token user_id 8)"
   "Content-Type": "application/json"
@@ -273,7 +273,7 @@ Test backend langsung dengan curl:
 
 ```bash
 # Login dulu untuk dapat token
-curl -X POST http://192.168.8.48:8000/api/users/login \
+curl -X POST http://192.168.1.7:8000/api/users/login \
   -H "Content-Type: application/json" \
   -d '{"username":"Yongky","password":"your_password"}'
 
@@ -281,7 +281,7 @@ curl -X POST http://192.168.8.48:8000/api/users/login \
 # Expected: {"data":{"id":8,"username":"Yongky","token":"xxx"}}
 
 # Test create kontak palsu dengan token user 8
-curl -X POST http://192.168.8.48:8000/api/kontakpalsus \
+curl -X POST http://192.168.1.7:8000/api/kontakpalsus \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer TOKEN_YANG_DIDAPAT" \
   -d '{"name":"Test Manual","phoneNumber":"08999","relation":"Friend"}'

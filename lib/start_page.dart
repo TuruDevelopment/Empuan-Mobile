@@ -16,7 +16,7 @@ class _StartPageState extends State<StartPage> {
   bool _isCheckingApi = true;
   bool _apiConnected = false;
   String _apiStatus = 'Checking...';
-  String _apiUrl = 'http://192.168.8.48:8000';
+  String _apiUrl = 'http://192.168.1.7:8000';
 
   @override
   void initState() {

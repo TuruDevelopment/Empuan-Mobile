@@ -53,7 +53,7 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      final url = 'http://192.168.8.48:8000/api/users/current';
+      final url = 'http://192.168.1.7:8000/api/users/current';
       final uri = Uri.parse(url);
       final response = await http.patch(
         uri,

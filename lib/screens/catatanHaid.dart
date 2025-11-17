@@ -51,11 +51,11 @@ class _CatatanHaidState extends State<CatatanHaid> {
   late int endCycle = 34;
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.48:8000/api/users/current';
+    final url = 'http://192.168.1.7:8000/api/users/current';
     final uri = Uri.parse(url);
 
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['data'] != null) {
@@ -73,10 +73,10 @@ class _CatatanHaidState extends State<CatatanHaid> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.48:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.1.7:8000/api/catatanhaids/$userid';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
@@ -1083,11 +1083,11 @@ Future<void> _showMarkDialog(BuildContext context) async {
 }
 
 Future<String?> getCurrentUser() async {
-  final url = 'http://192.168.8.48:8000/api/users/current';
+  final url = 'http://192.168.1.7:8000/api/users/current';
   final uri = Uri.parse(url);
 
-  final response =
-      await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+  final response = await http
+      .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
   if (response.statusCode == 200) {
     final jsonData = jsonDecode(response.body);
     if (jsonData['data'] != null) {
@@ -1108,7 +1108,7 @@ Future<void> editData(dateStartEdit, dateEndEdit) async {
     'end_date': dateEndEdit,
   };
   final id = await getCurrentUser();
-  final url = "http://192.168.8.48:8000/api/catatanhaids/$id";
+  final url = "http://192.168.1.7:8000/api/catatanhaids/$id";
   final uri = Uri.parse(url);
   final response = await http.put(uri, body: jsonEncode(body), headers: {
     'Content-Type': 'application/json',

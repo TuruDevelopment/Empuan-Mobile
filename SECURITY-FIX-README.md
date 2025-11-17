@@ -189,5 +189,5 @@ Jika masih mengalami masalah:
 4. Test create data baru
 5. Verify di database user_id sudah benar
 
-**Backend Server:** http://192.168.8.48:8000
+**Backend Server:** http://192.168.1.7:8000
 **API Docs:** See `mobile-app-integration.json`

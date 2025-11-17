@@ -366,10 +366,10 @@ class _EmergencyContactState extends State<EmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.48:8000/api/kontakamans';
+    final url = 'http://192.168.1.7:8000/api/kontakamans';
     final uri = Uri.parse(url);
-    final response =
-        await http.get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
