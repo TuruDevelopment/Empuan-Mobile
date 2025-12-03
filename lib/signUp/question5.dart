@@ -81,7 +81,7 @@ class _Question5State extends State<Question5> {
                     child: Text(
                       'Question 5',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w900,
                         fontSize: 25,
                       ),
@@ -92,7 +92,7 @@ class _Question5State extends State<Question5> {
                 const Text(
                   'What\'s your fitness goal?',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -253,7 +253,7 @@ class LabeledCheckboxExample extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16.0,
                 color: Colors.black,
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
               ),
             ),
             value: value,

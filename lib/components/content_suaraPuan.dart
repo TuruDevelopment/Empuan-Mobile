@@ -178,7 +178,7 @@ class SuaraPuanBox extends StatelessWidget {
                       Text(
                         kategori_name,
                         style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                             fontSize: 20),
@@ -210,7 +210,7 @@ class SuaraPuanBox extends StatelessWidget {
                           ),
                           child: const Text(
                             'See More',
-                            style: TextStyle(fontFamily: 'Satoshi'),
+                            style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
                           ),
                         ),
                       ),
@@ -257,7 +257,7 @@ class SuaraPuanBox extends StatelessWidget {
                     children: [
                       Text(dop,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: const Color.fromRGBO(251, 111, 146, 1),
                               fontSize: 12)),
@@ -267,7 +267,7 @@ class SuaraPuanBox extends StatelessWidget {
                       ),
                       Text(kategori_name,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: const Color.fromRGBO(251, 111, 146, 1),
                               fontSize: 12)),
@@ -278,7 +278,7 @@ class SuaraPuanBox extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                       fontSize: 20),
@@ -295,7 +295,7 @@ class SuaraPuanBox extends StatelessWidget {
 }
 
 Future<String?> getKategoriById(String kategoriId) async {
-  final url = 'http://192.168.1.7:8000/api/kategorisuarapuans/$kategoriId';
+  final url = 'http://192.168.8.52:8000/api/kategori-suara-puan/$kategoriId';
   final uri = Uri.parse(url);
   final response = await http
       .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

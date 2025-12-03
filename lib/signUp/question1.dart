@@ -8,10 +8,12 @@ class Question1 extends StatefulWidget {
   // const Question1({Key? key}) : super(key: key);
 
   final String username;
+  final String email;
   final String password;
   const Question1({
     Key? key,
     required this.username,
+    required this.email,
     required this.password,
   }) : super(key: key);
 
@@ -148,7 +150,7 @@ class _Question1State extends State<Question1> {
                                   Text(
                                     'Question 1 of 4',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.w500,
@@ -157,7 +159,7 @@ class _Question1State extends State<Question1> {
                                   Text(
                                     '25%',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.bold,
@@ -208,7 +210,7 @@ class _Question1State extends State<Question1> {
                           child: Text(
                             'Question 1',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
@@ -222,7 +224,7 @@ class _Question1State extends State<Question1> {
                         Text(
                           'Is your menstrual cycle regular?',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -233,7 +235,7 @@ class _Question1State extends State<Question1> {
                         Text(
                           '(varies by no more than 7 days)',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 15,
                             color: AppColors.textSecondary,
                           ),
@@ -313,7 +315,7 @@ class _Question1State extends State<Question1> {
                             child: Text(
                               'Back',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                                 letterSpacing: 0.5,
@@ -354,6 +356,7 @@ class _Question1State extends State<Question1> {
                                       MaterialPageRoute(
                                         builder: (context) => Question2(
                                           username: widget.username,
+                                          email: widget.email,
                                           password: widget.password,
                                         ),
                                       ),
@@ -370,7 +373,7 @@ class _Question1State extends State<Question1> {
                             child: Text(
                               'Save & Next',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: Colors.white,
@@ -452,7 +455,7 @@ class _Question1State extends State<Question1> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                     color:

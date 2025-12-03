@@ -26,7 +26,7 @@ class _Intro1State extends State<Intro1> {
             const Text(
               'Breaking Stereotypes,\nEmpowering Women',
               style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   color: AppColors.pink1,
                   fontSize: 20),
@@ -36,7 +36,7 @@ class _Intro1State extends State<Intro1> {
               'Empuan App Paves the Way for\nGender Equality in Indonesia',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   // fontWeight: FontWeight.bold,
                   color: Colors.black,
                   fontSize: 15),
@@ -63,7 +63,7 @@ class _Intro1State extends State<Intro1> {
                         const Color.fromRGBO(251, 111, 146, 1))),
                 child: const Text(
                   'Next',
-                  style: TextStyle(fontFamily: 'Satoshi'),
+                  style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
                 ),
               ),
             ),

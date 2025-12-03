@@ -19,20 +19,79 @@ class More extends StatefulWidget {
 
 class _MoreState extends State<More> {
   final ScrollController _scrollController = ScrollController();
-  // late String? username;
   String? username;
   bool isLoading = true;
-  List<dynamic> posts = []; // Add posts state variable
+  bool isLoadingMore = false;
+  bool hasMoreData = true;
+  int currentPage = 1;
+  final int itemsPerPage = 10;
+  List<dynamic> posts = [];
+  List<String> dataUser = [];
+  TextEditingController threadNameController = TextEditingController();
 
+  @override
   void initState() {
     super.initState();
     getData();
     getUserData();
+    _scrollController.addListener(_onScroll);
   }
 
-  late List<String> dataUser;
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    threadNameController.dispose();
+    super.dispose();
+  }
 
-  TextEditingController threadNameController = TextEditingController();
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.8 &&
+        !isLoadingMore &&
+        hasMoreData) {
+      _loadMorePosts();
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    if (isLoadingMore || !hasMoreData) return;
+
+    setState(() {
+      isLoadingMore = true;
+    });
+
+    try {
+      final url =
+          'http://192.168.8.52:8000/api/ruang-puan?page=${currentPage + 1}&per_page=$itemsPerPage';
+      final uri = Uri.parse(url);
+      final response = await http.get(uri,
+          headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map;
+        final result = json['data'] ?? [] as List;
+
+        setState(() {
+          if (result.isEmpty || result.length < itemsPerPage) {
+            hasMoreData = false;
+          }
+          posts.addAll(result);
+          currentPage++;
+          isLoadingMore = false;
+        });
+      } else {
+        setState(() {
+          isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading more posts: $e');
+      setState(() {
+        isLoadingMore = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,194 +108,367 @@ class _MoreState extends State<More> {
             ],
           ),
         ),
-        child: Visibility(
-          visible: isLoading,
-          child: Center(
-            child: CircularProgressIndicator(
-              color: AppColors.primary,
-            ),
-          ),
-          replacement: RefreshIndicator(
-            onRefresh: getData,
-            color: AppColors.primary,
-            backgroundColor: AppColors.surface,
-            child: SafeArea(
-              bottom: false,
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  // Modern App Bar
+        child: RefreshIndicator(
+          onRefresh: getData,
+          color: AppColors.primary,
+          backgroundColor: AppColors.surface,
+          child: SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Modern App Bar
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.secondary,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.forum_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Her Space',
+                                    style: TextStyle(
+                                      fontFamily: 'Brodies',
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Share your thoughts',
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary
+                                          .withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Settings Button
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.accent.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => Settings(
+                                        username: username ?? 'User',
+                                        profilePicture: dataUser.isNotEmpty
+                                            ? dataUser[1]
+                                            : 'images/profilePict.png',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.settings_rounded,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (username != null) ...[
+                          const SizedBox(height: 16),
+                          _buildUserInfoCard(),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Modern Create Post Card
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildCreatePostCard(),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 20),
+                ),
+
+                // Posts Section Header
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Text(
+                      'Recent Posts',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 12),
+                ),
+
+                // Posts List
+                if (isLoading)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        children: List.generate(
+                          5,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _buildSkeletonCard(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else if (posts.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _buildEmptyState(),
+                    ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index < posts.length) {
+                          final post = posts[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                              vertical: 6.0,
+                            ),
+                            child: MoreBox(
+                              teks: post['threadName'] ?? '',
+                              date: post['threadDate'] ?? '',
+                              likeCount: post['like']?.toString() ?? '0',
+                              commentCount:
+                                  (post['commentRuangPuans'] != null
+                                          ? post['commentRuangPuans'].length
+                                          : 0)
+                                      .toString(),
+                              idRuangPuan: post['id'] ?? 0,
+                            ),
+                          );
+                        }
+                        return null;
+                      },
+                      childCount: posts.length,
+                    ),
+                  ),
+
+                // Loading More Indicator
+                if (isLoadingMore)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 20.0,
+                      ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accent.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppColors.primary,
-                                      AppColors.secondary,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.forum_rounded,
-                                  color: Colors.white,
-                                  size: 28,
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Ruang Puan',
-                                      style: TextStyle(
-                                        fontFamily: 'Brodies',
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Share your thoughts',
-                                      style: TextStyle(
-                                        fontFamily: 'Satoshi',
-                                        fontSize: 13,
-                                        color: AppColors.textSecondary
-                                            .withOpacity(0.8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Settings Button
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.accent.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => Settings(
-                                          username: username ?? 'User',
-                                          profilePicture: dataUser.isNotEmpty
-                                              ? dataUser[1]
-                                              : 'images/profilePict.png',
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.settings_rounded,
-                                    color: AppColors.primary,
-                                  ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Loading more posts...',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
                           ),
-                          if (username != null) ...[
-                            const SizedBox(height: 16),
-                            _buildUserInfoCard(),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Modern Create Post Card
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: _buildCreatePostCard(),
-                    ),
-                  ),
-
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 20),
-                  ),
-
-                  // Posts Section Header
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Text(
-                        'Recent Posts',
-                        style: TextStyle(
-                          fontFamily: 'Satoshi',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
                   ),
 
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 12),
-                  ),
-
-                  // Posts List
+                // End of Posts Indicator
+                if (!hasMoreData && posts.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: posts.isEmpty
-                          ? _buildEmptyState()
-                          : Column(
-                              children: posts
-                                  .map((post) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 12.0),
-                                        child: MoreBox(
-                                          teks: post['threadName'] ?? '',
-                                          date: post['threadDate'] ?? '',
-                                          likeCount:
-                                              post['like']?.toString() ?? '0',
-                                          commentCount:
-                                              (post['commentRuangPuans'] != null
-                                                      ? post['commentRuangPuans']
-                                                          .length
-                                                      : 0)
-                                                  .toString(),
-                                          idRuangPuan: post['id'] ?? 0,
-                                        ),
-                                      ))
-                                  .toList(),
-                            ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 20.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          'You\'ve reached the end',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 13,
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
-                ],
-              ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 100),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Skeleton Card Widget
+  Widget _buildSkeletonCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 100,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 60,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                width: 60,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -292,7 +524,7 @@ class _MoreState extends State<More> {
                 Text(
                   username ?? '',
                   style: const TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: AppColors.textPrimary,
@@ -301,7 +533,7 @@ class _MoreState extends State<More> {
                 Text(
                   'Active Member',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 12,
                     color: AppColors.textSecondary.withOpacity(0.7),
                   ),
@@ -326,7 +558,7 @@ class _MoreState extends State<More> {
                 Text(
                   'Verified',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.secondary,
@@ -373,7 +605,7 @@ class _MoreState extends State<More> {
               const Text(
                 'Create Post',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: AppColors.textPrimary,
@@ -395,7 +627,7 @@ class _MoreState extends State<More> {
               controller: threadNameController,
               maxLines: 3,
               style: const TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textPrimary,
               ),
@@ -403,7 +635,7 @@ class _MoreState extends State<More> {
                 border: InputBorder.none,
                 hintText: 'Share your thoughts...',
                 hintStyle: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   color: AppColors.textSecondary.withOpacity(0.5),
                 ),
@@ -444,7 +676,7 @@ class _MoreState extends State<More> {
                           Text(
                             'Please write something to post',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 14,
                             ),
                           ),
@@ -481,7 +713,7 @@ class _MoreState extends State<More> {
                   Text(
                     'Post',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: Colors.white,
@@ -530,7 +762,7 @@ class _MoreState extends State<More> {
             'Be the first to share your thoughts!\nCreate a post above to get started.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               color: AppColors.textSecondary.withOpacity(0.8),
               height: 1.5,
@@ -548,7 +780,7 @@ class _MoreState extends State<More> {
 
     final threadDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final url = 'http://192.168.1.7:8000/api/ruangPuans';
+    final url = 'http://192.168.8.52:8000/api/ruang-puan';
     final uri = Uri.parse(url);
 
     final body = {
@@ -567,7 +799,7 @@ class _MoreState extends State<More> {
         },
       );
 
-      print('hasil post ruang puan ${response.statusCode}');
+      print('hasil post Her Space ${response.statusCode}');
       print(body);
       print(response.body);
 
@@ -586,7 +818,7 @@ class _MoreState extends State<More> {
                   Text(
                     'Post published successfully!',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -617,7 +849,7 @@ class _MoreState extends State<More> {
                   Text(
                     'Failed to post. Please try again.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -647,7 +879,7 @@ class _MoreState extends State<More> {
                   child: Text(
                     'Network error. Please check your connection.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -669,13 +901,17 @@ class _MoreState extends State<More> {
   Future<void> getData() async {
     setState(() {
       isLoading = true;
+      currentPage = 1;
+      hasMoreData = true;
+      posts.clear();
     });
-    // get data from form
-    // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/ruangPuans';
+
+    final url =
+        'http://192.168.8.52:8000/api/ruang-puan?page=$currentPage&per_page=$itemsPerPage';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -683,6 +919,9 @@ class _MoreState extends State<More> {
 
       setState(() {
         posts = result;
+        if (result.isEmpty || result.length < itemsPerPage) {
+          hasMoreData = false;
+        }
         isLoading = false;
       });
     } else {
@@ -691,16 +930,16 @@ class _MoreState extends State<More> {
       });
     }
 
-    // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik' + response.body);
   }
 
   Future<List<String>> getCurrentUser() async {
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] ?? [];
@@ -709,8 +948,7 @@ class _MoreState extends State<More> {
           result.containsKey('id')) {
         final username = result['name'].toString();
         final userId = result['id'].toString();
-        final profilePicture =
-            'images/profilePict.png'; // or the default value from API
+        final profilePicture = 'images/profilePict.png';
         return [username, profilePicture, userId];
       }
     }

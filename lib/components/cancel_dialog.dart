@@ -58,7 +58,7 @@ Future<void> showCancelDialog({
             Text(
               title,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -69,7 +69,7 @@ Future<void> showCancelDialog({
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -106,7 +106,7 @@ Future<void> showCancelDialog({
                     child: Text(
                       cancelButtonText,
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                         color: AppColors.textPrimary,
@@ -152,7 +152,7 @@ Future<void> showCancelDialog({
                     child: Text(
                       confirmButtonText,
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                         color: Colors.white,

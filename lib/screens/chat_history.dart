@@ -59,7 +59,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
         content: const Text(
           'This conversation will be permanently deleted.',
           style: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             color: AppColors.textSecondary,
           ),
         ),
@@ -69,7 +69,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
             child: Text(
               'Cancel',
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 color: AppColors.textSecondary,
               ),
             ),
@@ -82,7 +82,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
             child: const Text(
               'Delete',
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
               ),
@@ -102,7 +102,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
             SnackBar(
               content: const Text(
                 'Conversation deleted',
-                style: TextStyle(fontFamily: 'Satoshi'),
+                style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
               ),
               backgroundColor: AppColors.primary,
               behavior: SnackBarBehavior.floating,
@@ -200,7 +200,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                 Text(
                   'View past conversations',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -255,7 +255,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           Text(
             'Loading conversations...',
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               color: AppColors.textSecondary,
             ),
           ),
@@ -303,7 +303,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
               'Start a new conversation to see\nyour chat history here!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -323,7 +323,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
               label: const Text(
                 'Start New Chat',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -422,7 +422,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -440,7 +440,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                         Text(
                           '${session.messageCount} messages',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
@@ -455,7 +455,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                         Text(
                           _formatDate(session.lastMessage),
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),

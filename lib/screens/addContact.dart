@@ -191,7 +191,7 @@ class _AddContactState extends State<AddContact> {
                                       Text(
                                         'Please fill name and phone number',
                                         style: TextStyle(
-                                          fontFamily: 'Satoshi',
+                                          fontFamily: 'Plus Jakarta Sans',
                                           fontSize: 14,
                                         ),
                                       ),
@@ -229,7 +229,7 @@ class _AddContactState extends State<AddContact> {
                               Text(
                                 'Save Contact',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -278,7 +278,7 @@ class _AddContactState extends State<AddContact> {
         controller: controller,
         keyboardType: keyboardType,
         style: const TextStyle(
-          fontFamily: 'Satoshi',
+          fontFamily: 'Plus Jakarta Sans',
           fontSize: 15,
           color: AppColors.textPrimary,
         ),
@@ -286,7 +286,7 @@ class _AddContactState extends State<AddContact> {
           border: InputBorder.none,
           hintText: hintText,
           hintStyle: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             fontSize: 15,
             color: AppColors.textSecondary.withOpacity(0.5),
           ),
@@ -326,7 +326,7 @@ class _AddContactState extends State<AddContact> {
       'relation': relation,
     };
 
-    final url = "http://192.168.1.7:8000/api/kontakpalsus";
+    final url = "http://192.168.8.52:8000/api/kontak-palsu";
     final uri = Uri.parse(url);
 
     // Debug: Print request details
@@ -379,7 +379,7 @@ class _AddContactState extends State<AddContact> {
                   Text(
                     'Contact added successfully!',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -410,7 +410,7 @@ class _AddContactState extends State<AddContact> {
                   child: Text(
                     'Failed to add contact. Please try again.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -441,7 +441,7 @@ class _AddContactState extends State<AddContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakpalsus';
+    final url = 'http://192.168.8.52:8000/api/kontak-palsu';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

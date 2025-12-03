@@ -103,7 +103,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                                 Text(
                                   'Real emergency contacts',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontSize: 13,
                                     color: AppColors.textSecondary
                                         .withOpacity(0.8),
@@ -153,7 +153,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                                   Text(
                                     'Emergency Contacts',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: AppColors.error,
@@ -163,7 +163,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                                   Text(
                                     'Contacts to be notified in case of emergency',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                       height: 1.4,
@@ -192,7 +192,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                           Text(
                             'Your Contacts',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -201,7 +201,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                           Text(
                             '${dataMore.length} contacts',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -282,7 +282,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                               Text(
                                 'Add New Contact',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -338,7 +338,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
           Text(
             'No Emergency Contacts',
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontWeight: FontWeight.bold,
               fontSize: 18,
               color: AppColors.textPrimary,
@@ -349,7 +349,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
             'Add contacts to be notified\nin case of emergency',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.5,
@@ -366,7 +366,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakamans';
+    final url = 'http://192.168.8.52:8000/api/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

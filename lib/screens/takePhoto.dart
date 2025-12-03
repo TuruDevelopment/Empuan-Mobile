@@ -75,7 +75,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                     Text(
                       'Select Image',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -106,7 +106,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                                 content: const Text(
                                   'Please select an image first',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -194,7 +194,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                                         Text(
                                           'No image selected',
                                           style: TextStyle(
-                                            fontFamily: 'Satoshi',
+                                            fontFamily: 'Plus Jakarta Sans',
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.textPrimary,
@@ -208,7 +208,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                                             'Choose an option below to select your image',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 14,
                                               color: AppColors.textSecondary,
                                             ),
@@ -269,7 +269,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                                 Text(
                                   'Take Picture',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: Colors.white,
@@ -314,7 +314,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
                                 Text(
                                   'Choose from Gallery',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: AppColors.primary,

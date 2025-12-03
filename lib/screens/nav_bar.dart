@@ -6,12 +6,16 @@ import 'package:Empuan/styles/style.dart';
 class NavBar extends StatelessWidget {
   final int pageIndex;
   final Function(int) onTap;
+  final bool sosActive;
+  final VoidCallback onPanicPressed;
 
   const NavBar({
-    Key? key, // tambahkan Key? key di sini
+    Key? key,
     required this.pageIndex,
     required this.onTap,
-  }) : super(key: key); // tambahkan ini juga
+    required this.sosActive,
+    required this.onPanicPressed,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +75,7 @@ class NavBar extends StatelessWidget {
                 pageIndex == 1,
                 onTap: () => onTap(1),
               ),
-              const SizedBox(width: 60),
+              _buildPanicButton(),
               navItem(
                 Icons.phone_rounded,
                 'Panggil',
@@ -85,6 +89,51 @@ class NavBar extends StatelessWidget {
                 onTap: () => onTap(3),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanicButton() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: GestureDetector(
+          onTap: onPanicPressed,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: sosActive
+                    ? [
+                        AppColors.secondary,
+                        AppColors.secondary.withOpacity(0.8),
+                      ]
+                    : [
+                        AppColors.error,
+                        AppColors.error.withOpacity(0.8),
+                      ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: sosActive
+                      ? AppColors.secondary.withOpacity(0.3)
+                      : AppColors.error.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              sosActive ? Icons.close_rounded : Icons.crisis_alert_rounded,
+              size: 28,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -148,7 +197,7 @@ class NavBar extends StatelessWidget {
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: selected ? FontWeight.bold : FontWeight.w600,
                     fontSize: selected ? 10.5 : 9.5,
                     color: selected

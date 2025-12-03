@@ -169,7 +169,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                               Text(
                                 'Step ${_currentPageIndex + 1} of 3',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -178,7 +178,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                               Text(
                                 '${((_currentPageIndex + 1) / 3 * 100).toInt()}%',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.primary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -231,7 +231,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             const Text(
                               'Personal Details',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 28,
                                 color: AppColors.textPrimary,
@@ -242,7 +242,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             Text(
                               'Tell us about yourself',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 15,
                                 color: AppColors.textSecondary,
                               ),
@@ -340,7 +340,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             const Text(
                               'Gender Verification',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 28,
                                 color: AppColors.textPrimary,
@@ -351,7 +351,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             Text(
                               'Upload a clear photo of your ID',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 15,
                                 color: AppColors.textSecondary,
                               ),
@@ -416,9 +416,9 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                                             ),
                                             const SizedBox(height: 20),
                                             Text(
-                                              'Upload ID Photo',
+                                              'Upload KTP',
                                               style: TextStyle(
-                                                fontFamily: 'Satoshi',
+                                                fontFamily: 'Plus Jakarta Sans',
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
                                                 color: AppColors.textPrimary,
@@ -433,7 +433,8 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                                                 'Tap to select from gallery or camera',
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  fontFamily: 'Satoshi',
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
                                                   fontSize: 13,
                                                   color:
                                                       AppColors.textSecondary,
@@ -539,7 +540,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                                     child: Text(
                                       'Make sure your ID is clearly visible and readable',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 13,
                                         color: AppColors.textSecondary,
                                       ),
@@ -563,7 +564,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             const Text(
                               'Account Credentials',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 28,
                                 color: AppColors.textPrimary,
@@ -574,7 +575,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             Text(
                               'Create your login credentials',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 15,
                                 color: AppColors.textSecondary,
                               ),
@@ -605,8 +606,8 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter your password';
                                       }
-                                      if (value.length < 6) {
-                                        return 'Password must be at least 6 characters';
+                                      if (value.length < 8) {
+                                        return 'Password must be at least 8 characters';
                                       }
                                       return null;
                                     },
@@ -701,14 +702,14 @@ class _tempSignUpPageState extends State<tempSignUpPage>
             obscureText: _obscurePassword,
             keyboardType: keyboardType,
             style: const TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 15,
               color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 color: AppColors.textSecondary.withOpacity(0.6),
                 fontSize: 15,
               ),
@@ -799,19 +800,16 @@ class _tempSignUpPageState extends State<tempSignUpPage>
     print('DOB: $dob');
     print('Email: $email');
 
-    final token = Uuid().v4();
-
     final body = {
       "name": name,
       "dob": dob,
       "email": email,
       "username": username,
       "password": password,
-      "gender": 1,
-      "token": token,
+      "gender": "1",
     };
 
-    final url = 'http://192.168.1.7:8000/api/users';
+    final url = 'http://192.168.8.52:8000/api/register';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -885,7 +883,7 @@ class PageIndicator extends StatelessWidget {
                 child: const Text(
                   'Back',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     letterSpacing: 0.5,
@@ -933,7 +931,7 @@ class PageIndicator extends StatelessWidget {
                   if (isImageUploaded == false) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Please upload your ID photo'),
+                        content: const Text('Please upload your KTP'),
                         backgroundColor: AppColors.error,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -959,6 +957,7 @@ class PageIndicator extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => BridgetoQ(
                           username: usernameController.text,
+                          email: emailController.text,
                           password: passwordController.text,
                         ),
                       ),
@@ -979,7 +978,7 @@ class PageIndicator extends StatelessWidget {
               child: Text(
                 currentPageIndex == 2 ? 'Finish' : 'Save & Next',
                 style: const TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: Colors.white,

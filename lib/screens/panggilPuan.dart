@@ -108,7 +108,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                                 Text(
                                   'Your trusted contacts',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontSize: 13,
                                     color: AppColors.textSecondary
                                         .withOpacity(0.8),
@@ -159,7 +159,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                                   Text(
                                     'Fake Call Feature',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: AppColors.error,
@@ -169,7 +169,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                                   Text(
                                     'Simulate calls from trusted contacts for emergency situations',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                       height: 1.4,
@@ -198,7 +198,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                           Text(
                             'Your Contacts',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -207,7 +207,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                           Text(
                             '${dataMore.length} contacts',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -290,7 +290,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
                               Text(
                                 'Add New Contact',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -346,7 +346,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
           Text(
             'No Contacts Yet',
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontWeight: FontWeight.bold,
               fontSize: 18,
               color: AppColors.textPrimary,
@@ -357,7 +357,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
             'Add your first emergency contact\nto get started',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.5,
@@ -374,7 +374,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakpalsus';
+    final url = 'http://192.168.8.52:8000/api/kontak-palsu';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

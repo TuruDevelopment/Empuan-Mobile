@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_message.dart';
+import '../config/api_config.dart';
 
 class ChatbotService {
-  static const String baseUrl = 'http://192.168.1.7:8000/api';
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<String> _getToken() async {
     final prefs = await SharedPreferences.getInstance();

@@ -156,7 +156,7 @@ class _CommentState extends State<Comment> {
               'Be the first to share your thoughts!\nStart the conversation below.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary.withOpacity(0.8),
                 height: 1.5,
@@ -196,7 +196,7 @@ class _CommentState extends State<Comment> {
               child: TextField(
                 controller: _commentController,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                 ),
@@ -204,7 +204,7 @@ class _CommentState extends State<Comment> {
                   border: InputBorder.none,
                   hintText: 'Write your comment...',
                   hintStyle: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 14,
                     color: AppColors.textSecondary.withOpacity(0.5),
                   ),
@@ -259,7 +259,7 @@ class _CommentState extends State<Comment> {
                   Text(
                     'Post',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: Colors.white,
@@ -275,17 +275,26 @@ class _CommentState extends State<Comment> {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.1.7:8000/api/users/$userId';
+    final url = 'http://192.168.8.52:8000/api/admin/users/$userId';
     final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map;
-      final result = json['data'];
-      if (result != null && result.containsKey('name')) {
-        return result['name'].toString();
+    try {
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+      print(
+          '[CommentRuangPuan] getUsernameById status: ${response.statusCode}');
+      print('[CommentRuangPuan] getUsernameById response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map;
+        final result = json['data'];
+        if (result != null && result.containsKey('name')) {
+          return result['name'].toString();
+        }
       }
+    } catch (e) {
+      print('[CommentRuangPuan] Error fetching username: $e');
     }
 
     return null;
@@ -298,7 +307,7 @@ class _CommentState extends State<Comment> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.1.7:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.52:8000/api/ruang-puan/${widget.idRuangPuan}/comments';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -319,30 +328,33 @@ class _CommentState extends State<Comment> {
     print('data pas api tarik' + response.body);
   }
 
-  Future<String?> getCurrentUser() async {
+  Future<Map<String, String>?> getCurrentUser() async {
     setState(() {
       isLoading = true;
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
-      print('items kita' + json['data'].toString());
-      final result = json['data'] ?? [] as List;
-      // setState(() {
-      //   dataCurrentUser = result;
-      // });
+      print('items kita' + json.toString());
 
-      if (result != null && result.containsKey('name')) {
-        final name = result['name'].toString();
+      // API /me returns: {"user": {...}, "roles": [...]}
+      final userData = json['user'];
+
+      if (userData != null &&
+          userData is Map &&
+          userData.containsKey('name') &&
+          userData.containsKey('id')) {
+        final name = userData['name'].toString();
+        final userId = userData['id'].toString();
         setState(() {
           isLoading = false;
         });
-        return name;
+        return {'name': name, 'id': userId};
       }
     }
 
@@ -368,15 +380,15 @@ class _CommentState extends State<Comment> {
     };
 
     final url =
-        'http://192.168.1.7:8000/api/ruangPuans/${widget.idRuangPuan}/commentRuangPuans';
+        'http://192.168.8.52:8000/api/ruang-puan/${widget.idRuangPuan}/comments';
     print('url: ' + url);
     final uri = Uri.parse(url);
 
-    // Dapatkan username dari getCurrentUser
-    String? username = await getCurrentUser();
-    if (username == null) {
-      // Gagal mendapatkan username
-      print('Failed to get username');
+    // Dapatkan username dan user_id dari getCurrentUser
+    Map<String, String>? userData = await getCurrentUser();
+    if (userData == null) {
+      // Gagal mendapatkan user data
+      print('Failed to get user data');
       return;
     }
 
@@ -390,7 +402,7 @@ class _CommentState extends State<Comment> {
         dataComment.add({
           'comment': comment,
           'dop': dop,
-          'user_id': username,
+          'user_id': userData['id'],
           'profilePict': 'images/profileDefault.jpg'
         });
         _commentController.clear();
@@ -407,7 +419,7 @@ class _CommentState extends State<Comment> {
                 Text(
                   'Comment posted successfully!',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 14,
                   ),
                 ),
@@ -438,7 +450,7 @@ class _CommentState extends State<Comment> {
                 Text(
                   'Failed to post comment. Please try again.',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 14,
                   ),
                 ),

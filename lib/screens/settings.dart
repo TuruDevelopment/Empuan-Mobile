@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:Empuan/screens/editProfile.dart';
 import 'package:Empuan/screens/emergencyContact.dart';
+import 'package:Empuan/screens/terms_of_service.dart';
+import 'package:Empuan/screens/privacy_policy.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
@@ -132,7 +134,7 @@ class _SettingsState extends State<Settings> {
                             Text(
                               widget.username,
                               style: const TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24,
                                 color: AppColors.textPrimary,
@@ -174,7 +176,7 @@ class _SettingsState extends State<Settings> {
                                 child: const Text(
                                   'Edit Profile',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     color: Colors.white,
@@ -224,12 +226,7 @@ class _SettingsState extends State<Settings> {
                         title: 'Personal Information',
                         onTap: () {},
                       ),
-                      const SizedBox(height: 8),
-                      _buildModernSettingsItem(
-                        icon: Icons.display_settings_rounded,
-                        title: 'App Preference',
-                        onTap: () {},
-                      ),
+
                       const SizedBox(height: 8),
                       _buildModernSettingsItem(
                         icon: Icons.lock_rounded,
@@ -247,18 +244,18 @@ class _SettingsState extends State<Settings> {
                         title: 'Rate Us',
                         onTap: () {},
                       ),
-                      const SizedBox(height: 8),
-                      _buildModernSettingsItem(
-                        icon: Icons.phone_android_rounded,
-                        title: 'Contact Us',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 8),
-                      _buildModernSettingsItem(
-                        icon: Icons.help_rounded,
-                        title: 'Help Center',
-                        onTap: () {},
-                      ),
+                      // const SizedBox(height: 8),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.phone_android_rounded,
+                      //   title: 'Contact Us',
+                      //   onTap: () {},
+                      // ),
+                      // const SizedBox(height: 8),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.help_rounded,
+                      //   title: 'Help Center',
+                      //   onTap: () {},
+                      // ),
 
                       const SizedBox(height: 24),
 
@@ -268,13 +265,25 @@ class _SettingsState extends State<Settings> {
                       _buildModernSettingsItem(
                         icon: Icons.article_rounded,
                         title: 'Terms of Service',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const TermsOfService(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 8),
                       _buildModernSettingsItem(
                         icon: Icons.privacy_tip_rounded,
                         title: 'Privacy Policy',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const PrivacyPolicy(),
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 24),
@@ -290,13 +299,13 @@ class _SettingsState extends State<Settings> {
                           _showModernSignOutDialog(context);
                         },
                       ),
-                      const SizedBox(height: 8),
-                      _buildModernSettingsItem(
-                        icon: Icons.person_off_rounded,
-                        title: 'Delete Account',
-                        iconColor: AppColors.error,
-                        onTap: () {},
-                      ),
+                      // const SizedBox(height: 8),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.person_off_rounded,
+                      //   title: 'Delete Account',
+                      //   iconColor: AppColors.error,
+                      //   onTap: () {},
+                      // ),
 
                       const SizedBox(height: 32),
 
@@ -304,7 +313,7 @@ class _SettingsState extends State<Settings> {
                       Text(
                         'Empuan v1.0.0',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 12,
                           color: AppColors.textSecondary.withOpacity(0.6),
                         ),
@@ -328,7 +337,7 @@ class _SettingsState extends State<Settings> {
       child: Text(
         title,
         style: TextStyle(
-          fontFamily: 'Satoshi',
+          fontFamily: 'Plus Jakarta Sans',
           fontWeight: FontWeight.bold,
           fontSize: 18,
           color: color ?? AppColors.textPrimary,
@@ -380,7 +389,7 @@ class _SettingsState extends State<Settings> {
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: AppColors.textPrimary,
@@ -453,7 +462,7 @@ class _SettingsState extends State<Settings> {
                       Text(
                         title,
                         style: const TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: AppColors.textPrimary,
@@ -463,7 +472,7 @@ class _SettingsState extends State<Settings> {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 13,
                           color: AppColors.textSecondary.withOpacity(0.8),
                         ),
@@ -514,7 +523,7 @@ class _SettingsState extends State<Settings> {
               const Text(
                 'Sign Out?',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
                   color: AppColors.textPrimary,
@@ -525,7 +534,7 @@ class _SettingsState extends State<Settings> {
                 'Are you sure you want to sign out of your account?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   color: AppColors.textSecondary.withOpacity(0.8),
                 ),
@@ -550,7 +559,7 @@ class _SettingsState extends State<Settings> {
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         color: AppColors.textSecondary,
@@ -591,7 +600,7 @@ class _SettingsState extends State<Settings> {
                       child: const Text(
                         'Sign Out',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: Colors.white,

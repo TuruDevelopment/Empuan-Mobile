@@ -36,7 +36,7 @@ class HeaderMore extends StatelessWidget {
                     SizedBox(width: 20),
                     Text(username,
                         style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 20,
                             fontWeight: FontWeight.bold))
                   ],

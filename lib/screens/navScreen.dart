@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,6 +125,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.background,
         body: IndexedStack(
           index: selectedTab,
@@ -138,69 +140,24 @@ class _MainScreenState extends State<MainScreen> {
                   ))
               .toList(),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Container(
-          margin: const EdgeInsets.only(top: 10),
-          height: 70,
-          width: 70,
-          child: FloatingActionButton(
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            child: Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: sosActive
-                      ? [
-                          AppColors.secondary,
-                          AppColors.secondary.withOpacity(0.8),
-                        ]
-                      : [
-                          AppColors.error,
-                          AppColors.error.withOpacity(0.8),
-                        ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: sosActive
-                        ? AppColors.secondary.withOpacity(0.4)
-                        : AppColors.error.withOpacity(0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Icon(
-                sosActive ? Icons.close_rounded : Icons.crisis_alert_rounded,
-                size: 36,
-                color: Colors.white,
-              ),
-            ),
-            onPressed: () {
-              if (sosActive) {
-                // Just toggle off
-                setState(() {
-                  sosActive = false;
-                });
-              } else {
-                // Toggle on and show dialog
-                setState(() {
-                  sosActive = true;
-                });
-                location();
-                _showLocationSharedDialog();
-              }
-            },
-          ),
-        ),
         bottomNavigationBar: selectedTab == 99
             ? null
             : NavBar(
                 pageIndex: selectedTab,
+                sosActive: sosActive,
+                onPanicPressed: () {
+                  if (sosActive) {
+                    setState(() {
+                      sosActive = false;
+                    });
+                  } else {
+                    setState(() {
+                      sosActive = true;
+                    });
+                    location();
+                    _showLocationSharedDialog();
+                  }
+                },
                 onTap: (index) {
                   if (index == selectedTab) {
                     items[index]
@@ -219,7 +176,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -241,7 +198,7 @@ class _MainScreenState extends State<MainScreen> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.1.7:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.52:8000/api/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -348,7 +305,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakamans';
+    final url = 'http://192.168.8.52:8000/api/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -427,7 +384,7 @@ class _MainScreenState extends State<MainScreen> {
                 const Text(
                   "Location Shared",
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                     color: AppColors.primary,
@@ -438,7 +395,7 @@ class _MainScreenState extends State<MainScreen> {
                   "Your location has been shared\nwith your emergency contacts",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),

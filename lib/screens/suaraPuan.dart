@@ -99,7 +99,7 @@ class _SuaraPuanState extends State<SuaraPuan> {
                           decoration: InputDecoration(
                             hintText: 'Search articles...',
                             hintStyle: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               color: AppColors.textSecondary,
                               fontSize: 14,
                             ),
@@ -190,7 +190,7 @@ class _SuaraPuanState extends State<SuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/suarapuans';
+    final url = 'http://192.168.8.52:8000/api/suara-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -338,7 +338,7 @@ class BannerWidget extends StatelessWidget {
                       Text(
                         getCategory(int.parse(data['kategori_id'].toString())),
                         style: const TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           fontSize: 11,
@@ -352,7 +352,7 @@ class BannerWidget extends StatelessWidget {
                 Text(
                   data['title'].toString(),
                   style: const TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -373,7 +373,7 @@ class BannerWidget extends StatelessWidget {
                     Text(
                       data['dop'].toString(),
                       style: const TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
                         fontSize: 12,
                       ),

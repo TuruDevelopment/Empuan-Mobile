@@ -33,7 +33,7 @@ class LabeledCheckbox extends StatelessWidget {
                 Expanded(
                     child: Text(
                   label,
-                  style: const TextStyle(fontFamily: 'Satoshi'),
+                  style: const TextStyle(fontFamily: 'Plus Jakarta Sans'),
                 )),
                 Checkbox(
                   activeColor: const Color.fromRGBO(251, 111, 146, 1),

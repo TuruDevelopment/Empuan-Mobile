@@ -53,7 +53,7 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      final url = 'http://192.168.1.7:8000/api/users/current';
+      final url = 'http://192.168.8.52:8000/api/me';
       final uri = Uri.parse(url);
       final response = await http.patch(
         uri,
@@ -99,7 +99,7 @@ class _EditProfileState extends State<EditProfile> {
         content: Text(
           message,
           style: const TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             fontSize: 14,
             color: Colors.white,
           ),
@@ -265,7 +265,7 @@ class _EditProfileState extends State<EditProfile> {
                         label: const Text(
                           'Change Profile Picture',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: AppColors.secondary,
@@ -301,7 +301,7 @@ class _EditProfileState extends State<EditProfile> {
                               const Text(
                                 'Username',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: AppColors.textPrimary,
@@ -330,7 +330,7 @@ class _EditProfileState extends State<EditProfile> {
                             child: TextField(
                               controller: _usernameController,
                               style: const TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 15,
                                 color: AppColors.textPrimary,
                               ),
@@ -342,7 +342,7 @@ class _EditProfileState extends State<EditProfile> {
                                 ),
                                 hintText: 'Enter username',
                                 hintStyle: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 15,
                                   color: AppColors.textSecondary,
                                 ),
@@ -363,7 +363,7 @@ class _EditProfileState extends State<EditProfile> {
                                 child: Text(
                                   'Change of username will be in effect at least 1 day',
                                   style: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontSize: 12,
                                     color: AppColors.textSecondary
                                         .withOpacity(0.7),

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/jwt_decoder.dart';
+import '../config/api_config.dart';
 
 class AuthService {
   static String? token;
@@ -21,25 +22,41 @@ class AuthService {
     token = prefs.getString(_tokenKey);
   }
 
-  Future<bool> login(
-      {required String username, required String password}) async {
+  Future<bool> login({required String email, required String password}) async {
+    print('[AUTH_SERVICE] Starting login for email: $email');
+    print('[AUTH_SERVICE] API URL: ${ApiConfig.getUrl(ApiConfig.login)}');
+
     try {
-      var response = await Dio().post("http://192.168.1.7:8000/api/users/login",
-          options: Options(headers: {'Content-Type': 'application/json'}),
-          data: {"username": username, 'password': password});
+      // Configure Dio to NOT follow redirects automatically
+      final dio = Dio(BaseOptions(
+        followRedirects: false,
+        validateStatus: (status) => status! < 400, // Accept any status < 400
+      ));
+
+      var response = await dio.post(
+        ApiConfig.getUrl(ApiConfig.login),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', // Important for API requests
+          },
+        ),
+        data: {"email": email, 'password': password},
+      );
 
       print('[AUTH_SERVICE] Response status: ${response.statusCode}');
       print('[AUTH_SERVICE] Response data: ${response.data}');
+      print('[AUTH_SERVICE] Response type: ${response.data.runtimeType}');
 
-      // API returns: { "data": { "id": 1, "username": "...", "token": "..." } }
+      // API returns: { "user": {...}, "roles": "...", "token": "..." }
       Map obj = response.data;
 
-      // Check if response has data and token
-      if (obj['data'] != null && obj['data']['token'] != null) {
-        token = obj['data']['token'];
+      // Check if response has token
+      if (obj['token'] != null) {
+        token = obj['token'];
 
-        final userId = obj['data']['id'];
-        final username = obj['data']['username'];
+        final userId = obj['user']?['id'];
+        final username = obj['user']?['username'];
 
         // Save token to disk for persistence
         final prefs = await SharedPreferences.getInstance();
@@ -74,9 +91,18 @@ class AuthService {
         return true;
       } else {
         print('[AUTH_SERVICE] ❌ Login failed - token not found in response');
+        print('[AUTH_SERVICE] Response keys: ${obj.keys.toList()}');
         return false;
       }
-    } on Exception catch (_) {
+    } on DioException catch (e) {
+      print('[AUTH_SERVICE] ❌ DioException occurred:');
+      print('[AUTH_SERVICE] Status code: ${e.response?.statusCode}');
+      print('[AUTH_SERVICE] Response data: ${e.response?.data}');
+      print('[AUTH_SERVICE] Error message: ${e.message}');
+      print('[AUTH_SERVICE] Error type: ${e.type}');
+      return false;
+    } on Exception catch (e) {
+      print('[AUTH_SERVICE] ❌ Exception occurred: $e');
       return false;
     }
   }

@@ -6,10 +6,12 @@ class BridgetoQ extends StatefulWidget {
   // const BridgetoQ({super.key});
 
   final String username;
+  final String email;
   final String password;
   const BridgetoQ({
     Key? key,
     required this.username,
+    required this.email,
     required this.password,
   }) : super(key: key);
 
@@ -74,7 +76,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                   'You\'re Almost There!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -91,7 +93,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                     'Before that, we have a set of questions for you. These questions are used for period tracker data.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 16,
                       color: AppColors.textSecondary,
                       height: 1.6,
@@ -196,7 +198,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                         child: Text(
                           'Your data is private and secure',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 13,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,
@@ -235,6 +237,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                         MaterialPageRoute(
                           builder: (context) => questions(
                             username: widget.username,
+                            email: widget.email,
                             password: widget.password,
                           ),
                         ),
@@ -250,7 +253,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                     child: const Text(
                       'Next',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: Colors.white,

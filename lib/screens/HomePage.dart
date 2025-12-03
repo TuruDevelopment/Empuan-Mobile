@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   // late DateTime _enddate = DateTime.now();
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.1.7:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.52:8000/api/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage> {
                           Text(
                             'Your health companion',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -253,10 +253,10 @@ class _HomePageState extends State<HomePage> {
                                       color: Colors.white.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Icon(
-                                      Icons.favorite_rounded,
-                                      color: Colors.white,
-                                      size: 28,
+                                    child: Image.asset(
+                                      'images/empuanlogo.jpg',
+                                      width: 28,
+                                      height: 28,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -273,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                                   const Text(
                                     'Your complete health companion for women',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       color: Colors.white70,
                                     ),
@@ -343,9 +343,9 @@ class _HomePageState extends State<HomePage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Suara Puan',
+                                            'Her Voice',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -355,7 +355,7 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             'Ask Questions',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
@@ -424,9 +424,9 @@ class _HomePageState extends State<HomePage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Untuk Puan',
+                                            'For Her',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -436,7 +436,7 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             'Articles & Info',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
@@ -454,10 +454,11 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 16),
 
-                      // Quick Actions Row 2 - AI Chatbot
+                      // Quick Actions Row 2 - AI Chatbot and Period Tracker
                       Row(
                         children: [
                           Expanded(
+                            flex: 1,
                             child: InkWell(
                               onTap: () {
                                 Navigator.of(context).push(MaterialPageRoute(
@@ -513,7 +514,7 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             'AI Assistant',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -523,7 +524,7 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             'Chat with AI',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 10.5,
                                               color: Colors.white70,
                                             ),
@@ -538,6 +539,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
+                            flex: 1,
                             child: Container(
                               height: 130,
                               decoration: BoxDecoration(
@@ -597,7 +599,7 @@ class _HomePageState extends State<HomePage> {
                                           child: const Text(
                                             'Period in',
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 9,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.primary,
@@ -613,7 +615,7 @@ class _HomePageState extends State<HomePage> {
                                         Text(
                                           '$countdown Days',
                                           style: const TextStyle(
-                                            fontFamily: 'Satoshi',
+                                            fontFamily: 'Plus Jakarta Sans',
                                             fontSize: 26,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.primary,
@@ -624,7 +626,7 @@ class _HomePageState extends State<HomePage> {
                                         const Text(
                                           'Next period',
                                           style: TextStyle(
-                                            fontFamily: 'Satoshi',
+                                            fontFamily: 'Plus Jakarta Sans',
                                             fontSize: 10,
                                             color: AppColors.textSecondary,
                                           ),
@@ -636,88 +638,84 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context, rootNavigator: true).push(
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const DailyQuiz()));
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      AppColors.error,
-                                      AppColors.error.withOpacity(0.8),
-                                    ],
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Daily Quiz - Full width
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
+                                  builder: (context) => const DailyQuiz()));
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          height: 130,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.error,
+                                AppColors.error.withOpacity(0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.error.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.error.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
+                                  child: const Icon(
+                                    Icons.quiz_rounded,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                ),
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Daily Quiz',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(height: 3),
+                                    Text(
+                                      'Test Your Knowledge',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 10.5,
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.quiz_rounded,
-                                          color: Colors.white,
-                                          size: 26,
-                                        ),
-                                      ),
-                                      const Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Daily Quiz',
-                                            style: TextStyle(
-                                              fontFamily: 'Satoshi',
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(height: 3),
-                                          Text(
-                                            'Test Your Knowledge',
-                                            style: TextStyle(
-                                              fontFamily: 'Satoshi',
-                                              fontSize: 10.5,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
 
                       const SizedBox(height: 24),
@@ -734,7 +732,7 @@ class _HomePageState extends State<HomePage> {
                       const Text(
                         'Your Period Tracker',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                           color: AppColors.primary,
@@ -782,7 +780,7 @@ class _HomePageState extends State<HomePage> {
                                     const Text(
                                       'Period in',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                         color: AppColors.textSecondary,
@@ -792,7 +790,7 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       '$countdown Days',
                                       style: const TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,
@@ -818,7 +816,7 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 prediction,
                                 style: const TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary,
@@ -876,7 +874,7 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       'See Details',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,

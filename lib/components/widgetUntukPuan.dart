@@ -113,7 +113,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                           widget.nama,
                           textAlign: TextAlign.left,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 20),
@@ -127,7 +127,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                           widget.alamat,
                           textAlign: TextAlign.left,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               color: Colors.black,
                               fontWeight: FontWeight.w500,
                               fontSize: 17),
@@ -144,7 +144,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                               widget.jamTutup,
                           textAlign: TextAlign.left,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               color: Colors.grey,
                               fontWeight: FontWeight.w400,
                               fontSize: 16),
@@ -192,7 +192,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                         Icon(Icons.location_pin, color: Colors.grey, size: 20),
                         Text("0.1 km from you",
                             style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: Colors.grey,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 14)),
@@ -223,7 +223,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                         Text("About",
                             textAlign: TextAlign.left,
                             style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20)),
@@ -238,7 +238,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                             widget.deskripsi,
                             textAlign: TextAlign.left,
                             style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: Colors.black,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17),
@@ -271,7 +271,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                         Text("Product/Service Catalog",
                             textAlign: TextAlign.left,
                             style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20)),

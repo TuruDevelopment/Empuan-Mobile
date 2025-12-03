@@ -135,7 +135,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               Text(
                                 'Step 1 of 3',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -144,7 +144,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               Text(
                                 '33%',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.primary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -181,7 +181,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     const Text(
                       'Personal Details',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
                         color: AppColors.textPrimary,
@@ -192,7 +192,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     Text(
                       'Tell us a bit about yourself',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 15,
                         color: AppColors.textSecondary,
                       ),
@@ -313,7 +313,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: const Text(
                           'Save & Next',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.white,
@@ -364,14 +364,14 @@ class _SignUpPageState extends State<SignUpPage> {
         readOnly: readOnly,
         keyboardType: keyboardType,
         style: const TextStyle(
-          fontFamily: 'Satoshi',
+          fontFamily: 'Plus Jakarta Sans',
           fontSize: 15,
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             color: AppColors.textSecondary.withOpacity(0.6),
             fontSize: 15,
           ),
@@ -469,7 +469,7 @@ Future<void> _showCloseDialog(BuildContext context) async {
               'Cancel Registration?',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
                 color: AppColors.textPrimary,
@@ -481,7 +481,7 @@ Future<void> _showCloseDialog(BuildContext context) async {
               'Are you sure you want to cancel? Your progress will be lost.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -514,7 +514,7 @@ Future<void> _showCloseDialog(BuildContext context) async {
                 child: const Text(
                   'Cancel',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                     color: AppColors.textPrimary,
@@ -558,7 +558,7 @@ Future<void> _showCloseDialog(BuildContext context) async {
                 child: const Text(
                   'Yes, Exit',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Colors.white,

@@ -36,7 +36,7 @@ Widget _buildFilterChip(String label, IconData icon) {
             child: Text(
               label,
               style: const TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -102,7 +102,7 @@ Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
           Text(
             'Our Recommendations',
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontWeight: FontWeight.bold,
               fontSize: 20,
               color: AppColors.primary,
@@ -300,7 +300,7 @@ class UntukPuanBox extends StatelessWidget {
                     Text(
                       nama,
                       style: const TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: AppColors.primary,
@@ -319,7 +319,7 @@ class UntukPuanBox extends StatelessWidget {
                           child: Text(
                             alamat,
                             style: const TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),

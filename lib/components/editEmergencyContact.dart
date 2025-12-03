@@ -206,7 +206,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                         widget.name,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.bold,
                           fontSize: 24,
                           color: AppColors.textPrimary,
@@ -240,7 +240,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                             Text(
                               'Emergency Contact',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                                 color: Colors.white,
@@ -310,7 +310,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
             Text(
               label,
               style: const TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: AppColors.textPrimary,
@@ -339,7 +339,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
             controller: controller,
             keyboardType: keyboardType,
             style: const TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 15,
               color: AppColors.textPrimary,
             ),
@@ -347,7 +347,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
               border: InputBorder.none,
               hintText: hint,
               hintStyle: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 15,
                 color: AppColors.textSecondary.withOpacity(0.5),
               ),
@@ -377,7 +377,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
       'relation': relation,
     };
     final id = dataMore.isNotEmpty ? dataMore[0]['id'] : "";
-    final url = "http://192.168.1.7:8000/api/kontakamans/$id";
+    final url = "http://192.168.8.52:8000/api/kontak-aman/$id";
     final uri = Uri.parse(url);
     final response = await http.put(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -394,7 +394,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakamans';
+    final url = 'http://192.168.8.52:8000/api/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

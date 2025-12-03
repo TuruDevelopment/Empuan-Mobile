@@ -175,7 +175,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
           ),
           child: TextField(
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               color: AppColors.textPrimary,
             ),
@@ -185,7 +185,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                   EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               hintText: 'Search...',
               hintStyle: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary.withOpacity(0.5),
               ),
@@ -285,7 +285,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                               Text(
                                 widget.dop,
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
                                 ),
@@ -309,7 +309,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                           child: Text(
                             getCategory(int.parse(widget.kategori_id)),
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               fontSize: 12,
@@ -342,7 +342,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                   widget.content,
                   textAlign: TextAlign.justify,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.normal,
                     color: AppColors.textPrimary,
                     fontSize: 15,
@@ -668,7 +668,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                                   Text(
                                     'No comments yet',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 14,
                                       color: AppColors.textSecondary,
                                     ),
@@ -677,7 +677,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                                   Text(
                                     'Be the first to comment!',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       color: AppColors.textSecondary
                                           .withOpacity(0.7),
@@ -733,7 +733,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                                           Text(
                                             comment.userName,
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontWeight: FontWeight.bold,
                                               fontSize: 15,
                                               color: AppColors.textPrimary,
@@ -743,7 +743,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                                           Text(
                                             comment.text,
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 14,
                                               color: AppColors.textPrimary,
                                               height: 1.4,
@@ -755,7 +755,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                                                 .toString()
                                                 .split('.')[0],
                                             style: TextStyle(
-                                              fontFamily: 'Satoshi',
+                                              fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 11,
                                               color: AppColors.textSecondary,
                                             ),
@@ -789,14 +789,14 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                               child: TextField(
                                 controller: _commentController,
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 14,
                                   color: AppColors.textPrimary,
                                 ),
                                 decoration: InputDecoration(
                                   hintText: 'Add a comment...',
                                   hintStyle: TextStyle(
-                                    fontFamily: 'Satoshi',
+                                    fontFamily: 'Plus Jakarta Sans',
                                     fontSize: 14,
                                     color: AppColors.textSecondary
                                         .withOpacity(0.5),
@@ -887,7 +887,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.1.7:8000/api/users/$userId';
+    final url = 'http://192.168.8.52:8000/api/admin/users/$userId';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -909,8 +909,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url =
-        'http://192.168.1.7:8000/api/suarapuans/${widget.id}/commentpuans';
+    final url = 'http://192.168.8.52:8000/api/suara-puan/${widget.id}/comments';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -956,7 +955,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -1002,8 +1001,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     final id = widget.id;
     print(id);
     // submit data to the server
-    final url =
-        'http://192.168.1.7:8000/api/suarapuans/${widget.id}/commentpuans';
+    final url = 'http://192.168.8.52:8000/api/suara-puan/${widget.id}/comments';
     print('url: ' + url);
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {

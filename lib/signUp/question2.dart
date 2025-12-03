@@ -14,10 +14,12 @@ class Question2 extends StatefulWidget {
   // const Question2({Key? key}) : super(key: key);
 
   final String username;
+  final String email;
   final String password;
   const Question2({
     Key? key,
     required this.username,
+    required this.email,
     required this.password,
   }) : super(key: key);
 
@@ -107,7 +109,7 @@ class _Question2State extends State<Question2> {
                     child: Text(
                       'Question 2',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w900,
                         fontSize: 25,
                       ),
@@ -118,7 +120,7 @@ class _Question2State extends State<Question2> {
                 const Text(
                   'When did your last period start ?',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -176,7 +178,7 @@ class _Question2State extends State<Question2> {
                 const Text(
                   'When did your last period end ?',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -329,11 +331,11 @@ class _Question2State extends State<Question2> {
   }
 
   doLogin() async {
-    final username = widget.username;
+    final email = widget.email;
     final password = widget.password;
 
     bool isSuccess =
-        await AuthService().login(username: username, password: password);
+        await AuthService().login(email: email, password: password);
 
     if (!isSuccess) {
       print(isSuccess);
@@ -341,7 +343,7 @@ class _Question2State extends State<Question2> {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.1.7:8000/api/users/username/$username';
+    final url = 'http://192.168.8.52:8000/api/users/username/$username';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -368,7 +370,7 @@ class _Question2State extends State<Question2> {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.1.7:8000/api/catatanhaids";
+    final url = "http://192.168.8.52:8000/api/catatan-haid";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -444,7 +446,7 @@ class LabeledCheckboxExample extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16.0,
                 color: Colors.black,
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
               ),
             ),
             value: value,

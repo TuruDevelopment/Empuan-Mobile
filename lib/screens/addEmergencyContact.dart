@@ -189,7 +189,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                                       Text(
                                         'Please fill name and phone number',
                                         style: TextStyle(
-                                          fontFamily: 'Satoshi',
+                                          fontFamily: 'Plus Jakarta Sans',
                                           fontSize: 14,
                                         ),
                                       ),
@@ -227,7 +227,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                               Text(
                                 'Save Emergency Contact',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -276,7 +276,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
         controller: controller,
         keyboardType: keyboardType,
         style: const TextStyle(
-          fontFamily: 'Satoshi',
+          fontFamily: 'Plus Jakarta Sans',
           fontSize: 15,
           color: AppColors.textPrimary,
         ),
@@ -284,7 +284,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
           border: InputBorder.none,
           hintText: hintText,
           hintStyle: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             fontSize: 15,
             color: AppColors.textSecondary.withOpacity(0.5),
           ),
@@ -324,7 +324,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
       'relation': relation,
     };
 
-    final url = "http://192.168.1.7:8000/api/kontakamans";
+    final url = "http://192.168.8.52:8000/api/kontak-aman";
     final uri = Uri.parse(url);
 
     // Debug: Print request details
@@ -375,7 +375,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                   Text(
                     'Emergency contact added successfully!',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -405,7 +405,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                   child: Text(
                     'Failed to add contact. Please try again.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -436,7 +436,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/kontakamans';
+    final url = 'http://192.168.8.52:8000/api/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

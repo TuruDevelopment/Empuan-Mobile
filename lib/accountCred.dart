@@ -158,7 +158,7 @@ class _AccountCredState extends State<AccountCred> {
                                     Text(
                                       'Step 3 of 3',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 13,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w500,
@@ -167,7 +167,7 @@ class _AccountCredState extends State<AccountCred> {
                                     Text(
                                       '100%',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 13,
                                         color: AppColors.secondary,
                                         fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class _AccountCredState extends State<AccountCred> {
                           Text(
                             'Account Credentials',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -209,7 +209,7 @@ class _AccountCredState extends State<AccountCred> {
                           Text(
                             'Create your login credentials to secure your account',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 15,
                               color: AppColors.textSecondary,
                             ),
@@ -277,7 +277,7 @@ class _AccountCredState extends State<AccountCred> {
                                   child: Text(
                                     'Use at least 6 characters with a mix of letters and numbers',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                     ),
@@ -339,7 +339,7 @@ class _AccountCredState extends State<AccountCred> {
                               child: Text(
                                 'Back',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                   letterSpacing: 0.5,
@@ -375,6 +375,7 @@ class _AccountCredState extends State<AccountCred> {
                                   Navigator.of(context).push(MaterialPageRoute(
                                     builder: (context) => BridgetoQ(
                                       username: usernameController.text,
+                                      email: emailController.text,
                                       password: passwordController.text,
                                     ),
                                   ));
@@ -390,7 +391,7 @@ class _AccountCredState extends State<AccountCred> {
                               child: Text(
                                 'Complete',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -424,19 +425,16 @@ class _AccountCredState extends State<AccountCred> {
     print('DOB: $dob');
     print('Email: $email');
 
-    final token = Uuid().v4();
-
     final body = {
       "name": name,
       "dob": dob,
       "email": email,
       "username": username,
       "password": password,
-      "gender": 1,
-      "token": token,
+      "gender": "1",
     };
 
-    final url = 'http://192.168.1.7:8000/api/users';
+    final url = 'http://192.168.8.52:8000/api/register';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
@@ -461,7 +459,7 @@ class _AccountCredState extends State<AccountCred> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -482,14 +480,14 @@ class _AccountCredState extends State<AccountCred> {
             controller: controller,
             obscureText: isPassword && !_isPasswordVisible,
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 15,
               color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 color: AppColors.textSecondary.withOpacity(0.6),
               ),
               prefixIcon: Icon(

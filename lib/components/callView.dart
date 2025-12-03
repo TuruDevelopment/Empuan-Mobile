@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:Empuan/styles/style.dart';
+import 'package:audioplayers/audioplayers.dart';
 
-class CallView extends StatelessWidget {
+class CallView extends StatefulWidget {
   final String name;
   final String number;
 
@@ -12,7 +13,48 @@ class CallView extends StatelessWidget {
     required this.number,
   }) : super(key: key);
 
+  @override
+  State<CallView> createState() => _CallViewState();
+}
+
+class _CallViewState extends State<CallView> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playSiren() async {
+    try {
+      if (_isPlaying) {
+        await _audioPlayer.stop();
+        setState(() {
+          _isPlaying = false;
+        });
+      } else {
+        await _audioPlayer.play(AssetSource('ringtone.mp3'));
+        await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+        setState(() {
+          _isPlaying = true;
+        });
+      }
+    } catch (e) {
+      print('Error playing siren sound: $e');
+    }
+  }
+
   Future<void> _makePhoneCall(String phoneNumber) async {
+    // Stop siren if playing
+    if (_isPlaying) {
+      await _audioPlayer.stop();
+      setState(() {
+        _isPlaying = false;
+      });
+    }
+
     final Uri launchUri = Uri(
       scheme: 'tel',
       path: phoneNumber,
@@ -66,7 +108,7 @@ class CallView extends StatelessWidget {
                     const Text(
                       'Ready to Call',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
@@ -112,9 +154,9 @@ class CallView extends StatelessWidget {
                   const SizedBox(height: 32),
                   // Name
                   Text(
-                    name,
+                    widget.name,
                     style: const TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -145,9 +187,9 @@ class CallView extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          number,
+                          widget.number,
                           style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 18,
                             color: AppColors.textSecondary,
                           ),
@@ -163,9 +205,59 @@ class CallView extends StatelessWidget {
                 padding: const EdgeInsets.all(40.0),
                 child: Column(
                   children: [
+                    // Siren Button
+                    GestureDetector(
+                      onTap: _playSiren,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _isPlaying
+                                ? [
+                                    AppColors.error,
+                                    AppColors.error.withOpacity(0.8),
+                                  ]
+                                : [
+                                    AppColors.primary,
+                                    AppColors.primary.withOpacity(0.8),
+                                  ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isPlaying
+                                      ? AppColors.error
+                                      : AppColors.primary)
+                                  .withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          _isPlaying
+                              ? Icons.volume_off_rounded
+                              : Icons.volume_up_rounded,
+                          size: 36,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _isPlaying ? 'Tap to Stop Siren' : 'Tap for Siren',
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     // Call Button
                     GestureDetector(
-                      onTap: () => _makePhoneCall(number),
+                      onTap: () => _makePhoneCall(widget.number),
                       child: Container(
                         width: 80,
                         height: 80,
@@ -196,7 +288,7 @@ class CallView extends StatelessWidget {
                     const Text(
                       'Tap to Call',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
@@ -215,7 +307,7 @@ class CallView extends StatelessWidget {
                       child: const Text(
                         'Cancel',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,

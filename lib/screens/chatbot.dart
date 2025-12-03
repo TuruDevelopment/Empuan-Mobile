@@ -326,7 +326,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     Text(
                       'Online',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
@@ -428,7 +428,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               'Ask me anything about women\'s health,\nmenstrual cycles, wellness, and more!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -505,7 +505,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   Text(
                     message.message,
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                       color: isUser ? Colors.white : AppColors.textPrimary,
                       height: 1.5,
@@ -589,7 +589,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 decoration: InputDecoration(
                   hintText: 'Type your message...',
                   hintStyle: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     color: AppColors.textSecondary.withOpacity(0.5),
                   ),
                   border: InputBorder.none,
@@ -599,7 +599,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
                 ),
                 style: const TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                 ),

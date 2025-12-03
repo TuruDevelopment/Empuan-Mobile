@@ -118,6 +118,9 @@ flutter:
     - family: Satoshi
       fonts:
         - asset: fonts/Satoshi-Regular.otf
+    - family: "Plus Jakarta Sans"
+      fonts:
+        - asset: fonts/PlusJakartaSans-Regular.ttf
 
   #
   # For details regarding fonts from package dependencies,

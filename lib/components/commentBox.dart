@@ -92,7 +92,7 @@ class CommentBox extends StatelessWidget {
             child: Text(
               'Error loading comment',
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 14,
                 color: AppColors.error,
               ),
@@ -156,7 +156,7 @@ class CommentBox extends StatelessWidget {
                             child: Text(
                               username,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.textPrimary,
@@ -175,7 +175,7 @@ class CommentBox extends StatelessWidget {
                             child: Text(
                               dop,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
                               ),
@@ -187,7 +187,7 @@ class CommentBox extends StatelessWidget {
                       Text(
                         comment,
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 14,
                           color: AppColors.textPrimary,
                           height: 1.4,
@@ -205,17 +205,25 @@ class CommentBox extends StatelessWidget {
   }
 
   Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.1.7:8000/api/users/$userId';
+    final url = 'http://192.168.8.52:8000/api/admin/users/$userId';
     final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map;
-      final result = json['data'];
-      if (result != null && result.containsKey('name')) {
-        return result['name'].toString();
+    try {
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+      print('[CommentBox] getUsernameById status: ${response.statusCode}');
+      print('[CommentBox] getUsernameById response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map;
+        final result = json['data'];
+        if (result != null && result.containsKey('name')) {
+          return result['name'].toString();
+        }
       }
+    } catch (e) {
+      print('[CommentBox] Error fetching username: $e');
     }
 
     return null;

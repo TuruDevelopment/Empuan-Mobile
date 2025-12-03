@@ -186,7 +186,7 @@ class ContactBox extends StatelessWidget {
                       Text(
                         name,
                         style: const TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -208,7 +208,7 @@ class ContactBox extends StatelessWidget {
                             child: Text(
                               number,
                               style: const TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
                               ),
@@ -237,7 +237,7 @@ class ContactBox extends StatelessWidget {
                         child: Text(
                           relation,
                           style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -299,7 +299,7 @@ class ContactBox extends StatelessWidget {
               const Text(
                 'Delete Contact',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                   color: AppColors.textPrimary,
@@ -310,7 +310,7 @@ class ContactBox extends StatelessWidget {
           content: const Text(
             'Are you sure you want to delete this emergency contact?',
             style: TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -323,7 +323,7 @@ class ContactBox extends StatelessWidget {
               child: const Text(
                 'Cancel',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),
@@ -347,7 +347,7 @@ class ContactBox extends StatelessWidget {
               child: const Text(
                 'Delete',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -361,7 +361,7 @@ class ContactBox extends StatelessWidget {
 
   Future<void> deleteEmergencyContact(String id) async {
     // final id = dataMore.isNotEmpty ? dataMore[0]['id'] : "";
-    final url = "http://192.168.1.7:8000/api/kontakamans/$id";
+    final url = "http://192.168.8.52:8000/api/kontak-aman/$id";
     final uri = Uri.parse(url);
     final response = await http
         .delete(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

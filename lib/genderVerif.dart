@@ -141,7 +141,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                             Text(
                               'Step 2 of 3',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: AppColors.textSecondary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -150,7 +150,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                             Text(
                               '67%',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: AppColors.primary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -186,7 +186,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                   const Text(
                     'Gender Verification',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.bold,
                       fontSize: 28,
                       color: AppColors.textPrimary,
@@ -197,7 +197,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                   Text(
                     'Upload a clear photo of your ID',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 15,
                       color: AppColors.textSecondary,
                     ),
@@ -255,9 +255,9 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                                   ),
                                   const SizedBox(height: 20),
                                   Text(
-                                    'Upload ID Photo',
+                                    'Upload KTP',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textPrimary,
@@ -271,7 +271,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                                       'Tap to select from gallery or camera',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 13,
                                         color: AppColors.textSecondary,
                                       ),
@@ -375,7 +375,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                           child: Text(
                             'Make sure your ID is clearly visible and readable',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -417,7 +417,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                             child: const Text(
                               'Back',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                                 letterSpacing: 0.5,
@@ -477,7 +477,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                             child: const Text(
                               'Save & Next',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: Colors.white,

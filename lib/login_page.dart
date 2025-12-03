@@ -2,14 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:Empuan/screens/home.dart';
+
 import 'package:Empuan/screens/navScreen.dart';
-import 'package:Empuan/screens/mapScreen.dart';
+
 import 'package:Empuan/services/auth_service.dart';
-import 'package:Empuan/services/empuanServices.dart';
+
 import 'package:Empuan/signUp/intro.dart';
-import 'package:Empuan/signUp/intro1.dart';
-import 'package:Empuan/utils/snackbar_helper.dart';
+
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 import 'package:whatsapp/whatsapp.dart';
@@ -161,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Text(
                       'Welcome Back',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -173,22 +172,22 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       'Your holistic health journey awaits 🌸',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary.withOpacity(0.8),
                         fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 40),
 
-                    // Username Field
+                    // Email/Username Field
                     buildModernTextField(
                       controller: usernameController,
                       obscureText: false,
-                      hintText: 'Username',
-                      prefixIcon: Icons.person_outline,
+                      hintText: 'Email',
+                      prefixIcon: Icons.email_outlined,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your username';
+                          return 'Please enter your email';
                         }
                         return null;
                       },
@@ -258,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
                             : const Text(
                                 'Log In',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -276,7 +275,7 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           'Not a member?',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             color: AppColors.textSecondary,
                             fontSize: 14,
                           ),
@@ -292,7 +291,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: const Text(
                             'Register Now',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -307,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       '© 2025 Empuan | Designed for holistic wellbeing',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary.withOpacity(0.6),
                         fontSize: 11,
                       ),
@@ -384,14 +383,14 @@ class _LoginPageState extends State<LoginPage> {
         controller: controller,
         obscureText: obscureText ?? false,
         style: const TextStyle(
-          fontFamily: 'Satoshi',
+          fontFamily: 'Plus Jakarta Sans',
           color: AppColors.textPrimary,
           fontSize: 15,
         ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            fontFamily: 'Satoshi',
+            fontFamily: 'Plus Jakarta Sans',
             color: AppColors.textSecondary.withOpacity(0.5),
             fontSize: 14,
           ),
@@ -462,13 +461,13 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final username = usernameController.text;
+      final emailOrUsername = usernameController.text;
       final password = passwordController.text;
 
-      print('[DEBUG] Attempting login for user: $username');
+      print('[DEBUG] Attempting login for user: $emailOrUsername');
 
       bool isSuccess =
-          await AuthService().login(username: username, password: password);
+          await AuthService().login(email: emailOrUsername, password: password);
 
       print('[DEBUG] Login result: $isSuccess');
       print('[DEBUG] Token: ${AuthService.token}');
@@ -486,7 +485,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       'Login failed. Please check your credentials.',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
                       ),
                     ),
@@ -515,7 +514,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     'Login successful! Welcome back.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -560,7 +559,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Text(
                     'An error occurred. Please try again.',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                     ),
                   ),
@@ -589,7 +588,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> getData() async {
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/ruangPuans';
+    final url = 'http://192.168.8.52:8000/api/ruang-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

@@ -101,7 +101,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                             'Breaking Stereotypes,\nEmpowering Women',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                               fontSize: 26,
@@ -116,7 +116,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                               'Empuan App Paves the Way for\nGender Equality in Indonesia',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: AppColors.textSecondary,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -175,7 +175,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                             'Safe Spaces, Collective Growth',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                               fontSize: 26,
@@ -190,7 +190,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                               'Empuan App Fosters Women\'s\nEmpowerment and Equality',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: AppColors.textSecondary,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -249,7 +249,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                             'For Awareness to Action',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                               fontSize: 26,
@@ -264,7 +264,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                               'Empuan App Bridges Gaps, Advocates for\nWomen\'s Rights and Well-being.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 color: AppColors.textSecondary,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
@@ -413,7 +413,7 @@ class PageIndicator extends StatelessWidget {
                     child: Text(
                       currentPageIndex == 0 ? 'Cancel' : 'Back',
                       style: const TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -467,7 +467,7 @@ class PageIndicator extends StatelessWidget {
                     child: Text(
                       currentPageIndex == 2 ? 'Let\'s Start' : 'Next',
                       style: const TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,

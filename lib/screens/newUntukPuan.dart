@@ -111,7 +111,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
                           decoration: InputDecoration(
                             hintText: 'Search recommendations...',
                             hintStyle: const TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 14,
                               color: AppColors.textSecondary,
                             ),
@@ -127,7 +127,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
                             ),
                           ),
                           style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 14,
                             color: AppColors.textPrimary,
                           ),
@@ -217,7 +217,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
                                   ),
                                   const SizedBox(height: 16),
                                   const Text(
-                                    'Untuk Puan',
+                                    'For Her',
                                     style: TextStyle(
                                       fontFamily: 'Brodies',
                                       fontSize: 24,
@@ -229,7 +229,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
                                   const Text(
                                     'Find the best places for your wellness',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       color: Colors.white70,
                                     ),
@@ -303,7 +303,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/untukpuans';
+    final url = 'http://192.168.8.52:8000/api/untuk-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -404,7 +404,7 @@ class NavBar extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 color: isActive ? Colors.white : AppColors.textSecondary,
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w600,

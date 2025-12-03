@@ -99,7 +99,7 @@ class MoreBox extends StatelessWidget {
                     Text(
                       'Post',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         color: AppColors.textPrimary,
@@ -125,7 +125,7 @@ class MoreBox extends StatelessWidget {
                       Text(
                         date,
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
@@ -143,7 +143,7 @@ class MoreBox extends StatelessWidget {
             child: Text(
               teks,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 15,
                 color: AppColors.textPrimary,
                 height: 1.5,
@@ -190,7 +190,7 @@ class MoreBox extends StatelessWidget {
                           Text(
                             'Comment',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primary,
@@ -209,7 +209,7 @@ class MoreBox extends StatelessWidget {
                             child: Text(
                               commentCount,
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
@@ -241,7 +241,7 @@ class MoreBox extends StatelessWidget {
                         Text(
                           'Like',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.error,
@@ -260,7 +260,7 @@ class MoreBox extends StatelessWidget {
                           child: Text(
                             likeCount,
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.error,

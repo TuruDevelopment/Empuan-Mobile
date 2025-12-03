@@ -210,7 +210,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                               ? dataQuestion[0]['questions'].toString()
                               : 'Loading question...',
                           style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -284,7 +284,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                               Text(
                                 'Continue',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -319,7 +319,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.1.7:8000/api/questions';
+    final url = 'http://192.168.8.52:8000/api/questions';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -361,7 +361,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://192.168.1.7:8000/api/questions/$idQuestion/options';
+      final url = 'http://192.168.8.52:8000/api/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {
@@ -510,7 +510,7 @@ class LabeledCheckboxExample extends StatelessWidget {
               child: Text(
                 sentences,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 15,
                   fontWeight: (isSelected || isCorrect)
                       ? FontWeight.bold

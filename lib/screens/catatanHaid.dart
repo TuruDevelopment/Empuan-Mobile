@@ -51,7 +51,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
   late int endCycle = 34;
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.1.7:8000/api/users/current';
+    final url = 'http://192.168.8.52:8000/api/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -73,7 +73,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.1.7:8000/api/catatanhaids/$userid';
+    final url = 'http://192.168.8.52:8000/api/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -181,7 +181,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                           Text(
                             'Track your cycle',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -237,12 +237,12 @@ class _CatatanHaidState extends State<CatatanHaid> {
                             },
                             calendarStyle: CalendarStyle(
                               defaultTextStyle: const TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
                               ),
                               weekendTextStyle: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
                               ),
@@ -261,15 +261,15 @@ class _CatatanHaidState extends State<CatatanHaid> {
                               //   shape: BoxShape.circle,
                               // ),
                               // withinRangeTextStyle: TextStyle(
-                              //     fontFamily: 'Satoshi',
+                              //     fontFamily: 'Plus Jakarta Sans',
                               //     fontWeight: FontWeight.bold,
                               //     color: Colors.white),
                               // rangeStartTextStyle: TextStyle(
-                              //     fontFamily: 'Satoshi',
+                              //     fontFamily: 'Plus Jakarta Sans',
                               //     fontWeight: FontWeight.bold,
                               //     color: Colors.white),
                               // rangeEndTextStyle: TextStyle(
-                              //     fontFamily: 'Satoshi',
+                              //     fontFamily: 'Plus Jakarta Sans',
                               //     fontWeight: FontWeight.bold,
                               //     color: Colors.white),
                               todayDecoration: BoxDecoration(
@@ -277,7 +277,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                 shape: BoxShape.circle,
                               ),
                               todayTextStyle: const TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -285,7 +285,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                             startingDayOfWeek: StartingDayOfWeek.monday,
                             headerStyle: const HeaderStyle(
                               titleTextStyle: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: AppColors.primary,
@@ -304,13 +304,13 @@ class _CatatanHaidState extends State<CatatanHaid> {
                             // rowHeight: 20,
                             daysOfWeekStyle: const DaysOfWeekStyle(
                               weekdayStyle: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
                               weekendStyle: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                                 color: AppColors.primary,
@@ -351,7 +351,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                       child: Text(
                                         '${date.day}',
                                         style: const TextStyle(
-                                          fontFamily: 'Satoshi',
+                                          fontFamily: 'Plus Jakarta Sans',
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.primary,
                                         ),
@@ -392,7 +392,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                               const Text(
                                 'Period days',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary,
@@ -442,7 +442,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   Text(
                                     'Mark Period',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -460,7 +460,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                       const Text(
                         'Statistics',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -498,7 +498,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   const Text(
                                     'Last Cycle',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
@@ -514,7 +514,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                     child: const Text(
                                       '32',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,
@@ -525,7 +525,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   const Text(
                                     'days',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
@@ -564,7 +564,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   const Text(
                                     'Next Period',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
@@ -574,7 +574,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   const Text(
                                     'in',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                       color: AppColors.textSecondary,
@@ -598,7 +598,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                     child: Text(
                                       '$countdown',
                                       style: const TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 32,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.secondary,
@@ -609,7 +609,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   const Text(
                                     'days',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
@@ -648,7 +648,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                               const Text(
                                 'Cycle History',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
@@ -657,7 +657,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                               const Text(
                                 '(Last 5 Months)',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
@@ -678,7 +678,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                   Text(
                                     'Normal: $startCycle-$endCycle days',
                                     style: const TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
@@ -697,7 +697,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                     child: const Text(
                                       'Regular',
                                       style: TextStyle(
-                                        fontFamily: 'Satoshi',
+                                        fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.secondary,
@@ -936,7 +936,7 @@ class Bar extends StatelessWidget {
           child: Text(
             value.toString(),
             style: const TextStyle(
-              fontFamily: 'Satoshi',
+              fontFamily: 'Plus Jakarta Sans',
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -964,7 +964,7 @@ Future<void> _showMarkDialog(BuildContext context) async {
               const Text(
                 'When did your last period start?',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1005,7 +1005,7 @@ Future<void> _showMarkDialog(BuildContext context) async {
               const Text(
                 'When did your last period end?',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1083,7 +1083,7 @@ Future<void> _showMarkDialog(BuildContext context) async {
 }
 
 Future<String?> getCurrentUser() async {
-  final url = 'http://192.168.1.7:8000/api/users/current';
+  final url = 'http://192.168.8.52:8000/api/me';
   final uri = Uri.parse(url);
 
   final response = await http
@@ -1108,7 +1108,7 @@ Future<void> editData(dateStartEdit, dateEndEdit) async {
     'end_date': dateEndEdit,
   };
   final id = await getCurrentUser();
-  final url = "http://192.168.1.7:8000/api/catatanhaids/$id";
+  final url = "http://192.168.8.52:8000/api/catatan-haid";
   final uri = Uri.parse(url);
   final response = await http.put(uri, body: jsonEncode(body), headers: {
     'Content-Type': 'application/json',

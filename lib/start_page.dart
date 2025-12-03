@@ -16,7 +16,7 @@ class _StartPageState extends State<StartPage> {
   bool _isCheckingApi = true;
   bool _apiConnected = false;
   String _apiStatus = 'Checking...';
-  String _apiUrl = 'http://192.168.1.7:8000';
+  String _apiUrl = 'http://192.168.8.52:8000';
 
   @override
   void initState() {
@@ -139,7 +139,7 @@ class _StartPageState extends State<StartPage> {
                               Text(
                                 'API Status: $_apiStatus',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: _isCheckingApi
@@ -152,7 +152,7 @@ class _StartPageState extends State<StartPage> {
                               Text(
                                 _apiUrl,
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 9,
                                   color: AppColors.textSecondary,
                                 ),
@@ -221,7 +221,7 @@ class _StartPageState extends State<StartPage> {
                     const Text(
                       'Strength & Holistic Health',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
                         fontSize: 16,
                         letterSpacing: 0.5,
@@ -246,7 +246,7 @@ class _StartPageState extends State<StartPage> {
                       child: const Text(
                         'Tempat Untuk Menguatkan Perempuan',
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           color: AppColors.primary,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -293,7 +293,7 @@ class _StartPageState extends State<StartPage> {
                         child: const Text(
                           'Login',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.white,
@@ -341,7 +341,7 @@ class _StartPageState extends State<StartPage> {
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: AppColors.primary,
@@ -356,7 +356,7 @@ class _StartPageState extends State<StartPage> {
                     Text(
                       '© 2025 Empuan | Designed for holistic wellbeing',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary.withOpacity(0.6),
                         fontSize: 11,
                       ),

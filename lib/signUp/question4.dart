@@ -82,7 +82,7 @@ class _Question4State extends State<Question4> {
                     child: Text(
                       'Question 4',
                       style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w900,
                         fontSize: 25,
                       ),
@@ -93,7 +93,7 @@ class _Question4State extends State<Question4> {
                 const Text(
                   'Do you experience discomfort due\nto any of the following?',
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -254,7 +254,7 @@ class LabeledCheckboxExample extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16.0,
                 color: Colors.black,
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
               ),
             ),
             value: value,

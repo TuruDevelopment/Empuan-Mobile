@@ -27,7 +27,7 @@ class _Intro3State extends State<Intro3> {
             const Text(
               'For Awareness to Action',
               style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
                   color: AppColors.pink1,
                   fontSize: 20),
@@ -37,7 +37,7 @@ class _Intro3State extends State<Intro3> {
               'Empuan App Bridges Gaps, Advocates for\nWomen\'s Rights and Well-being.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   // fontWeight: FontWeight.bold,
                   color: Colors.black,
                   fontSize: 15),
@@ -68,7 +68,7 @@ class _Intro3State extends State<Intro3> {
                               const Color.fromRGBO(251, 111, 146, 1))),
                       child: const Text(
                         'Back',
-                        style: TextStyle(fontFamily: 'Satoshi'),
+                        style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
                       ),
                     ),
                   ),
@@ -87,7 +87,7 @@ class _Intro3State extends State<Intro3> {
                               const Color.fromRGBO(251, 111, 146, 1))),
                       child: const Text(
                         'Let\'s Start',
-                        style: TextStyle(fontFamily: 'Satoshi'),
+                        style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
                       ),
                     ),
                   ),

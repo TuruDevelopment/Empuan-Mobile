@@ -88,7 +88,7 @@ class BannerSuaraPuanBox extends StatelessWidget {
                     children: [
                       Text(dop,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: const Color.fromRGBO(251, 111, 146, 1),
                               fontSize: 12)),
@@ -98,7 +98,7 @@ class BannerSuaraPuanBox extends StatelessWidget {
                       ),
                       Text(kategori_id,
                           style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: const Color.fromRGBO(251, 111, 146, 1),
                               fontSize: 12)),
@@ -112,7 +112,7 @@ class BannerSuaraPuanBox extends StatelessWidget {
                     title,
                     textAlign: TextAlign.left,
                     style: TextStyle(
-                        fontFamily: 'Satoshi',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                         fontSize: 20),

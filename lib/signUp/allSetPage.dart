@@ -159,7 +159,7 @@ class _AllSetPageState extends State<AllSetPage>
                             Text(
                               'Registration Complete',
                               style: TextStyle(
-                                fontFamily: 'Satoshi',
+                                fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.secondary,
@@ -196,7 +196,7 @@ class _AllSetPageState extends State<AllSetPage>
                         'Sign up process has been completed.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -213,7 +213,7 @@ class _AllSetPageState extends State<AllSetPage>
                         'Let\'s log on to your account!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'Satoshi',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 16,
                           color: AppColors.textSecondary,
                           height: 1.5,
@@ -294,7 +294,7 @@ class _AllSetPageState extends State<AllSetPage>
                               Text(
                                 'Login to Your Account',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.white,
@@ -368,7 +368,7 @@ class _AllSetPageState extends State<AllSetPage>
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -378,7 +378,7 @@ class _AllSetPageState extends State<AllSetPage>
                 Text(
                   description,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),

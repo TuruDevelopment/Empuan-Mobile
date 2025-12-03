@@ -13,11 +13,13 @@ class questions extends StatefulWidget {
   // questions({Key? key}) : super(key: key);
 
   final String username;
+  final String email;
   final String password;
 
   const questions({
     Key? key,
     required this.username,
+    required this.email,
     required this.password,
   }) : super(key: key);
 
@@ -202,7 +204,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                           Text(
                             'Question ${_currentPageIndex + 1} of 5',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
@@ -211,7 +213,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                           Text(
                             '${(((_currentPageIndex + 1) / 5) * 100).toInt()}%',
                             style: TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
@@ -324,7 +326,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                               child: Text(
                                 'Back',
                                 style: TextStyle(
-                                  fontFamily: 'Satoshi',
+                                  fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                   letterSpacing: 0.5,
@@ -386,7 +388,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                                         ? 'Finish'
                                         : 'Save & Next',
                                     style: TextStyle(
-                                      fontFamily: 'Satoshi',
+                                      fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                       color: Colors.white,
@@ -438,7 +440,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
               child: Text(
                 'Question $questionNumber',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -452,7 +454,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
             Text(
               question,
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -464,7 +466,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 15,
                   color: AppColors.textSecondary,
                 ),
@@ -524,7 +526,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
               child: Text(
                 'Question 2',
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -538,7 +540,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
             Text(
               'When did your last period start?',
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -569,14 +571,14 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                 controller: dateInputController,
                 readOnly: true,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 15,
                   color: AppColors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Select start date',
                   hintStyle: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     color: AppColors.textSecondary.withOpacity(0.6),
                   ),
                   prefixIcon: Icon(
@@ -634,7 +636,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
             Text(
               'When did your last period end?',
               style: TextStyle(
-                fontFamily: 'Satoshi',
+                fontFamily: 'Plus Jakarta Sans',
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -665,14 +667,14 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                 controller: dateInputControllerend,
                 readOnly: true,
                 style: TextStyle(
-                  fontFamily: 'Satoshi',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 15,
                   color: AppColors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Select end date',
                   hintStyle: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     color: AppColors.textSecondary.withOpacity(0.6),
                   ),
                   prefixIcon: Icon(
@@ -792,7 +794,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                     color:
@@ -873,11 +875,11 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   }
 
   Future<void> doLogin() async {
-    final username2 = widget.username;
+    final email2 = widget.email;
     final password2 = widget.password;
 
     bool isSuccess =
-        await AuthService().login(username: username2, password: password2);
+        await AuthService().login(email: email2, password: password2);
 
     if (!isSuccess) {
       print(isSuccess);
@@ -885,7 +887,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.1.7:8000/api/users/username/$username';
+    final url = 'http://192.168.8.52:8000/api/users/username/$username';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -912,7 +914,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.1.7:8000/api/catatanhaids";
+    final url = "http://192.168.8.52:8000/api/catatan-haid";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

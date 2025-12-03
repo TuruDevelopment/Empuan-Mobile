@@ -54,7 +54,7 @@ class _SplashPageState extends State<SplashPage> {
     }
 
     try {
-      final url = 'http://192.168.1.7:8000/api/users/current';
+      final url = 'http://192.168.8.52:8000/api/me';
       final uri = Uri.parse(url);
       final response = await http.get(
         uri,
@@ -179,7 +179,7 @@ class _SplashPageState extends State<SplashPage> {
                   child: Text(
                     'Your Safety Companion',
                     style: TextStyle(
-                      fontFamily: 'Satoshi',
+                      fontFamily: 'Plus Jakarta Sans',
                       fontSize: 16,
                       color: AppColors.textSecondary,
                       letterSpacing: 0.5,
