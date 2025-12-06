@@ -16,6 +16,7 @@ import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:direct_sms/direct_sms.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -59,6 +60,7 @@ class _MainScreenState extends State<MainScreen> {
   late DateTime _enddate = DateTime.now();
 
   bool sosActive = false;
+  final DirectSms directSms = DirectSms();
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _MainScreenState extends State<MainScreen> {
     getCurrentUser().then((userid) {
       if (userid != null) {
         getData(userid);
+        getDataKontakAman(); // Load emergency contacts on init
       }
     });
     // SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -252,6 +255,11 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> location() async {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission || !mounted) return;
+
+    // Fetch emergency contacts first
+    print('Fetching emergency contacts before sending SMS...');
+    await getDataKontakAman();
+
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
         .then((Position position) {
       setState(() => _currentPosition = position);
@@ -267,27 +275,182 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _launchUrl(double? lat, double? long) async {
     Uri _url = Uri.parse('https://www.google.com/maps/search/${lat},${long}');
-    print(_url);
+    String message =
+        '🚨 DARURAT! Saya membutuhkan bantuan segera. Ini adalah pesan otomatis dari aplikasi Empuan. Mohon periksa lokasi saya: https://www.google.com/maps/search/${lat},${long}';
+
+    print('Sending emergency SMS to contacts');
+    print('Location URL: $_url');
+    print('Emergency contacts count: ${phoneNumbers.length}');
+    print('Emergency contacts: $phoneNumbers');
 
     // SMS functionality only works on mobile platforms
     if (!kIsWeb) {
-      // Platform-specific SMS sending code
-      // Note: You'll need to conditionally import these packages for mobile only
-      print('SMS sending not available on web. Location: $_url');
-      // On mobile, you would use direct_sms here
-      // for (var i = 0; i < listNum.length; i++) {
-      //   directSms.sendSms(message: "${_url}", phone: "${listNum[i]}");
-      // }
+      try {
+        int successCount = 0;
+        int failCount = 0;
+
+        // Send to emergency contacts from database if available
+        if (phoneNumbers.isNotEmpty) {
+          for (var i = 0; i < phoneNumbers.length; i++) {
+            print('Attempting to send SMS to: ${phoneNumbers[i]}');
+            try {
+              await directSms.sendSms(
+                phone: phoneNumbers[i],
+                message: message,
+              );
+              successCount++;
+              print('✓ SMS sent successfully to ${phoneNumbers[i]}');
+            } catch (e) {
+              failCount++;
+              print('✗ Exception sending to ${phoneNumbers[i]}: $e');
+            }
+          }
+          print('=== SMS SUMMARY ===');
+          print('Total contacts: ${phoneNumbers.length}');
+          print('Successful: $successCount');
+          print('Failed: $failCount');
+        } else {
+          // Fallback to hardcoded numbers if no emergency contacts in database
+          print('No emergency contacts found, using default numbers');
+          for (var i = 0; i < listNum.length; i++) {
+            print('Attempting to send SMS to default: ${listNum[i]}');
+            try {
+              await directSms.sendSms(
+                phone: listNum[i],
+                message: message,
+              );
+              successCount++;
+              print('✓ SMS sent successfully to ${listNum[i]}');
+            } catch (e) {
+              failCount++;
+              print('✗ Exception sending to ${listNum[i]}: $e');
+            }
+          }
+          print('=== SMS SUMMARY ===');
+          print('Total default contacts: ${listNum.length}');
+          print('Successful: $successCount');
+          print('Failed: $failCount');
+        }
+
+        // Show result to user
+        if (mounted && successCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text(
+                    'Emergency SMS sent to $successCount contact(s)',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        } else if (mounted && failCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Failed to send SMS to any contacts',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } catch (e) {
+        print('Error in SMS sending process: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.warning_rounded, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Emergency SMS error: ${e.toString()}',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     } else {
-      print('Web platform: SMS not supported. Location shared: $_url');
+      print('Web platform: SMS not supported. Location: $_url');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'SMS not supported on web platform',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
   Future<void> getDataKontakAman() async {
     if (!mounted) return;
-    setState(() {
-      isLoading = true;
-    });
+
     // get data from form
     // submit data to the server
     final url = '${ApiConfig.baseUrl}/kontak-aman';
@@ -298,27 +461,23 @@ class _MainScreenState extends State<MainScreen> {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] ?? [] as List;
 
-      // Clear the phoneNumbers list before adding new numbers
-      phoneNumbers.clear();
-
-      // Extract phone numbers from each data entry and add them to phoneNumbers list
+      // Extract phone numbers from each data entry
+      List<String> tempPhoneNumbers = [];
       for (var data in result) {
         final phoneNumber = data['phoneNumber'].toString();
-        print('phone number: $phoneNumber');
-        phoneNumbers.add(phoneNumber);
+        print('Loading emergency contact: $phoneNumber');
+        tempPhoneNumbers.add(phoneNumber);
       }
 
+      // Update state with new phone numbers
       setState(() {
-        phoneNumbers =
-            phoneNumbers; // Update dataContact with the obtained data
+        phoneNumbers = tempPhoneNumbers;
       });
+
+      print('Emergency contacts loaded: ${phoneNumbers.length} numbers');
+      print('Phone numbers: $phoneNumbers');
     }
 
-    if (!mounted) return;
-
-    setState(() {
-      isLoading = false;
-    });
     // showsuccess or fail message based on status
     print(response.statusCode);
     print('data pas api tarik kontak' + response.body);

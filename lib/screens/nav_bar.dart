@@ -20,10 +20,9 @@ class NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: Platform.isAndroid ? 20 : 8,
+      margin: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: Platform.isAndroid ? 16 : 8,
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
