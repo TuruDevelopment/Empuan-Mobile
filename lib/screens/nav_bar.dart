@@ -70,14 +70,14 @@ class NavBar extends StatelessWidget {
               ),
               navItem(
                 Icons.calendar_month_rounded,
-                'Catatan',
+                'Diary',
                 pageIndex == 1,
                 onTap: () => onTap(1),
               ),
               _buildPanicButton(),
               navItem(
                 Icons.phone_rounded,
-                'Panggil',
+                'Fake Call',
                 pageIndex == 2,
                 onTap: () => onTap(2),
               ),
