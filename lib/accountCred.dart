@@ -7,6 +7,8 @@ import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:Empuan/config/api_config.dart';
+
 class AccountCred extends StatefulWidget {
   // const AccountCred({
   //   super.key
@@ -434,7 +436,7 @@ class _AccountCredState extends State<AccountCred> {
       "gender": "1",
     };
 
-    final url = 'http://192.168.8.52:8000/api/register';
+    final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

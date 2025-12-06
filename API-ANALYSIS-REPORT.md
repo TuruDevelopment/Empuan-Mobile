@@ -8,7 +8,7 @@
 
 1. **Base URL Mismatch**
 
-   - **API Spec**: `https://192.168.8.52:8000/api`
+   - **API Spec**: `https://192.168.1.5:8000/api`
    - **Flutter Code**: `http://192.168.1.7:8000/api` (hardcoded in 54+ locations)
    - **Issue**: Wrong IP address and protocol (https vs http)
 
@@ -71,13 +71,13 @@ Created `lib/config/api_config.dart` with:
 **Option A**: HTTP (development)
 
 ```dart
-static const String baseUrl = 'http://192.168.8.52:8000/api';
+static const String baseUrl = 'http://192.168.1.5:8000/api';
 ```
 
 **Option B**: HTTPS (production - as per API spec)
 
 ```dart
-static const String baseUrl = 'https://192.168.8.52:8000/api';
+static const String baseUrl = 'https://192.168.1.5:8000/api';
 ```
 
 ### Priority 3: Update All Endpoints
@@ -221,7 +221,7 @@ After updates, test:
 
 ## 🎯 Next Steps
 
-1. **Review IP Address**: Confirm `192.168.8.52` is the correct backend server
+1. **Review IP Address**: Confirm `192.168.1.5` is the correct backend server
 2. **Choose Protocol**: Decide between HTTP (dev) or HTTPS (prod)
 3. **Update ApiConfig**: Set correct baseUrl in api_config.dart
 4. **Mass Update**: Update all 54 files to use ApiConfig

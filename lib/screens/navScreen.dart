@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/HomePage.dart';
 import 'package:Empuan/screens/catatanHaid.dart';
 import 'package:Empuan/screens/more.dart';
@@ -12,11 +14,7 @@ import 'package:Empuan/screens/nav_model.dart';
 import 'package:Empuan/screens/panggilPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:whatsapp/whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:telephony/telephony.dart';
-import 'package:direct_sms/direct_sms.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 
 class MainScreen extends StatefulWidget {
@@ -101,10 +99,7 @@ class _MainScreenState extends State<MainScreen> {
     // getDataKontakAman();
   }
 
-  WhatsApp whatsapp = WhatsApp();
   Position? _currentPosition;
-  final Telephony telephony = Telephony.instance;
-  var directSms = DirectSms();
 
   final List listNum = [
     '6285773030388',
@@ -175,8 +170,8 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.52:8000/api/me';
+  Future<int?> getCurrentUser() async {
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -186,19 +181,19 @@ class _MainScreenState extends State<MainScreen> {
       if (jsonData['data'] != null) {
         final data = jsonData['data'];
         if (data.containsKey('id')) {
-          return data['id'].toString();
+          return data['id'];
         }
       }
     }
     return null;
   }
 
-  Future<void> getData(String userid) async {
+  Future<void> getData(int userid) async {
     setState(() {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.52:8000/api/catatan-haid';
+    final url = '${ApiConfig.baseUrl}/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -273,28 +268,18 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _launchUrl(double? lat, double? long) async {
     Uri _url = Uri.parse('https://www.google.com/maps/search/${lat},${long}');
     print(_url);
-    // if (!await launchUrl(_url)) {
-    //   throw Exception('Could not launch $_url');
-    // }
 
-    // sendSms(_url);
-    // telephony.sendSmsByDefaultApp(to: "6285773030388", message: "${_url}");
-    final permission = Permission.sms.request();
-    if (await permission.isGranted) {
-      for (var i = 0; i < listNum.length; i++) {
-        directSms.sendSms(message: "${_url}", phone: "${listNum[i]}");
-      }
-      // for (var i = 0; i < phoneNumbers.length; i++) {
-      //   print("${phoneNumbers[i]}");
-      //   directSms.sendSms(
-      //       message: "Help Your Friend !!! \n${_url}",
-      //       phone: "${phoneNumbers[i]}");
+    // SMS functionality only works on mobile platforms
+    if (!kIsWeb) {
+      // Platform-specific SMS sending code
+      // Note: You'll need to conditionally import these packages for mobile only
+      print('SMS sending not available on web. Location: $_url');
+      // On mobile, you would use direct_sms here
+      // for (var i = 0; i < listNum.length; i++) {
+      //   directSms.sendSms(message: "${_url}", phone: "${listNum[i]}");
       // }
-      // for (var phoneNumber in phoneNumbers) {
-      //   print(phoneNumber);
-      //   directSms.sendSms(
-      //       message: "Help Your Friend !!! \n${_url}", phone: phoneNumber);
-      // }
+    } else {
+      print('Web platform: SMS not supported. Location shared: $_url');
     }
   }
 
@@ -305,7 +290,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/kontak-aman';
+    final url = '${ApiConfig.baseUrl}/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

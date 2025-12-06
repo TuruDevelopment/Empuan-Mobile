@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:Empuan/services/auth_service.dart';
@@ -51,7 +52,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
   late int endCycle = 34;
 
   Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.52:8000/api/me';
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -73,7 +74,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.52:8000/api/catatan-haid';
+    final url = '${ApiConfig.baseUrl}/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -1083,7 +1084,7 @@ Future<void> _showMarkDialog(BuildContext context) async {
 }
 
 Future<String?> getCurrentUser() async {
-  final url = 'http://192.168.8.52:8000/api/me';
+  final url = '${ApiConfig.baseUrl}/me';
   final uri = Uri.parse(url);
 
   final response = await http
@@ -1108,7 +1109,7 @@ Future<void> editData(dateStartEdit, dateEndEdit) async {
     'end_date': dateEndEdit,
   };
   final id = await getCurrentUser();
-  final url = "http://192.168.8.52:8000/api/catatan-haid";
+  final url = "${ApiConfig.baseUrl}/catatan-haid";
   final uri = Uri.parse(url);
   final response = await http.put(uri, body: jsonEncode(body), headers: {
     'Content-Type': 'application/json',

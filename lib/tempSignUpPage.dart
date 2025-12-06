@@ -10,6 +10,7 @@ import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
+import 'package:Empuan/config/api_config.dart';
 
 class tempSignUpPage extends StatefulWidget {
   const tempSignUpPage({Key? key}) : super(key: key);
@@ -809,7 +810,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "gender": "1",
     };
 
-    final url = 'http://192.168.8.52:8000/api/register';
+    final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

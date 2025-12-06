@@ -11,6 +11,8 @@ import 'package:Empuan/styles/style.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:Empuan/config/api_config.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.startdate, required this.enddate});
 
@@ -43,8 +45,8 @@ class _HomePageState extends State<HomePage> {
   // late DateTime _startdate = DateTime.now();
   // late DateTime _enddate = DateTime.now();
 
-  Future<String?> getCurrentUser() async {
-    final url = 'http://192.168.8.52:8000/api/me';
+  Future<int?> getCurrentUser() async {
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
 
     final response = await http
@@ -54,19 +56,19 @@ class _HomePageState extends State<HomePage> {
       if (jsonData['data'] != null) {
         final data = jsonData['data'];
         if (data.containsKey('id')) {
-          return data['id'].toString();
+          return data['id'];
         }
       }
     }
     return null;
   }
 
-  Future<void> getData(String userid) async {
+  Future<void> getData(int userid) async {
     setState(() {
       isLoading = true;
     });
 
-    final url = 'http://192.168.8.52:8000/api/catatan-haid';
+    final url = '${ApiConfig.baseUrl}/catatan-haid';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

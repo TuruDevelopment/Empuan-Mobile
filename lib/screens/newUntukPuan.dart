@@ -7,6 +7,8 @@ import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:Empuan/config/api_config.dart';
+
 class newUntukPuan extends StatefulWidget {
   const newUntukPuan({super.key});
 
@@ -303,7 +305,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/untuk-puan';
+    final url = '${ApiConfig.baseUrl}/untuk-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

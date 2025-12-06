@@ -10,6 +10,8 @@ import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:Empuan/config/api_config.dart';
+
 class Question2 extends StatefulWidget {
   // const Question2({Key? key}) : super(key: key);
 
@@ -343,7 +345,7 @@ class _Question2State extends State<Question2> {
   }
 
   Future<String?> getIdByUsername(String username) async {
-    final url = 'http://192.168.8.52:8000/api/users/username/$username';
+    final url = '${ApiConfig.baseUrl}/users/username/$username';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -370,7 +372,7 @@ class _Question2State extends State<Question2> {
       'end_date': dateEnd,
     };
 
-    final url = "http://192.168.8.52:8000/api/catatan-haid";
+    final url = "${ApiConfig.baseUrl}/catatan-haid";
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',

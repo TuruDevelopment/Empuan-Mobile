@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
@@ -324,7 +325,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
       'relation': relation,
     };
 
-    final url = "http://192.168.8.52:8000/api/kontak-aman";
+    final url = "${ApiConfig.baseUrl}/kontak-aman";
     final uri = Uri.parse(url);
 
     // Debug: Print request details
@@ -436,7 +437,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/kontak-aman';
+    final url = '${ApiConfig.baseUrl}/kontak-aman';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

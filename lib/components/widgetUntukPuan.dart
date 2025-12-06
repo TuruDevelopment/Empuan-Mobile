@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:Empuan/Widgets/sliver_list.dart';
-import 'package:Empuan/Widgets/sliver_list2.dart';
-import 'package:Empuan/Widgets/sliver_list3.dart';
-import 'package:Empuan/components/bannerSuaraPuan.dart';
 import 'package:Empuan/components/bannerUntukPuan.dart';
-import 'package:Empuan/components/content_suaraPuan.dart';
+import 'package:Empuan/styles/style.dart';
 
 class WidgetUntukPuan extends StatefulWidget {
   final String nama;
@@ -48,251 +44,141 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
 
     final dataBannerUntuk = dataUntukPuan;
 
-    final PageController controller = PageController();
-    int currentTab = 0;
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: TextField(
-          decoration: InputDecoration(
-              suffixIcon: Icon(Icons.search, color: Colors.black)),
+        backgroundColor: AppColors.background,
+        title: Container(
+          height: 45,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+          ),
+          child: TextField(
+            style: const TextStyle(
+              fontFamily: 'Satoshi',
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Search...',
+              hintStyle: TextStyle(
+                fontFamily: 'Satoshi',
+                color: AppColors.textSecondary,
+              ),
+              suffixIcon: const Icon(
+                Icons.search_rounded,
+                color: AppColors.primary,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+          ),
         ),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.settings,
-              color: Colors.black,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                ),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              onPressed: () {
+                // do something
+              },
             ),
-            onPressed: () {
-              // do something
-            },
           )
         ],
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
           ),
         ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 30),
+            const SizedBox(height: 20),
+            // Hero Image Banner
             Container(
-              height: 230,
-              child: PageView(
-                controller: controller,
-                onPageChanged: (int index) {
-                  setState(() {
-                    currentTab = index;
-                  });
-                },
-                children: [
-                  for (var item in dataBannerUntuk) getDataBannerUntukPuan(item)
+              height: 280,
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
-            ),
-            Container(
-              // alignment: Alignment.topLeft,
-              height: 100,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.nama,
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.alamat,
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 17),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Open Hours: " +
-                              widget.jamBuka +
-                              " - " +
-                              widget.jamTutup,
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.yellow,
-                          size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          color: Colors.yellow,
-                          size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          color: Colors.yellow,
-                          size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          color: Colors.yellow,
-                          size: 20,
-                        ),
-                        Icon(
-                          Icons.star,
-                          color: Colors.yellow,
-                          size: 20,
-                        ),
-                        SizedBox(width: 10),
-                        Icon(Icons.monetization_on,
-                            color: Colors.green, size: 20),
-                        Icon(Icons.monetization_on,
-                            color: Colors.green, size: 20),
-                        Icon(Icons.monetization_on,
-                            color: Colors.green, size: 20),
-                        Icon(Icons.monetization_on,
-                            color: Colors.green, size: 20),
-                        SizedBox(width: 10),
-                        Icon(Icons.location_pin, color: Colors.grey, size: 20),
-                        Text("0.1 km from you",
-                            style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14)),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            Container(
-              width: 340,
-              child: Divider(
-                color: Colors.grey,
-                thickness: 1.5,
-                height: 10,
-              ),
-            ),
-            Container(
-              // height: 360,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 40, top: 10),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text("About",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20)),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 340,
-                          child: Text(
-                            widget.deskripsi,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 17),
+                    Image.network(
+                      widget.foto,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.primary.withOpacity(0.6),
+                                AppColors.primaryVariant.withOpacity(0.8),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
-            Container(
-              width: 340,
-              child: Divider(
-                color: Colors.grey,
-                thickness: 1.5,
-                height: 10,
-              ),
-            ),
-            Container(
-              height: 400,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 40, top: 10),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text("Product/Service Catalog",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20)),
-                        SizedBox(height: 10),
-                      ],
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_rounded,
+                              color: Colors.white,
+                              size: 80,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 40),
-                      child: Container(
-                        height: 230,
-                        child: PageView(
-                          controller: controller,
-                          onPageChanged: (int index) {
-                            setState(() {
-                              currentTab = index;
-                            });
-                          },
-                          children: [
-                            for (var item in dataBannerUntuk)
-                              getDataBannerUntukPuan(item)
+                    // Gradient Overlay
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.3),
                           ],
                         ),
                       ),
@@ -301,6 +187,242 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            // Info Card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name
+                  Text(
+                    widget.nama,
+                    style: const TextStyle(
+                      fontFamily: 'Satoshi',
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Address
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.location_on_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          widget.alamat,
+                          style: const TextStyle(
+                            fontFamily: 'Satoshi',
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Open Hours
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.access_time_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Open Hours: ${widget.jamBuka} - ${widget.jamTutup}",
+                        style: const TextStyle(
+                          fontFamily: 'Satoshi',
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Rating & Price Row
+                  Row(
+                    children: [
+                      // Rating
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.amber.shade400,
+                              Colors.orange.shade400,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.star_rounded,
+                                color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              "5.0",
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Price
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.green.shade400,
+                              Colors.teal.shade400,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.monetization_on_rounded,
+                                color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              "\$\$\$\$",
+                              style: TextStyle(
+                                fontFamily: 'Satoshi',
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Distance
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // About Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryVariant,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.info_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "About",
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.deskripsi,
+                    style: const TextStyle(
+                      fontFamily: 'Satoshi',
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Product/Service Catalog Section
+
+            const SizedBox(height: 24),
           ],
         ),
       ),

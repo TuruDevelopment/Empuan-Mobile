@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/navScreen.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:Empuan/config/api_config.dart';
 
 class JawabanDailyQuiz extends StatefulWidget {
   final int selectedindex;
@@ -319,7 +322,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/questions';
+    final url = '${ApiConfig.baseUrl}/questions';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -361,7 +364,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     if (dataQuestion.isNotEmpty) {
       final idQuestion = dataQuestion[0]['id'].toString();
       print('id q: ' + idQuestion);
-      final url = 'http://192.168.8.52:8000/api/questions/$idQuestion/options';
+      final url = '${ApiConfig.baseUrl}/questions/$idQuestion/options';
       final uri = Uri.parse(url);
 
       try {

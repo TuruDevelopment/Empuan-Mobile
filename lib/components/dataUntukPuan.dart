@@ -68,24 +68,7 @@ Widget getDataUntukPuan(List<dynamic> dataUntukPuan) {
   List<Widget> dataUntukPuanBoxes = [];
   dataUntukPuanBoxes.add(const SizedBox(height: 16));
 
-  // Filter Chips Row
-  dataUntukPuanBoxes.add(
-    Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildFilterChip('Near Me', Icons.location_on_rounded),
-          const SizedBox(width: 8),
-          _buildFilterChip('Rated 4★', Icons.star_rounded),
-          const SizedBox(width: 8),
-          _buildFilterChip('Best Price', Icons.local_offer_rounded),
-        ],
-      ),
-    ),
-  );
-
-  dataUntukPuanBoxes.add(const SizedBox(height: 24));
+  
 
   // Section Title
   dataUntukPuanBoxes.add(

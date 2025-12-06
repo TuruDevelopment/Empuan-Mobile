@@ -72,10 +72,20 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.favorite_rounded,
-                              color: AppColors.primary,
-                              size: 24,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'images/empuanlogo.jpg',
+                                width: 24,
+                                height: 24,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.favorite_rounded,
+                                    color: AppColors.primary,
+                                    size: 24,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:Empuan/components/contactBox.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/addContact.dart';
 import 'package:Empuan/screens/settings.dart';
 import 'package:Empuan/services/auth_service.dart';
@@ -374,7 +375,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/kontak-palsu';
+    final url = '${ApiConfig.baseUrl}/kontak-palsu';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/start_page.dart';
 import 'package:Empuan/screens/navScreen.dart';
 import 'package:Empuan/services/auth_service.dart';
@@ -54,7 +55,7 @@ class _SplashPageState extends State<SplashPage> {
     }
 
     try {
-      final url = 'http://192.168.8.52:8000/api/me';
+      final url = '${ApiConfig.baseUrl}/me';
       final uri = Uri.parse(url);
       final response = await http.get(
         uri,
@@ -123,10 +124,20 @@ class _SplashPageState extends State<SplashPage> {
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.favorite_rounded,
-                            size: 80,
-                            color: AppColors.primary,
+                          child: ClipOval(
+                            child: Image.asset(
+                              'images/empuanlogo.jpg',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.favorite_rounded,
+                                  size: 80,
+                                  color: AppColors.primary,
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),

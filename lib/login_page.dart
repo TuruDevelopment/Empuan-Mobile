@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/navScreen.dart';
 
 import 'package:Empuan/services/auth_service.dart';
@@ -11,11 +13,9 @@ import 'package:Empuan/signUp/intro.dart';
 
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
-import 'package:whatsapp/whatsapp.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:telephony/telephony.dart';
-import 'package:direct_sms/direct_sms.dart';
-import 'package:permission_handler/permission_handler.dart';
+
+import 'package:Empuan/config/api_config.dart';
 
 // import android.telephony.SmsManager;
 
@@ -35,12 +35,9 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   bool obscurePassword = false; // Added to track password visibility
   bool _isLoggingIn = false; // Track login state
-  WhatsApp whatsapp = WhatsApp();
   String? _currentAddress;
   Position? _currentPosition;
   static const platform = const MethodChannel('sendSms');
-  final Telephony telephony = Telephony.instance;
-  var directSms = DirectSms();
 
   void initState() {
     super.initState();
@@ -135,10 +132,20 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.favorite_rounded,
-                        size: 50,
-                        color: AppColors.primary,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'images/empuanlogo.jpg',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.favorite_rounded,
+                              size: 50,
+                              color: AppColors.primary,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -588,7 +595,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> getData() async {
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/ruang-puan';
+    final url = '${ApiConfig.baseUrl}/ruang-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -657,29 +664,16 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _launchUrl(double? lat, double? long) async {
     Uri _url = Uri.parse('https://www.google.com/maps/search/${lat},${long}');
     print(_url);
-    // if (!await launchUrl(_url)) {
-    //   throw Exception('Could not launch $_url');
-    // }
 
-    // sendSms(_url);
-    // telephony.sendSmsByDefaultApp(to: "6285773030388", message: "${_url}");
-    final permission = Permission.sms.request();
-
-    print("masuk ");
-    if (await permission.isGranted) {
-      for (var i = 0; i < listNum.length; i++) {
-        print("${listNum[i]}");
-        directSms.sendSms(
-            message: "Help Your Friend !!!\n I'm in Trouble\n${_url}",
-            phone: "${listNum[i]}");
-      }
-      // print("masukkkk");
-      // for (var i = 0; i < phoneNumbers.length; i++) {
-      //   print("${phoneNumbers[i]}");
-      //   directSms.sendSms(
-      //       message: "Help Your Friend !!! \n${_url}",
-      //       phone: "${phoneNumbers[i]}");
+    // SMS functionality only works on mobile platforms
+    if (!kIsWeb) {
+      print('SMS sending not available on web. Location: $_url');
+      // On mobile, you would use direct_sms here
+      // for (var i = 0; i < listNum.length; i++) {
+      //   directSms.sendSms(message: "Help Your Friend!!!\n${_url}", phone: "${listNum[i]}");
       // }
+    } else {
+      print('Web platform: SMS not supported. Location shared: $_url');
     }
   }
 }

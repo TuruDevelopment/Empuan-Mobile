@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:Empuan/components/cardMore.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/settings.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
@@ -63,10 +64,10 @@ class _MoreState extends State<More> {
 
     try {
       final url =
-          'http://192.168.8.52:8000/api/ruang-puan?page=${currentPage + 1}&per_page=$itemsPerPage';
+          '${ApiConfig.baseUrl}/ruang-puan?page=${currentPage + 1}&per_page=$itemsPerPage';
       final uri = Uri.parse(url);
-      final response = await http.get(uri,
-          headers: {'Authorization': 'Bearer ${AuthService.token}'});
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map;
@@ -190,8 +191,9 @@ class _MoreState extends State<More> {
                                 ],
                               ),
                               child: IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
+                                onPressed: () async {
+                                  final shouldRefresh =
+                                      await Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => Settings(
                                         username: username ?? 'User',
@@ -201,6 +203,11 @@ class _MoreState extends State<More> {
                                       ),
                                     ),
                                   );
+
+                                  // Refresh user data if profile was updated
+                                  if (shouldRefresh == true) {
+                                    getUserData();
+                                  }
                                 },
                                 icon: const Icon(
                                   Icons.settings_rounded,
@@ -290,10 +297,7 @@ class _MoreState extends State<More> {
                               date: post['threadDate'] ?? '',
                               likeCount: post['like']?.toString() ?? '0',
                               commentCount:
-                                  (post['commentRuangPuans'] != null
-                                          ? post['commentRuangPuans'].length
-                                          : 0)
-                                      .toString(),
+                                  post['comments_count']?.toString() ?? '0',
                               idRuangPuan: post['id'] ?? 0,
                             ),
                           );
@@ -780,7 +784,7 @@ class _MoreState extends State<More> {
 
     final threadDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final url = 'http://192.168.8.52:8000/api/ruang-puan';
+    final url = '${ApiConfig.baseUrl}/ruang-puan';
     final uri = Uri.parse(url);
 
     final body = {
@@ -907,11 +911,11 @@ class _MoreState extends State<More> {
     });
 
     final url =
-        'http://192.168.8.52:8000/api/ruang-puan?page=$currentPage&per_page=$itemsPerPage';
+        '${ApiConfig.baseUrl}/ruang-puan?page=$currentPage&per_page=$itemsPerPage';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-    
+
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       print('items kita' + json['data'].toString());
@@ -935,19 +939,21 @@ class _MoreState extends State<More> {
   }
 
   Future<List<String>> getCurrentUser() async {
-    final url = 'http://192.168.8.52:8000/api/me';
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-    
+
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
-      final result = json['data'] ?? [];
-      if (result.isNotEmpty &&
-          result.containsKey('name') &&
-          result.containsKey('id')) {
-        final username = result['name'].toString();
-        final userId = result['id'].toString();
+      // API /me returns: {"user": {...}, "roles": [...]}
+      final userData = json['user'];
+      if (userData != null &&
+          userData is Map &&
+          userData.containsKey('name') &&
+          userData.containsKey('id')) {
+        final username = userData['name'].toString();
+        final userId = userData['id'].toString();
         final profilePicture = 'images/profilePict.png';
         return [username, profilePicture, userId];
       }

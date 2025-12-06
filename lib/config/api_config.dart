@@ -1,10 +1,34 @@
 class ApiConfig {
-  // Base URL - matches api.json specification
-  // PRODUCTION: Use the correct backend URL
-  // static const String baseUrl = 'https://empuanback.test/api';
+  // Environment configuration
+  // To use different environments, build with:
+  // flutter run --dart-define=ENV=production
+  // flutter build apk --dart-define=ENV=production
+  static const String _environment =
+      String.fromEnvironment('ENV', defaultValue: 'development');
 
-  // DEVELOPMENT: Use local IP if testing locally
-  static const String baseUrl = 'http://192.168.8.52:8000/api';
+  // Base URLs for different environments
+  static const String _developmentUrl = 'http://192.168.1.5:8000/api';
+  static const String _productionUrl = 'https://api.empuan.com/api';
+  static const String _stagingUrl = 'https://staging-api.empuan.com/api';
+
+  // Get base URL based on environment
+  static String get baseUrl {
+    switch (_environment) {
+      case 'production':
+        return _productionUrl;
+      case 'staging':
+        return _stagingUrl;
+      case 'development':
+      default:
+        return _developmentUrl;
+    }
+  }
+
+  // Get environment name
+  static String get environment => _environment;
+
+  // Check if running in production
+  static bool get isProduction => _environment == 'production';
 
   // Auth endpoints
   static const String register = '/register';

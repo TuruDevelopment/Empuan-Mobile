@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:Empuan/screens/editProfile.dart';
+import 'package:Empuan/screens/changePassword.dart';
 import 'package:Empuan/screens/emergencyContact.dart';
 import 'package:Empuan/screens/terms_of_service.dart';
 import 'package:Empuan/screens/privacy_policy.dart';
@@ -154,8 +155,9 @@ class _SettingsState extends State<Settings> {
                                 ),
                               ),
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
+                                onPressed: () async {
+                                  final updatedName =
+                                      await Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => EditProfile(
                                         username: widget.username,
@@ -163,6 +165,14 @@ class _SettingsState extends State<Settings> {
                                       ),
                                     ),
                                   );
+
+                                  // If profile was updated, pop back to previous screen to force refresh
+                                  if (updatedName != null &&
+                                      updatedName is String) {
+                                    if (mounted) {
+                                      Navigator.pop(context, true);
+                                    }
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
@@ -205,45 +215,50 @@ class _SettingsState extends State<Settings> {
                         },
                       ),
 
-                      const SizedBox(height: 24),
+                      // const SizedBox(height: 24),
 
-                      // Content Section
-                      _buildSectionTitle('Content'),
-                      const SizedBox(height: 12),
-                      _buildModernSettingsItem(
-                        icon: Icons.notifications_rounded,
-                        title: 'Notifications',
-                        onTap: () {},
-                      ),
+                      // // Content Section
+                      // _buildSectionTitle('Content'),
+                      // const SizedBox(height: 12),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.notifications_rounded,
+                      //   title: 'Notifications',
+                      //   onTap: () {},
+                      // ),
 
                       const SizedBox(height: 24),
 
                       // Account Section
+                      // _buildSectionTitle('Account'),
+                      // const SizedBox(height: 12),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.person_rounded,
+                      //   title: 'Personal Information',
+                      //   onTap: () {},
+                      // ),
                       _buildSectionTitle('Account'),
                       const SizedBox(height: 12),
-                      _buildModernSettingsItem(
-                        icon: Icons.person_rounded,
-                        title: 'Personal Information',
-                        onTap: () {},
-                      ),
 
-                      const SizedBox(height: 8),
                       _buildModernSettingsItem(
                         icon: Icons.lock_rounded,
                         title: 'Change Password',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ChangePassword(),
+                            ),
+                          );
+                        },
                       ),
 
-                      const SizedBox(height: 24),
-
-                      // Support Section
-                      _buildSectionTitle('Support'),
-                      const SizedBox(height: 12),
-                      _buildModernSettingsItem(
-                        icon: Icons.star_rounded,
-                        title: 'Rate Us',
-                        onTap: () {},
-                      ),
+                      // // Support Section
+                      // _buildSectionTitle('Support'),
+                      // const SizedBox(height: 12),
+                      // _buildModernSettingsItem(
+                      //   icon: Icons.star_rounded,
+                      //   title: 'Rate Us',
+                      //   onTap: () {},
+                      // ),
                       // const SizedBox(height: 8),
                       // _buildModernSettingsItem(
                       //   icon: Icons.phone_android_rounded,

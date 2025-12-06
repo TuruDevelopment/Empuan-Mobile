@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:Empuan/login_page.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/signUp/intro.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
@@ -16,7 +17,7 @@ class _StartPageState extends State<StartPage> {
   bool _isCheckingApi = true;
   bool _apiConnected = false;
   String _apiStatus = 'Checking...';
-  String _apiUrl = 'http://192.168.8.52:8000';
+  String _apiUrl = ApiConfig.baseUrl.replaceAll('/api', '');
 
   @override
   void initState() {
@@ -196,10 +197,20 @@ class _StartPageState extends State<StartPage> {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.favorite_rounded,
-                        size: 60,
-                        color: AppColors.primary,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'images/empuanlogo.jpg',
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.favorite_rounded,
+                              size: 60,
+                              color: AppColors.primary,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -244,7 +255,7 @@ class _StartPageState extends State<StartPage> {
                         ),
                       ),
                       child: const Text(
-                        'Tempat Untuk Menguatkan Perempuan',
+                        'Place to Strengthen Woman',
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           color: AppColors.primary,

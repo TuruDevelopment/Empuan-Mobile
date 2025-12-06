@@ -1,91 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:Empuan/components/callView.dart';
-import 'package:Empuan/components/editContact.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/isiSuaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
-
-// Widget getDataSuaraPuan(List<dynamic> dataSuaraPuan) {
-//   String id;
-//   String title;
-//   String content;
-//   String media;
-//   String dop;
-//   String kategori_id;
-//   String user_id;
-
-//   List<Widget> dataSuaraBoxes = [];
-//   for (var i = 0; i < dataSuaraPuan.length; i++) {
-//     id = dataSuaraPuan[i]['id'].toString();
-//     title = dataSuaraPuan[i]['title'].toString();
-//     content = dataSuaraPuan[i]['content'].toString();
-//     media = dataSuaraPuan[i]['media'].toString();
-//     dop = dataSuaraPuan[i]['dop'].toString();
-//     kategori_id = dataSuaraPuan[i]['kategori_id'].toString();
-//     user_id = dataSuaraPuan[i]['user_id'].toString();
-
-//     // dataSuaraBoxes.add(FutureBuilder<String?>(
-//     //   future: getKategoriById(kategori_id),
-//     //   builder: (context, snapshot) {
-//     //     // if (snapshot.connectionState == ConnectionState.waiting) {
-//     //     //   return CircularProgressIndicator(); // Tampilkan loading indicator jika masih dalam proses pengambilan data
-//     //     // } else if (snapshot.hasError) {
-//     //     //   return Text('Error: ${snapshot.error}');
-//     //     // } else {
-//     //     String kategoriName =
-//     //         snapshot.data ?? ''; // Gunakan string kosong jika nilai null
-//     //     return SuaraPuanBox(
-//     //       id: id,
-//     //       title: title,
-//     //       content: content,
-//     //       media: media,
-//     //       dop: dop,
-//     //       kategori_id: kategori_id,
-//     //       user_id: user_id,
-//     //       kategori_name: kategoriName,
-//     //     );
-//     //     // }
-//     //   },
-//     // ));
-
-//     dataSuaraBoxes.add(FutureBuilder<String?>(
-//       future: getKategoriById(kategori_id),
-//       builder: (context, snapshot) {
-//         String kategoriName =
-//             snapshot.data ?? ''; // Gunakan string kosong jika nilai null
-//         return SuaraPuanBox(
-//           id: id,
-//           title: title,
-//           content: content,
-//           media: media,
-//           dop: dop,
-//           kategori_id: kategori_id,
-//           user_id: user_id,
-//           kategori_name: kategoriName,
-//         );
-//       },
-//     ));
-
-//     // String? kategoriName = await getKategoriById(kategori_id);
-
-//     // dataSuaraBoxes.add(SuaraPuanBox(
-//     //     id: id,
-//     //     title: title,
-//     //     content: content,
-//     //     media: media,
-//     //     dop: dop,
-//     //     kategori_id: kategori_id,
-//     //     user_id: user_id,
-//     //     kategori_name: kategoriName ?? ''));
-//     dataSuaraBoxes.add(SizedBox(height: 10));
-//   }
-//   return Column(
-//     children: dataSuaraBoxes,
-//   );
-// }
 
 Widget getDataSuaraPuan(List<dynamic> dataSuaraPuan) {
   return Column(
@@ -98,12 +18,11 @@ Widget getDataSuaraPuan(List<dynamic> dataSuaraPuan) {
       final kategori_id = data['kategori_id'].toString();
       final user_id = data['user_id'].toString();
       final video = data['video'].toString();
-      // final kategori_name = data['kategori_id
 
       return FutureBuilder<String?>(
         future: getKategoriById(kategori_id),
         builder: (context, snapshot) {
-          final kategoriName = snapshot.data ?? '';
+          final kategoriName = snapshot.data ?? 'Loading...';
 
           return SuaraPuanBox(
             id: id,
@@ -147,158 +66,212 @@ class SuaraPuanBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 330,
-          child: Divider(
-            color: Colors.grey,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        Container(
-          decoration: BoxDecoration(
-              // color: Colors.white,
-              // border: Border.symmetric()
-              // borderRadius: BorderRadius.all(Radius.circular(10))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image Section
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => IsiSuaraPuan(
+                        id: id,
+                        title: title,
+                        content: content,
+                        media: media,
+                        dop: dop,
+                        kategori_id: kategori_id,
+                        user_id: user_id,
+                        video: video,
+                      )));
+            },
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
-          // height: 200,
-          width: 330,
-          child: Center(
-            // padding: const EdgeInsets.only(left: 20.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        kategori_name,
-                        style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 20),
-                      ),
-                      SizedBox(
-                        height: 20,
-                        width: 100,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => IsiSuaraPuan(
-                                      id: id,
-                                      title: title,
-                                      content: content,
-                                      media: media,
-                                      dop: dop,
-                                      kategori_id: kategori_id,
-                                      user_id: user_id,
-                                      video: video,
-                                    )));
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                                const Color.fromRGBO(251, 111, 146, 1)),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                            )),
-                          ),
-                          child: const Text(
-                            'See More',
-                            style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
-                          ),
+              child: Container(
+                width: double.infinity,
+                height: 180,
+                child: Image.network(
+                  media,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.accent.withOpacity(0.1),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_rounded,
+                          color: AppColors.textSecondary,
+                          size: 48,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    // Action to perform when the Container is tapped
-                    print('Container tapped');
+                    );
                   },
-                  child: Container(
-                    width: 325,
-                    height: 148,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => IsiSuaraPuan(
-                                  id: id,
-                                  title: title,
-                                  content: content,
-                                  media: media,
-                                  dop: dop,
-                                  kategori_id: kategori_id,
-                                  user_id: user_id,
-                                  video: video,
-                                )));
-                      },
-                      child: Image.network(
-                        media,
-                        fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+
+          // Content Section
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Category & Date
+                Row(
+                  children: [
+                    // Category Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primaryVariant,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.label_rounded,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            kategori_name,
+                            style: const TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                    const Spacer(),
+                    // Date
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          dop,
+                          style: const TextStyle(
+                            fontFamily: 'Satoshi',
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                SizedBox(height: 10),
-                IntrinsicHeight(
-                  child: Row(
-                    children: [
-                      Text(dop,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.bold,
-                              color: const Color.fromRGBO(251, 111, 146, 1),
-                              fontSize: 12)),
-                      VerticalDivider(
-                        color: Colors.grey,
-                        thickness: 1,
-                      ),
-                      Text(kategori_name,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.bold,
-                              color: const Color.fromRGBO(251, 111, 146, 1),
-                              fontSize: 12)),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 7),
+                const SizedBox(height: 12),
+
+                // Title
                 Text(
                   title,
-                  style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 20),
+                  style: const TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    height: 1.3,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+
+                // Read More Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => IsiSuaraPuan(
+                                id: id,
+                                title: title,
+                                content: content,
+                                media: media,
+                                dop: dop,
+                                kategori_id: kategori_id,
+                                user_id: user_id,
+                                video: video,
+                              )));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          'Read More',
+                          style: TextStyle(
+                            fontFamily: 'Satoshi',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 Future<String?> getKategoriById(String kategoriId) async {
-  final url = 'http://192.168.8.52:8000/api/kategori-suara-puan/$kategoriId';
+  final url = '${ApiConfig.baseUrl}/kategori-suara-puan/$kategoriId';
   final uri = Uri.parse(url);
-  final response = await http
-      .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+  final response = await http.get(uri, headers: AuthService.getAuthHeaders());
 
   if (response.statusCode == 200) {
     final json = jsonDecode(response.body) as Map;
@@ -308,5 +281,5 @@ Future<String?> getKategoriById(String kategoriId) async {
     }
   }
 
-  return null;
+  return 'Category';
 }

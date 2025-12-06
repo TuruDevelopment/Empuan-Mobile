@@ -9,6 +9,8 @@ import 'package:video_player/video_player.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 
+import 'package:Empuan/config/api_config.dart';
+
 class Comment {
   String text;
   String date;
@@ -440,467 +442,11 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
               ),
 
               SizedBox(height: 24),
-
-              // Recommendation Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary,
-                            AppColors.secondary,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.recommend_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      'Recommendation',
-                      style: TextStyle(
-                        fontFamily: 'Brodies',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 16),
-
-              Container(
-                height: 230,
-                child: PageView(
-                  controller: controller,
-                  onPageChanged: (index) {
-                    setState(() {
-                      currentTab = index;
-                    });
-                  },
-                  children: [
-                    for (var item in dataBannerSuara)
-                      getDataBannerSuaraPuan(item)
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Divider
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(
-                  color: AppColors.accent.withOpacity(0.2),
-                  thickness: 1,
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Reaction Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.secondary,
-                                AppColors.primary,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.secondary.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.emoji_emotions_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          'What do you think?',
-                          style: TextStyle(
-                            fontFamily: 'Brodies',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildReactionButton('images/Happy.png'),
-                        _buildReactionButton('images/Shock.png'),
-                        _buildReactionButton('images/Sad.png'),
-                        _buildReactionButton('images/Angry.png'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Divider
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(
-                  color: AppColors.accent.withOpacity(0.2),
-                  thickness: 1,
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Comments Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary,
-                            AppColors.error,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.comment_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      'Comments',
-                      style: TextStyle(
-                        fontFamily: 'Brodies',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 16),
-
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.accent.withOpacity(0.3),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withOpacity(0.1),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.4,
-                      ),
-                      child: comments.isEmpty
-                          ? Padding(
-                              padding: EdgeInsets.all(40),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    size: 48,
-                                    color: AppColors.accent.withOpacity(0.5),
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'No comments yet',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 14,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Be the first to comment!',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary
-                                          .withOpacity(0.7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              physics: AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.all(16),
-                              itemCount: comments.length,
-                              separatorBuilder: (context, index) => Divider(
-                                color: AppColors.accent.withOpacity(0.2),
-                                height: 24,
-                              ),
-                              itemBuilder: (context, index) {
-                                Comment comment = comments[index];
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppColors.primary,
-                                            AppColors.secondary,
-                                          ],
-                                        ),
-                                      ),
-                                      child: Container(
-                                        padding: EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surface,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: 20,
-                                          backgroundImage: AssetImage(
-                                              comment.userProfilePic),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            comment.userName,
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                              color: AppColors.textPrimary,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            comment.text,
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontSize: 14,
-                                              color: AppColors.textPrimary,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                          SizedBox(height: 6),
-                                          Text(
-                                            comment.date
-                                                .toString()
-                                                .split('.')[0],
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontSize: 11,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                    ),
-                    Divider(
-                      color: AppColors.accent.withOpacity(0.2),
-                      height: 1,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.background,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: AppColors.accent.withOpacity(0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _commentController,
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Add a comment...',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontSize: 14,
-                                    color: AppColors.textSecondary
-                                        .withOpacity(0.5),
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primaryVariant,
-                                ],
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.send_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                submitComment();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 32),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildReactionButton(String imagePath) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.accent.withOpacity(0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withOpacity(0.1),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Image.asset(
-            imagePath,
-            width: 40,
-            height: 40,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.52:8000/api/admin/users/$userId';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map;
-      final result = json['data'];
-      if (result != null && result.containsKey('name')) {
-        return result['name'].toString();
-      }
-    }
-
-    return null;
   }
 
   Future<void> getData() async {
@@ -909,7 +455,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/suara-puan/${widget.id}/comments';
+    final url = '${ApiConfig.baseUrl}/suara-puan/${widget.id}/comments';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -929,23 +475,22 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     print(response.statusCode);
     print('data pas api tarik' + response.body);
 
+    // Build comments list with user data from API response
     for (var data in dataComment) {
       var comment = data['comment'].toString();
-      var dop = data['dop'].toString();
+      var dop = data['dop']?.toString() ?? data['created_at']?.toString() ?? '';
+      var username = data['user']?['name']?.toString() ?? 'Anonymous';
 
-      String? username = await getUsernameById(data['user_id'].toString());
-      if (username != null) {
-        Comment newComment = Comment(
-          comment,
-          dop,
-          username,
-          'images/profileDefault.jpg',
-        );
+      Comment newComment = Comment(
+        comment,
+        dop,
+        username,
+        'images/profileDefault.jpg',
+      );
 
-        setState(() {
-          comments.add(newComment);
-        });
-      }
+      setState(() {
+        comments.add(newComment);
+      });
     }
   }
 
@@ -955,7 +500,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/me';
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -1001,7 +546,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     final id = widget.id;
     print(id);
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/suara-puan/${widget.id}/comments';
+    final url = '${ApiConfig.baseUrl}/suara-puan/${widget.id}/comments';
     print('url: ' + url);
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {

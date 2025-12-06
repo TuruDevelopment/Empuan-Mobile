@@ -2,10 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/components/commentBox.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:Empuan/config/api_config.dart';
 
 class Comment extends StatefulWidget {
   const Comment({Key? key, required this.idRuangPuan}) : super(key: key);
@@ -274,32 +277,6 @@ class _CommentState extends State<Comment> {
     );
   }
 
-  Future<String?> getUsernameById(String userId) async {
-    final url = 'http://192.168.8.52:8000/api/admin/users/$userId';
-    final uri = Uri.parse(url);
-
-    try {
-      final response = await http
-          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-      print(
-          '[CommentRuangPuan] getUsernameById status: ${response.statusCode}');
-      print('[CommentRuangPuan] getUsernameById response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body) as Map;
-        final result = json['data'];
-        if (result != null && result.containsKey('name')) {
-          return result['name'].toString();
-        }
-      }
-    } catch (e) {
-      print('[CommentRuangPuan] Error fetching username: $e');
-    }
-
-    return null;
-  }
-
   Future<void> getData() async {
     setState(() {
       isLoading = true;
@@ -307,7 +284,7 @@ class _CommentState extends State<Comment> {
     // get data from form
     // submit data to the server
     final url =
-        'http://192.168.8.52:8000/api/ruang-puan/${widget.idRuangPuan}/comments';
+        '${ApiConfig.baseUrl}/ruang-puan/${widget.idRuangPuan}/comments';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -334,7 +311,7 @@ class _CommentState extends State<Comment> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/me';
+    final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
@@ -380,7 +357,7 @@ class _CommentState extends State<Comment> {
     };
 
     final url =
-        'http://192.168.8.52:8000/api/ruang-puan/${widget.idRuangPuan}/comments';
+        '${ApiConfig.baseUrl}/ruang-puan/${widget.idRuangPuan}/comments';
     print('url: ' + url);
     final uri = Uri.parse(url);
 
@@ -398,15 +375,9 @@ class _CommentState extends State<Comment> {
     });
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      setState(() {
-        dataComment.add({
-          'comment': comment,
-          'dop': dop,
-          'user_id': userData['id'],
-          'profilePict': 'images/profileDefault.jpg'
-        });
-        _commentController.clear();
-      });
+      // Reload comments to get the new comment with user data from API
+      await getData();
+      _commentController.clear();
 
       // Show success message
       if (mounted) {

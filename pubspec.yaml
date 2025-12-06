@@ -80,10 +80,12 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.1
 
-flutter_icons:
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "images/LOGO.png"
+  image_path: "images/empuanlogo.jpg"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "images/empuanlogo.jpg"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

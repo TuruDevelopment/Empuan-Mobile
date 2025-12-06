@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/components/callView.dart';
 import 'package:Empuan/components/editContact.dart';
 import 'package:Empuan/services/auth_service.dart';
@@ -354,7 +355,7 @@ class ContactBox extends StatelessWidget {
   }
 
   Future<void> deleteContact(String id, VoidCallback onUpdate) async {
-    final url = "http://192.168.8.52:8000/api/kontak-palsu/$id";
+    final url = "${ApiConfig.baseUrl}/kontak-palsu/$id";
     final uri = Uri.parse(url);
     final response = await http
         .delete(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});

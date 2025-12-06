@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/isiSuaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
@@ -190,7 +191,7 @@ class _SuaraPuanState extends State<SuaraPuan> {
     });
     // get data from form
     // submit data to the server
-    final url = 'http://192.168.8.52:8000/api/suara-puan';
+    final url = '${ApiConfig.baseUrl}/suara-puan';
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
