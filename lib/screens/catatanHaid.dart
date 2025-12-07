@@ -122,10 +122,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
             // --- A. STATS KARTU ---
             displayLastCycle = data['last_cycle_length']?.toString() ?? "0";
 
-            var avgRaw = data['avg_cycle_length'];
-            displayAvgCycle = (avgRaw != null)
-                ? double.tryParse(avgRaw.toString())?.toString() ?? "0"
-                : "0";
+            displayAvgCycle = data['avg_cycle_length']?.toString() ?? "0";
 
             displayNextIn =
                 data['next_period']?['days_until']?.toString() ?? "0";
@@ -172,7 +169,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                   int maxVal = chartData.reduce(math.max);
                   int diff = maxVal - minVal;
 
-                  if (diff <= 9 && localAvg >= 2 && localAvg <= 38) {
+                  if (localAvg >= 2 && localAvg <= 38) {
                     statusText = "Regular";
                     statusColor = AppColors.secondary;
                   } else {
@@ -818,7 +815,7 @@ class BarChartExample extends StatelessWidget {
       child: Container(
         // Sedikit menambah tinggi container agar teks 'days' tidak terpotong
         height: 260,
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(0.0),
         child: BarChart(data: data, labels: labels),
       ),
     );
@@ -850,7 +847,7 @@ class BarChart extends StatelessWidget {
             itemCount: data.length,
             scrollDirection: Axis.horizontal,
             // Menambahkan padding di awal dan akhir list agar grafik tidak mepet pinggir
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 0),
             itemBuilder: (BuildContext context, int index) {
               return Bar(
                 label: labels[index],
