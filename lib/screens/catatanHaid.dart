@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:Empuan/config/api_config.dart';
@@ -21,186 +22,198 @@ class CatatanHaid extends StatefulWidget {
 
 class _CatatanHaidState extends State<CatatanHaid> {
   bool isLoading = true;
+  String errorMessage = "";
 
-  void initState() {
-    super.initState();
-    getCurrentUser().then((userid) {
-      if (userid != null) {
-        getData(userid);
-      }
-    });
-  }
+  // --- DATA VARIABEL ---
+  String displayLastCycle = "-";
+  String displayAvgCycle = "-";
+  String displayNextIn = "-";
 
+  // --- CHART VARIABEL ---
+  List<int> chartData = [];
+  List<String> chartLabels = [];
+  String analysisText = "Normal: 21-35 days";
+  String statusText = "-";
+  Color statusColor = AppColors.textSecondary;
+
+  // --- KALENDER VARIABEL ---
   late DateTime _focusedDay = DateTime.now();
-  // late DateTime _rangeStartDay =
-  //     DateTime.utc(2024, 2, 26); // start period dari database
   late DateTime _rangeStartDay = widget.startdate;
   late DateTime _rangeStartDayplus30 =
-      _rangeStartDay.add(const Duration(days: 30));
+      widget.startdate.add(const Duration(days: 30));
   late DateTime _rangeStartDayminus30 =
-      _rangeStartDay.subtract(const Duration(days: 30));
-
-  // late DateTime _rangeEndDay =
-  //     DateTime.utc(2024, 3, 3); // end period dari database
+      widget.startdate.subtract(const Duration(days: 30));
   late DateTime _rangeEndDay = widget.enddate;
-  late DateTime _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
+  late DateTime _rangeEndDayplus30 =
+      widget.enddate.add(const Duration(days: 30));
   late DateTime _rangeEndDayminus30 =
-      _rangeEndDay.subtract(const Duration(days: 30));
+      widget.enddate.subtract(const Duration(days: 30));
   late DateTime _previousFocusedMonth = DateTime.now();
 
-  late int startCycle = 28;
-  late int endCycle = 34;
-
-  // Stats data from backend
-  double? avgCycleLength;
-  int? lastCycleLength;
-  DateTime? predictedNextPeriod;
-  int? daysUntilNextPeriod;
-  List<dynamic> periodHistory = [];
-
-  Future<String?> getCurrentUser() async {
-    final url = '${ApiConfig.baseUrl}/me';
-    final uri = Uri.parse(url);
-
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
-        if (data.containsKey('id')) {
-          return data['id'].toString();
-        }
-      }
-    }
-    return null;
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  Future<void> getData(String userid) async {
-    print('[CATATAN_HAID] 🔄 Fetching period data...');
+  void _loadData() {
+    getDataList();
+    getStatsData();
+  }
+
+  // 1. API: Get List (Untuk Kalender)
+  Future<void> getDataList() async {
+    final url = '${ApiConfig.baseUrl}/catatan-haid';
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer ${AuthService.token}',
+        'Accept': 'application/json'
+      });
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final data = json['data'];
+        if (data != null &&
+            data['start_date'] != null &&
+            data['end_date'] != null) {
+          if (mounted) {
+            setState(() {
+              _rangeStartDay = DateTime.parse(data['start_date']);
+              _rangeEndDay = DateTime.parse(data['end_date']);
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print("List Data Error: $e");
+    }
+  }
+
+  // 2. API: Get Stats (Untuk Card & Chart)
+  Future<void> getStatsData() async {
+    // Cek token dulu
+    if (AuthService.token == null || AuthService.token!.isEmpty) {
+      setState(() {
+        isLoading = false;
+        errorMessage = "Anda belum login (Token Kosong). Silakan login ulang.";
+      });
+      return;
+    }
 
     setState(() {
       isLoading = true;
+      errorMessage = "";
     });
 
-    final url = '${ApiConfig.baseUrl}/catatan-haid';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=6';
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer ${AuthService.token}',
+        'Accept': 'application/json',
+      });
 
-        if (data['start_date'] != null && data['end_date'] != null) {
-          print(
-              '[CATATAN_HAID] ✅ Data received: ${data['start_date']} to ${data['end_date']}');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final data = json['data'];
 
+        if (data != null && mounted) {
           setState(() {
-            _rangeStartDay = DateTime.parse(data['start_date']);
-            _rangeEndDay = DateTime.parse(data['end_date']);
-          });
+            // --- A. STATS KARTU ---
+            displayLastCycle = data['last_cycle_length']?.toString() ?? "0";
 
-          print('[CATATAN_HAID] ✅ UI updated with new dates');
-        }
-      }
-    }
+            var avgRaw = data['avg_cycle_length'];
+            displayAvgCycle = (avgRaw != null)
+                ? double.tryParse(avgRaw.toString())?.toString() ?? "0"
+                : "0";
 
-    // Fetch stats data
-    await getStats();
+            displayNextIn =
+                data['next_period']?['days_until']?.toString() ?? "0";
 
-    // Fetch period history
-    await getHistory();
+            // --- B. CHART ---
+            var chartObj = data['chart'];
+            chartData = [];
+            chartLabels = [];
 
-    setState(() {
-      isLoading = false;
-    });
+            if (chartObj != null) {
+              List<dynamic> rawLengths = chartObj['period_lengths'] ?? [];
+              // List<dynamic> rawDates = chartObj['start_dates'] ?? []; // Tidak dipakai untuk label lagi
 
-    print(response.statusCode);
-    print('data pas api tarik' + response.body);
-  }
+              // Logika Ambil 5 Terakhir
+              int totalData = rawLengths.length;
+              int takeCount = totalData > 5 ? 5 : totalData;
+              int startIndex = totalData > 5 ? totalData - 5 : 0;
 
-  Future<void> getStats({int months = 5}) async {
-    final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+              for (int i = startIndex; i < totalData; i++) {
+                // Parse Data (Nilai batang grafik)
+                int val = int.tryParse(rawLengths[i].toString()) ?? 0;
+                chartData.add(val);
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
+                // --- PERUBAHAN DISINI: Label menggunakan period_length ---
+                // Sebelumnya: Parse Date
+                // Sekarang: Langsung pakai nilai 'val' sebagai label string
+                chartLabels.add(val.toString());
+              }
 
-        setState(() {
-          avgCycleLength = data['avg_cycle_length']?.toDouble();
-          lastCycleLength = data['last_cycle_length'];
+              // --- C. STATUS ---
+              if (chartData.isNotEmpty) {
+                double sum = 0;
+                for (var n in chartData) sum += n;
+                double localAvg = sum / chartData.length;
 
-          if (data['next_period'] != null) {
-            if (data['next_period']['predicted_start'] != null) {
-              predictedNextPeriod =
-                  DateTime.parse(data['next_period']['predicted_start']);
+                analysisText =
+                    "Avg (Shown): ${localAvg.round().toString()} days";
+
+                if (chartData.length < 2) {
+                  statusText = "New";
+                  statusColor = AppColors.primary;
+                } else {
+                  int minVal = chartData.reduce(math.min);
+                  int maxVal = chartData.reduce(math.max);
+                  int diff = maxVal - minVal;
+
+                  if (diff <= 9 && localAvg >= 2 && localAvg <= 38) {
+                    statusText = "Regular";
+                    statusColor = AppColors.secondary;
+                  } else {
+                    statusText = "Irregular";
+                    statusColor = AppColors.error;
+                  }
+                }
+              } else {
+                analysisText = "No data available";
+                statusText = "-";
+              }
             }
-            daysUntilNextPeriod = data['next_period']['days_until'];
-          }
-
-          // periodHistory is now loaded from dedicated /history endpoint
-          // No longer using data['periods'] from /stats
-        });
-      }
-    }
-
-    print('Stats response: ${response.statusCode}');
-    print('Stats data: ${response.body}');
-  }
-
-  Future<void> getHistory({int months = 5}) async {
-    print('[HISTORY] 📜 Fetching period history (last $months months)...');
-
-    final url = '${ApiConfig.baseUrl}/catatan-haid?history=1&months=$months';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final meta = jsonData['meta'];
+          });
+        }
+      } else if (response.statusCode == 401) {
         setState(() {
-          periodHistory = jsonData['data'];
+          errorMessage = "Sesi habis. Silakan Login ulang.";
         });
-
-        print('[HISTORY] ✅ History loaded: ${meta['total']} cycles found');
-        print('[HISTORY] Time window: ${meta['months_window']} months');
+      } else {
+        setState(() {
+          errorMessage = "Gagal memuat data (${response.statusCode})";
+        });
       }
-    } else {
-      print('[HISTORY] ❌ Failed to load history: ${response.statusCode}');
+    } catch (e) {
+      setState(() {
+        errorMessage = "Gagal terkoneksi ke server.";
+      });
+      print("Error: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
-
-    print('[HISTORY] Response body: ${response.body}');
   }
 
   @override
   Widget build(BuildContext context) {
+    // Recalculate Calendar
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
     _rangeStartDayminus30 = _rangeStartDay.subtract(const Duration(days: 30));
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
     _rangeEndDayminus30 = _rangeEndDay.subtract(const Duration(days: 30));
 
-    // Use backend prediction or fallback to manual calculation
-    int countdown = daysUntilNextPeriod ??
-        _rangeStartDayplus30.difference(DateTime.now()).inDays;
-    int displayCycleLength =
-        lastCycleLength ?? (_rangeEndDay.difference(_rangeStartDay).inDays);
-    double displayAvgCycle = avgCycleLength ?? 30.0;
-
-    print("start date $_rangeStartDay");
-    print("end date $_rangeEndDay");
-    print("start date plus$_rangeStartDayplus30");
-    print("end date plus $_rangeEndDayplus30");
-    print("start date minus$_rangeStartDayminus30");
-    print("end date minus $_rangeEndDayminus30");
-    print("countdown to next period: $countdown days");
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -211,7 +224,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
             colors: [
               AppColors.background,
               AppColors.surface,
-              AppColors.accent.withOpacity(0.1),
+              AppColors.accent.withOpacity(0.1)
             ],
           ),
         ),
@@ -219,7 +232,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
           bottom: false,
           child: Column(
             children: [
-              // Modern Header
+              // --- HEADER ---
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -228,48 +241,34 @@ class _CatatanHaidState extends State<CatatanHaid> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary,
-                            AppColors.secondary,
-                          ],
-                        ),
+                            colors: [AppColors.primary, AppColors.secondary]),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4))
                         ],
                       ),
-                      child: const Icon(
-                        Icons.calendar_month_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+                      child: const Icon(Icons.calendar_month_rounded,
+                          color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Period Tracker',
-                            style: TextStyle(
-                              fontFamily: 'Brodies',
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          Text(
-                            'Track your cycle',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
+                          Text('Period Tracker',
+                              style: TextStyle(
+                                  fontFamily: 'Brodies',
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary)),
+                          Text('Track your cycle',
+                              style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary)),
                         ],
                       ),
                     ),
@@ -277,38 +276,54 @@ class _CatatanHaidState extends State<CatatanHaid> {
                 ),
               ),
 
+              // --- ERROR MESSAGE (Jika Ada) ---
+              if (errorMessage.isNotEmpty)
+                Container(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 10),
+                      Expanded(
+                          child: Text(errorMessage,
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 12))),
+                    ],
+                  ),
+                ),
+
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Column(
                     children: [
-                      // Calendar Card
+                      // --- CALENDAR CARD (UI Sama) ---
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1.5,
-                          ),
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
+                                color: AppColors.primary.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8))
                           ],
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: TableCalendar(
-                            // rangeStartDay: _rangeStartDay,
-                            // rangeEndDay: _rangeEndDay,
-                            // rangeSelectionMode: RangeSelectionMode.toggledOn,
                             firstDay: DateTime.utc(2010, 10, 16),
                             lastDay: DateTime.utc(2030, 3, 14),
-                            // firstDay: _rangeStartDay,
-                            // lastDay: _rangeEndDay,
                             focusedDay: _focusedDay,
                             onPageChanged: (focusedDay) {
                               setState(() {
@@ -321,90 +336,32 @@ class _CatatanHaidState extends State<CatatanHaid> {
                             },
                             calendarStyle: CalendarStyle(
                               defaultTextStyle: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                              weekendTextStyle: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                              // selectedDecoration: BoxDecoration(
-                              //   color: Colors.blueAccent,
-                              //   shape: BoxShape.circle,
-                              // ),
-                              // rangeHighlightColor: AppColors
-                              //     .pink1, // Ubah warna range seleksi menjadi pink
-                              // rangeStartDecoration: BoxDecoration(
-                              //   color: AppColors.pink1,
-                              //   shape: BoxShape.circle,
-                              // ),
-                              // rangeEndDecoration: BoxDecoration(
-                              //   color: AppColors.pink1,
-                              //   shape: BoxShape.circle,
-                              // ),
-                              // withinRangeTextStyle: TextStyle(
-                              //     fontFamily: 'Plus Jakarta Sans',
-                              //     fontWeight: FontWeight.bold,
-                              //     color: Colors.white),
-                              // rangeStartTextStyle: TextStyle(
-                              //     fontFamily: 'Plus Jakarta Sans',
-                              //     fontWeight: FontWeight.bold,
-                              //     color: Colors.white),
-                              // rangeEndTextStyle: TextStyle(
-                              //     fontFamily: 'Plus Jakarta Sans',
-                              //     fontWeight: FontWeight.bold,
-                              //     color: Colors.white),
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary),
                               todayDecoration: BoxDecoration(
-                                color: AppColors.secondary,
-                                shape: BoxShape.circle,
-                              ),
+                                  color: AppColors.secondary,
+                                  shape: BoxShape.circle),
                               todayTextStyle: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
                             ),
                             startingDayOfWeek: StartingDayOfWeek.monday,
                             headerStyle: const HeaderStyle(
                               titleTextStyle: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primary,
-                              ),
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppColors.primary),
                               formatButtonVisible: false,
                               titleCentered: true,
-                              leftChevronIcon: Icon(
-                                Icons.chevron_left,
-                                color: AppColors.primary,
-                              ),
-                              rightChevronIcon: Icon(
-                                Icons.chevron_right,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            // rowHeight: 20,
-                            daysOfWeekStyle: const DaysOfWeekStyle(
-                              weekdayStyle: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              weekendStyle: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: AppColors.primary,
-                              ),
-                              // decoration: BoxDecoration(
-                              //     border: BorderDirectional(
-                              //         bottom: BorderSide(color: Colors.black)))
+                              leftChevronIcon: Icon(Icons.chevron_left,
+                                  color: AppColors.primary),
+                              rightChevronIcon: Icon(Icons.chevron_right,
+                                  color: AppColors.primary),
                             ),
                             calendarBuilders: CalendarBuilders(
-                              // Mengubah warna hari dalam jangkauan _rangeStartDay menjadi pink
                               defaultBuilder: (context, date, _) {
                                 if (date.isAfter(_rangeStartDay
                                             .subtract(Duration(days: 1))) &&
@@ -417,35 +374,21 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                         date.isBefore(_rangeEndDayminus30
                                             .add(Duration(days: 1))) ||
                                     date.isAtSameMomentAs(_rangeStartDay)) {
-                                  // Ini adalah hari dalam jangkauan _rangeStartDay
                                   return Container(
                                     margin: const EdgeInsets.all(3),
-                                    width: 100,
-                                    height: 100,
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.primary.withOpacity(0.2),
-                                      border: Border.all(
+                                        shape: BoxShape.circle,
                                         color:
-                                            AppColors.primary.withOpacity(0.4),
-                                        width: 1.5,
-                                      ),
-                                    ),
+                                            AppColors.primary.withOpacity(0.2)),
                                     child: Center(
-                                      child: Text(
-                                        '${date.day}',
-                                        style: const TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                    ),
+                                        child: Text('${date.day}',
+                                            style: const TextStyle(
+                                                fontFamily: 'Plus Jakarta Sans',
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primary))),
                                   );
-                                } else {
-                                  // Ini adalah hari di luar jangkauan _rangeStartDay
-                                  return null; // Kembalikan null untuk menggunakan styling default
                                 }
+                                return null;
                               },
                             ),
                           ),
@@ -454,176 +397,121 @@ class _CatatanHaidState extends State<CatatanHaid> {
 
                       const SizedBox(height: 20),
 
-                      // Legend and Mark Button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary.withOpacity(0.2),
-                                  border: Border.all(
-                                    width: 1.5,
-                                    color: AppColors.primary.withOpacity(0.4),
-                                  ),
-                                ),
-                                width: 12,
-                                height: 12,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Period days',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primaryVariant,
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
+                      // Tombol Mark Period
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(colors: [
+                              AppColors.primary,
+                              AppColors.primaryVariant
+                            ]),
+                            boxShadow: [
+                              BoxShadow(
                                   color: AppColors.primary.withOpacity(0.3),
                                   blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
+                                  offset: const Offset(0, 3))
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 16),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              onPressed: () {
-                                _showMarkDialog();
-                              },
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.edit_calendar_rounded,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Mark Period',
+                                    borderRadius: BorderRadius.circular(12))),
+                            onPressed: () {
+                              _showMarkDialog();
+                            },
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_calendar_rounded,
+                                    size: 18, color: Colors.white),
+                                SizedBox(width: 6),
+                                Text('Mark Period',
                                     style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
 
                       const SizedBox(height: 24),
-                      // Section Header
+
+                      // --- TITLE STATS ---
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.analytics_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                          ),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.analytics_rounded,
+                                  color: AppColors.primary, size: 20)),
                           const SizedBox(width: 12),
-                          const Text(
-                            'Your Statistics',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                          const Text('Your Statistics',
+                              style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary)),
                         ],
                       ),
 
                       const SizedBox(height: 16),
-                      // Stats Cards - 3 Cards
+
+                      // --- STATS CARDS ---
                       Row(
                         children: [
-                          // Last Cycle Card
                           Expanded(
-                            child: _buildStatCard(
-                              icon: Icons.event_note_rounded,
-                              label: 'Last Cycle',
-                              value: '${displayCycleLength ?? 0}',
-                              unit: 'days',
-                              color: AppColors.primary,
-                            ),
-                          ),
+                              child: _buildStatCard(
+                                  icon: Icons.event_note_rounded,
+                                  label: 'Last Cycle',
+                                  value: displayLastCycle,
+                                  unit: 'days',
+                                  color: AppColors.primary)),
                           const SizedBox(width: 12),
-                          // Average Cycle Card
                           Expanded(
-                            child: _buildStatCard(
-                              icon: Icons.timeline_rounded,
-                              label: 'Avg Cycle',
-                              value: displayAvgCycle.toStringAsFixed(1),
-                              unit: 'days',
-                              color: AppColors.secondary,
-                            ),
-                          ),
+                              child: _buildStatCard(
+                                  icon: Icons.timeline_rounded,
+                                  label: 'Avg Cycle',
+                                  value: displayAvgCycle,
+                                  unit: 'days',
+                                  color: AppColors.secondary)),
                           const SizedBox(width: 12),
-                          // Next Period Card
                           Expanded(
-                            child: _buildStatCard(
-                              icon: Icons.event_available_rounded,
-                              label: 'Next In',
-                              value: '$countdown',
-                              unit: 'days',
-                              color: AppColors.accent,
-                            ),
-                          ),
+                              child: _buildStatCard(
+                                  icon: Icons.event_available_rounded,
+                                  label: 'Next In',
+                                  value: displayNextIn,
+                                  unit: 'days',
+                                  color: AppColors.accent)),
                         ],
                       ),
 
                       const SizedBox(height: 24),
 
-                      // Cycle History Chart
+                      // --- CYCLE HISTORY CHART SECTION ---
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1.5,
-                          ),
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.accent.withOpacity(0.1),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
+                                color: AppColors.accent.withOpacity(0.1),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4))
                           ],
                         ),
                         child: Padding(
@@ -633,85 +521,85 @@ class _CatatanHaidState extends State<CatatanHaid> {
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.secondary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.bar_chart_rounded,
-                                      color: AppColors.secondary,
-                                      size: 18,
-                                    ),
-                                  ),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                          color: AppColors.secondary
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
+                                      child: const Icon(Icons.bar_chart_rounded,
+                                          color: AppColors.secondary,
+                                          size: 18)),
                                   const SizedBox(width: 10),
-                                  const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Cycle History',
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Last 5 Months',
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('Cycle History',
+                                            style: TextStyle(
+                                                fontFamily: 'Plus Jakarta Sans',
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primary)),
+                                        Text(
+                                            chartData.isEmpty
+                                                ? 'No Data'
+                                                : 'Last ${chartData.length} Cycles',
+                                            style: const TextStyle(
+                                                fontFamily: 'Plus Jakarta Sans',
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color:
+                                                    AppColors.textSecondary)),
+                                      ]),
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              BarChartExample(),
+
+                              // --- CHART RENDER ---
+                              (isLoading)
+                                  ? const SizedBox(
+                                      height: 150,
+                                      child: Center(
+                                          child: CircularProgressIndicator()))
+                                  : (chartData.isEmpty)
+                                      ? const SizedBox(
+                                          height: 150,
+                                          child: Center(
+                                              child: Text(
+                                                  "No history data found.")))
+                                      : BarChartExample(
+                                          data: chartData, labels: chartLabels),
+
                               Container(
-                                width: 280,
-                                height: 1,
-                                color: AppColors.accent.withOpacity(0.3),
-                              ),
+                                  width: 280,
+                                  height: 1,
+                                  color: AppColors.accent.withOpacity(0.3)),
                               const SizedBox(height: 12),
+
+                              // --- INFO & STATUS ---
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  Text(
-                                    'Normal: $startCycle-$endCycle days',
-                                    style: const TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
+                                  Text(analysisText,
+                                      style: const TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textSecondary)),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
+                                        horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color:
-                                          AppColors.secondary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'Regular',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.secondary,
-                                      ),
-                                    ),
+                                        color: statusColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8)),
+                                    child: Text(statusText,
+                                        style: TextStyle(
+                                            fontFamily: 'Plus Jakarta Sans',
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: statusColor)),
                                   ),
                                 ],
                               ),
@@ -719,106 +607,6 @@ class _CatatanHaidState extends State<CatatanHaid> {
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // Period History List
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.history_rounded,
-                              color: AppColors.accent,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Period History',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const Spacer(),
-                          if (periodHistory.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${periodHistory.length} cycles',
-                                style: const TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // History List
-                      if (periodHistory.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.accent.withOpacity(0.2),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.event_busy_rounded,
-                                size: 48,
-                                color: AppColors.textSecondary.withOpacity(0.5),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'No history yet',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Mark your first period to start tracking',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        ...periodHistory.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final period = entry.value;
-                          return _buildHistoryItem(period, index);
-                        }).toList(),
 
                       const SizedBox(height: 100),
                     ],
@@ -832,275 +620,68 @@ class _CatatanHaidState extends State<CatatanHaid> {
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required String unit,
-    required Color color,
-  }) {
+  Widget _buildStatCard(
+      {required IconData icon,
+      required String label,
+      required String value,
+      required String unit,
+      required Color color}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+              color: color.withOpacity(0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            unit,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryItem(Map<String, dynamic> period, int index) {
-    final startDate = DateTime.parse(period['start_date']);
-    final endDate =
-        period['end_date'] != null ? DateTime.parse(period['end_date']) : null;
-
-    final duration =
-        endDate != null ? endDate.difference(startDate).inDays + 1 : null;
-
-    final isOngoing = endDate == null;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isOngoing
-              ? AppColors.secondary.withOpacity(0.5)
-              : AppColors.accent.withOpacity(0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isOngoing ? AppColors.secondary : AppColors.accent)
-                .withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            // Icon and number
-            Container(
-              width: 48,
-              height: 48,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isOngoing
-                      ? [
-                          AppColors.secondary.withOpacity(0.2),
-                          AppColors.accent.withOpacity(0.2),
-                        ]
-                      : [
-                          AppColors.primary.withOpacity(0.1),
-                          AppColors.accent.withOpacity(0.1),
-                        ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  '#${index + 1}',
-                  style: TextStyle(
+                  color: color.withOpacity(0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 20)),
+          const SizedBox(height: 8),
+          Text(label,
+              style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value,
+                style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: isOngoing ? AppColors.secondary : AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Date info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        DateFormat('MMM dd, yyyy').format(startDate),
-                        style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      if (isOngoing) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'ONGOING',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.event_available_rounded,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        endDate != null
-                            ? DateFormat('MMM dd, yyyy').format(endDate)
-                            : 'Still tracking',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Duration badge
-            if (duration != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '$duration',
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const Text(
-                      'days',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.pending_rounded,
-                  color: AppColors.secondary,
-                  size: 24,
-                ),
-              ),
-          ],
-        ),
+                    color: color)),
+          ),
+          Text(unit,
+              style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+        ],
       ),
     );
   }
 
   void _handlePageChange() {
+    // Logic calendar navigation - same as before
     if (_focusedDay.isAfter(_previousFocusedMonth)) {
       _rangeStartDay = _rangeStartDay.add(const Duration(days: 30));
       _rangeStartDayplus30 = _rangeStartDayplus30.add(const Duration(days: 30));
       _rangeStartDayminus30 =
           _rangeStartDayminus30.add(const Duration(days: 30));
-
       _rangeEndDay = _rangeEndDay.add(const Duration(days: 30));
       _rangeEndDayplus30 = _rangeEndDayplus30.add(const Duration(days: 30));
       _rangeEndDayminus30 = _rangeEndDayminus30.add(const Duration(days: 30));
@@ -1110,7 +691,6 @@ class _CatatanHaidState extends State<CatatanHaid> {
           _rangeStartDayplus30.subtract(const Duration(days: 30));
       _rangeStartDayminus30 =
           _rangeStartDayminus30.subtract(const Duration(days: 30));
-
       _rangeEndDay = _rangeEndDay.subtract(const Duration(days: 30));
       _rangeEndDayplus30 =
           _rangeEndDayplus30.subtract(const Duration(days: 30));
@@ -1133,120 +713,91 @@ class _CatatanHaidState extends State<CatatanHaid> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'When did your last period start?',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                const Text('When did your last period start?',
+                    style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.calendar_month),
-                        border: InputBorder.none,
-                      ),
-                      controller: dateInputController,
-                      readOnly: true,
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        );
-
-                        if (pickedDate != null) {
-                          dateInputController.text =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                        }
-                      },
-                    ),
-                  ),
-                ),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5.0),
+                        child: TextFormField(
+                            decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.calendar_month),
+                                border: InputBorder.none),
+                            controller: dateInputController,
+                            readOnly: true,
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(1950),
+                                  lastDate: DateTime(2050));
+                              if (pickedDate != null) {
+                                dateInputController.text =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
+                              }
+                            }))),
                 const SizedBox(height: 16),
-                const Text(
-                  'When did your last period end?',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                const Text('When did your last period end?',
+                    style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.calendar_month),
-                        border: InputBorder.none,
-                      ),
-                      controller: dateInputControllerend,
-                      readOnly: true,
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        );
-
-                        if (pickedDate != null) {
-                          dateInputControllerend.text =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                        }
-                      },
-                    ),
-                  ),
-                ),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 5.0),
+                        child: TextFormField(
+                            decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.calendar_month),
+                                border: InputBorder.none),
+                            controller: dateInputControllerend,
+                            readOnly: true,
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(1950),
+                                  lastDate: DateTime(2050));
+                              if (pickedDate != null) {
+                                dateInputControllerend.text =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
+                              }
+                            }))),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppColors.pink1),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+                child: const Text('Cancel',
+                    style: TextStyle(color: AppColors.pink1)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
             TextButton(
-              child:
-                  const Text('Done', style: TextStyle(color: AppColors.pink1)),
-              onPressed: () async {
-                if (dateInputController.text.isNotEmpty &&
-                    dateInputControllerend.text.isNotEmpty) {
-                  // Use POST createData instead of PUT editData
-                  // Backend will handle smart create/update logic
-                  await createData(
-                      dateInputController.text, dateInputControllerend.text);
-
-                  // Refresh data after creating/updating
-                  final userid = await getCurrentUser();
-                  if (userid != null) {
-                    await getData(userid);
+                child: const Text('Done',
+                    style: TextStyle(color: AppColors.pink1)),
+                onPressed: () async {
+                  if (dateInputController.text.isNotEmpty &&
+                      dateInputControllerend.text.isNotEmpty) {
+                    await createData(
+                        dateInputController.text, dateInputControllerend.text);
+                    // Refresh data setelah create (Tanpa User ID)
+                    getDataList();
+                    getStatsData();
                   }
-                }
-                Navigator.of(context).pop();
-              },
-            ),
+                  Navigator.of(context).pop();
+                }),
           ],
         );
       },
@@ -1254,116 +805,23 @@ class _CatatanHaidState extends State<CatatanHaid> {
   }
 }
 
-// class LineChart extends StatelessWidget {
-//   final List<double> data;
-//   final double width;
-//   final double height;
-//   final double strokeWidth;
-//   final Color color;
-//   final List<String> labels;
-
-//   LineChart({
-//     required this.data,
-//     this.width = double.infinity,
-//     this.height = double.infinity,
-//     this.strokeWidth = 2.0,
-//     this.color = Colors.blue,
-//     required this.labels,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         Container(
-//           height: 100,
-//           child: ListView.builder(
-//             scrollDirection: Axis.horizontal,
-//             itemCount: labels.length,
-//             itemBuilder: (context, index) {
-//               return Text(
-//                 labels[index],
-//                 style: TextStyle(fontSize: 16),
-//               );
-//             },
-//           ),
-//         ),
-//         CustomPaint(
-//           size: Size(width, height),
-//           painter: LineChartPainter(data, strokeWidth, color),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// class LineChartPainter extends CustomPainter {
-//   final List<double> data;
-//   final double strokeWidth;
-//   final Color color;
-
-//   LineChartPainter(this.data, this.strokeWidth, this.color);
-
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final paint = Paint()
-//       ..color = color
-//       ..strokeWidth = strokeWidth
-//       ..style = PaintingStyle.stroke;
-
-//     final path = Path();
-
-//     if (data.isNotEmpty) {
-//       path.moveTo(0, size.height - (size.height * data[0]));
-
-//       for (int i = 1; i < data.length; i++) {
-//         path.lineTo(i * (size.width / (data.length - 1)),
-//             size.height - (size.height * data[i]));
-//       }
-
-//       canvas.drawPath(path, paint);
-//     }
-//   }
-
-//   @override
-//   bool shouldRepaint(covariant LineChartPainter oldDelegate) {
-//     return oldDelegate.data != data ||
-//         oldDelegate.strokeWidth != strokeWidth ||
-//         oldDelegate.color != color;
-//   }
-// }
-
+// --- BAR CHART WIDGETS ---
 class BarChartExample extends StatelessWidget {
-  final List<int> data = [25, 34, 30, 29, 35];
-  final List<String> labels = ['A', 'B', 'C', 'D', 'E'];
+  final List<int> data;
+  final List<String> labels;
+
+  BarChartExample({required this.data, required this.labels});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        height: 250,
-        // color: Colors.amber,
-        padding: EdgeInsets.all(16.0),
-        child: BarChart(
-          data: data,
-          labels: labels,
-        ),
+        // Sedikit menambah tinggi container agar teks 'days' tidak terpotong
+        height: 260,
+        padding: const EdgeInsets.all(8.0),
+        child: BarChart(data: data, labels: labels),
       ),
     );
-    // Scaffold(
-    //   appBar: AppBar(
-    //     title: Text('Bar Chart Example'),
-    //   ),
-    //   body: Center(
-    //     child: Container(
-    //       padding: EdgeInsets.all(16.0),
-    //       child: BarChart(
-    //         data: data,
-    //         labels: labels,
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 }
 
@@ -1375,23 +833,29 @@ class BarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Validasi data kosong
+    double maxValue = 1;
+    if (data.isNotEmpty) {
+      maxValue = data.reduce(math.max).toDouble();
+      if (maxValue == 0) maxValue = 1;
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        SizedBox(
-          height: 210.0,
+        Expanded(
+          // Menggunakan Expanded agar mengisi sisa ruang
           child: ListView.builder(
             itemCount: data.length,
             scrollDirection: Axis.horizontal,
+            // Menambahkan padding di awal dan akhir list agar grafik tidak mepet pinggir
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemBuilder: (BuildContext context, int index) {
               return Bar(
                 label: labels[index],
                 value: data[index],
-                maxValue: data
-                    .reduce(
-                        (value, element) => value > element ? value : element)
-                    .toDouble(),
+                maxValue: maxValue,
               );
             },
           ),
@@ -1410,95 +874,77 @@ class Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        const SizedBox(height: 10.0),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [
-                AppColors.primary,
-                AppColors.primary.withOpacity(0.7),
-              ],
+    return Container(
+      // [PERUBAHAN 1] Memberi jarak optimal (margin kiri-kanan)
+      margin: const EdgeInsets.symmetric(horizontal: 6.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          // Batang Grafik
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10.0),
+                topRight: Radius.circular(10.0),
+              ),
             ),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(10.0),
-              topRight: Radius.circular(10.0),
-            ),
+            // Sedikit mengecilkan lebar batang agar terlihat lebih elegan
+            width: 45.0,
+            // Menghitung tinggi proporsional (max tinggi batang 150)
+            height: (value / maxValue) * 150,
           ),
-          width: 50.0,
-          height: (value / maxValue) * 170,
-        ),
-        const SizedBox(width: 60),
-        Container(
-          height: 30,
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            value.toString(),
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+
+          const SizedBox(height: 12), // Jarak antara batang dan teks
+
+          // [PERUBAHAN 2] Menambah keterangan "days"
+          Column(
+            children: [
+              Text(
+                label, // Angka (misal: 5)
+                style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Text(
+                "days", // Keterangan unit
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 10, // Ukuran lebih kecil
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-Future<String?> getCurrentUser() async {
-  final url = '${ApiConfig.baseUrl}/me';
-  final uri = Uri.parse(url);
-
-  final response = await http
-      .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-  if (response.statusCode == 200) {
-    final jsonData = jsonDecode(response.body);
-    if (jsonData['data'] != null) {
-      final data = jsonData['data'];
-      if (data.containsKey('id')) {
-        return data['id'].toString();
-      }
-    }
-  }
-  return null;
-}
-
+// Fungsi helper API (createData, editData) tetap sama
 Future<void> createData(dateStart, dateEnd) async {
-  final body = {
-    'start_date': dateStart,
-    'end_date': dateEnd,
-  };
+  final body = {'start_date': dateStart, 'end_date': dateEnd};
   final url = "${ApiConfig.baseUrl}/catatan-haid";
-  final uri = Uri.parse(url);
-  final response = await http.post(uri, body: jsonEncode(body), headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${AuthService.token}'
-  });
-
-  print('Create response: ${response.statusCode}');
-  print('Create body: ${response.body}');
+  try {
+    await http.post(Uri.parse(url), body: jsonEncode(body), headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${AuthService.token}'
+    });
+  } catch (e) {
+    print("Error creating data: $e");
+  }
 }
 
-Future<void> editData(dateStartEdit, dateEndEdit) async {
-  final body = {
-    'start_date': dateStartEdit,
-    'end_date': dateEndEdit,
-    // No id sent - backend will auto-target latest record
-  };
-  final url = "${ApiConfig.baseUrl}/catatan-haid";
-  final uri = Uri.parse(url);
-  final response = await http.put(uri, body: jsonEncode(body), headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${AuthService.token}'
-  });
-
-  print('Edit response: ${response.statusCode}');
-  print('Edit body: ${response.body}');
+// --- FUNGSI GET DATA LIST (Global) ---
+Future<void> getDataList() async {
+  // Fungsi dummy global jika diperlukan
 }

@@ -14,7 +14,7 @@ Empuan is a comprehensive women's health and safety mobile application built wit
 
 - **Screens:** 20+ screens including HomePage, SuaraPuan, UntukPuan, More (forums), CatatanHaid (period tracking), PanggilPuan (fake contacts), ChatBot, Settings
 - **Services:** AuthService, ChatbotService
-- **Backend API:** http://192.168.1.5:8000/api
+- **Backend API:** http://192.168.1.7:8000/api
 - **Key Features:** Period tracking, forums with comments/likes, AI chatbot, emergency contacts, recommendations directory
 
 ---
@@ -25,7 +25,7 @@ Empuan is a comprehensive women's health and safety mobile application built wit
 
 #### 1. **API URL Configuration - Hardcoded Development URLs**
 
-**Issue:** API base URL `http://192.168.1.5:8000` is hardcoded throughout the codebase.
+**Issue:** API base URL `http://192.168.1.7:8000` is hardcoded throughout the codebase.
 
 **Impact:**
 
@@ -47,7 +47,7 @@ class Environment {
       case 'staging':
         return 'https://staging-api.empuan.com';
       default:
-        return 'http://192.168.1.5:8000';
+        return 'http://192.168.1.7:8000';
     }
   }
 }
@@ -623,7 +623,7 @@ class PostsProvider extends ChangeNotifier {
 
 ```dart
 // This pattern appears in almost every screen:
-final url = 'http://192.168.1.5:8000/api/...';
+final url = 'http://192.168.1.7:8000/api/...';
 final uri = Uri.parse(url);
 final response = await http.get(uri, headers: {
   'Authorization': 'Bearer ${AuthService.token}'
@@ -637,7 +637,7 @@ final result = json['data'] ?? [] as List;
 ```dart
 // lib/services/api_service.dart
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.5:8000/api';
+  static const String baseUrl = 'http://192.168.1.7:8000/api';
 
   static Future<T> get<T>(
     String endpoint, {
