@@ -362,8 +362,6 @@ class _EditProfileState extends State<EditProfile> {
                               icon: Icons.person_rounded,
                               controller: _usernameController,
                               hint: 'Enter username',
-                              infoText:
-                                  'Username changes may require verification',
                             ),
                             const SizedBox(height: 20),
 
@@ -374,8 +372,6 @@ class _EditProfileState extends State<EditProfile> {
                               controller: _emailController,
                               hint: 'Enter email address',
                               keyboardType: TextInputType.emailAddress,
-                              infoText:
-                                  'Email changes may require verification',
                             ),
 
                             const SizedBox(height: 32),

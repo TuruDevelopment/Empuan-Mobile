@@ -246,7 +246,7 @@ class _CallViewState extends State<CallView> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      _isPlaying ? 'Tap to Stop Siren' : 'Tap for Siren',
+                      _isPlaying ? 'Tap to Stop Ringtone' : 'Tap for Ringtone',
                       style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
