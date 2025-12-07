@@ -40,6 +40,7 @@ class _CommentSectionState extends State<CommentSection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Comment Section'),
       ),
@@ -119,8 +120,8 @@ class _CommentSectionState extends State<CommentSection> {
         ? _userNameController.text
         : 'Anonymous';
     DateTime now = DateTime.now();
-    Comment newComment = Comment(newCommentText, now, userName,
-        'assets/profile_pic_placeholder.png');
+    Comment newComment = Comment(
+        newCommentText, now, userName, 'assets/profile_pic_placeholder.png');
     setState(() {
       comments.add(newComment);
       _commentController.clear();

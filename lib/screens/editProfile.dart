@@ -23,8 +23,35 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  String _selectedGender = 'Perempuan';
   bool _isLoading = false;
   bool _isLoadingData = true;
+  String _backendDobFormat = ''; // Store backend format separately
+
+  String _formatDateForDisplay(String backendDate) {
+    if (backendDate.isEmpty) return '';
+    try {
+      final date = DateTime.parse(backendDate);
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
+      return '${date.day} ${months[date.month - 1]} ${date.year}';
+    } catch (e) {
+      return backendDate;
+    }
+  }
 
   @override
   void initState() {
@@ -37,6 +64,7 @@ class _EditProfileState extends State<EditProfile> {
     _nameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
+    _dobController.dispose();
     super.dispose();
   }
 
@@ -58,6 +86,9 @@ class _EditProfileState extends State<EditProfile> {
             _nameController.text = userData['name'] ?? '';
             _usernameController.text = userData['username'] ?? '';
             _emailController.text = userData['email'] ?? '';
+            _backendDobFormat = userData['dob'] ?? '';
+            _dobController.text = _formatDateForDisplay(_backendDobFormat);
+            _selectedGender = userData['gender'] ?? 'Perempuan';
             _isLoadingData = false;
           });
         }
@@ -99,6 +130,23 @@ class _EditProfileState extends State<EditProfile> {
       return;
     }
 
+    if (_backendDobFormat.isEmpty) {
+      _showSnackBar('Date of birth is required', isError: true);
+      return;
+    }
+
+    // Validate DOB is before today
+    try {
+      final dob = DateTime.parse(_backendDobFormat);
+      if (dob.isAfter(DateTime.now())) {
+        _showSnackBar('Date of birth must be in the past', isError: true);
+        return;
+      }
+    } catch (e) {
+      _showSnackBar('Invalid date format', isError: true);
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -115,6 +163,8 @@ class _EditProfileState extends State<EditProfile> {
         'name': _nameController.text.trim(),
         'username': _usernameController.text.trim(),
         'email': _emailController.text.trim(),
+        'dob': _backendDobFormat, // Use backend format for API
+        'gender': _selectedGender,
       };
 
       print('DEBUG: Request body: $requestBody');
@@ -205,6 +255,7 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -373,6 +424,14 @@ class _EditProfileState extends State<EditProfile> {
                               hint: 'Enter email address',
                               keyboardType: TextInputType.emailAddress,
                             ),
+                            const SizedBox(height: 20),
+
+                            // Gender Field
+                            _buildGenderField(),
+                            const SizedBox(height: 20),
+
+                            // Date of Birth Field
+                            _buildDateField(),
 
                             const SizedBox(height: 32),
                           ],
@@ -488,6 +547,267 @@ class _EditProfileState extends State<EditProfile> {
             ],
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildGenderField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.wc_rounded,
+              size: 18,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Gender',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.accent.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedGender = 'Perempuan';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: _selectedGender == 'Perempuan'
+                          ? LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryVariant,
+                              ],
+                            )
+                          : null,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.female_rounded,
+                          color: _selectedGender == 'Perempuan'
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Perempuan',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _selectedGender == 'Perempuan'
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedGender = 'Laki-laki';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: _selectedGender == 'Laki-laki'
+                          ? LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryVariant,
+                              ],
+                            )
+                          : null,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.male_rounded,
+                          color: _selectedGender == 'Laki-laki'
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Laki-laki',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _selectedGender == 'Laki-laki'
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.cake_rounded,
+              size: 18,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Date of Birth',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TextFormField(
+            controller: _dobController,
+            readOnly: true,
+            onTap: () async {
+              final DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: _backendDobFormat.isNotEmpty
+                    ? DateTime.parse(_backendDobFormat)
+                    : DateTime(2000),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        surface: AppColors.surface,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+
+              if (pickedDate != null) {
+                setState(() {
+                  // Store in backend format (YYYY-MM-DD)
+                  _backendDobFormat = pickedDate.toString().split(' ')[0];
+                  // Display in readable format (DD Mon YYYY)
+                  _dobController.text =
+                      _formatDateForDisplay(_backendDobFormat);
+                });
+              }
+            },
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Select date of birth',
+              hintStyle: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                color: AppColors.textSecondary.withOpacity(0.6),
+              ),
+              prefixIcon: Icon(
+                Icons.calendar_today_rounded,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

@@ -5,15 +5,24 @@ import 'styles/app_theme.dart';
 import 'services/auth_service.dart';
 
 void main() async {
+  print('\n╔════════════════════════════════════════════════════════╗');
+  print('║                  🚀 APP STARTING                       ║');
+  print('╚════════════════════════════════════════════════════════╝');
+
   // Ensure Flutter is initialized before calling async methods
   WidgetsFlutterBinding.ensureInitialized();
 
+  print('[MAIN] Step 1: Loading token from disk...');
   // Load saved token from disk
   await AuthService.init();
+  print(
+      '[MAIN] Step 2: Token loaded - Value exists: ${AuthService.token != null && AuthService.token!.isNotEmpty}');
 
   // Force logout for security update - Check app version
-  await _checkSecurityUpdate();
+  // Commented out to allow users to stay logged in
+  // await _checkSecurityUpdate();
 
+  print('[MAIN] Step 3: Launching app widget...');
   runApp(const MyApp());
 }
 

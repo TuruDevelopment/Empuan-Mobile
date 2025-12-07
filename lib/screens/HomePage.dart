@@ -42,6 +42,12 @@ class _HomePageState extends State<HomePage> {
       _rangeStartDay.add(const Duration(days: 30));
   late DateTime _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
 
+  // Stats data from backend
+  double? avgCycleLength;
+  int? lastCycleLength;
+  DateTime? predictedNextPeriod;
+  int? daysUntilNextPeriod;
+
   // late DateTime _startdate = DateTime.now();
   // late DateTime _enddate = DateTime.now();
 
@@ -87,6 +93,9 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    // Fetch stats data
+    await getStats();
+
     setState(() {
       isLoading = false;
     });
@@ -95,23 +104,64 @@ class _HomePageState extends State<HomePage> {
     print('data pas api tarik' + response.body);
   }
 
+  Future<void> getStats({int months = 5}) async {
+    final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
+    final uri = Uri.parse(url);
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      if (jsonData['data'] != null) {
+        final data = jsonData['data'];
+
+        setState(() {
+          avgCycleLength = data['avg_cycle_length']?.toDouble();
+          lastCycleLength = data['last_cycle_length'];
+
+          if (data['next_period'] != null) {
+            if (data['next_period']['predicted_start'] != null) {
+              predictedNextPeriod =
+                  DateTime.parse(data['next_period']['predicted_start']);
+            }
+            daysUntilNextPeriod = data['next_period']['days_until'];
+          }
+        });
+      }
+    }
+
+    print('Stats response: ${response.statusCode}');
+    print('Stats data: ${response.body}');
+  }
+
   @override
   Widget build(BuildContext context) {
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
     print("nbb start date $_rangeStartDay");
     print("uhu end date $_rangeEndDay");
-    Duration difference = _rangeStartDayplus30.difference(DateTime.now());
-    countdown = difference.inDays;
 
-    String formattedEndDate =
-        DateFormat('d MMMM yyyy').format(_rangeEndDayplus30);
+    // Use backend prediction or fallback to manual calculation
+    countdown = daysUntilNextPeriod ??
+        _rangeStartDayplus30.difference(DateTime.now()).inDays;
+
+    // Use backend predicted date or fallback
+    DateTime nextPeriodDate = predictedNextPeriod ?? _rangeStartDayplus30;
     String formattedStartDate =
-        DateFormat('d MMMM yyyy').format(_rangeStartDayplus30);
+        DateFormat('d MMMM yyyy').format(nextPeriodDate);
+
+    // Estimate end date based on avg cycle or default 7 days
+    int periodLength =
+        lastCycleLength ?? (_rangeEndDay.difference(_rangeStartDay).inDays);
+    DateTime estimatedEndDate =
+        nextPeriodDate.add(Duration(days: periodLength));
+    String formattedEndDate =
+        DateFormat('d MMMM yyyy').format(estimatedEndDate);
 
     String prediction =
         'Prediction: ' + formattedStartDate + ' - ' + formattedEndDate;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -857,12 +907,22 @@ class _HomePageState extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
+                                onPressed: () async {
+                                  // Navigate to CatatanHaid and wait for result
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
                                       builder: (context) => CatatanHaid(
-                                            startdate: widget.startdate,
-                                            enddate: widget.enddate,
-                                          )));
+                                        startdate: _rangeStartDay,
+                                        enddate: _rangeEndDay,
+                                      ),
+                                    ),
+                                  );
+
+                                  // Refresh data when coming back from CatatanHaid
+                                  final userid = await getCurrentUser();
+                                  if (userid != null) {
+                                    await getData(userid);
+                                  }
                                 },
                                 child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,

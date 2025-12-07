@@ -31,6 +31,7 @@ class BannerUntukPuanBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           decoration: BoxDecoration(
@@ -43,12 +44,16 @@ class BannerUntukPuanBox extends StatelessWidget {
           child: Center(
             // padding: const EdgeInsets.only(left: 20.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 500,
-                  height: 180,
-                  decoration: BoxDecoration(
-                      image: DecorationImage(image: AssetImage(image))),
+                Flexible(
+                  flex: 0,
+                  child: Container(
+                    width: 500,
+                    height: 180,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(image: AssetImage(image))),
+                  ),
                 ),
               ],
             ),

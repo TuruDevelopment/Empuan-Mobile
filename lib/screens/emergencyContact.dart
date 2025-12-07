@@ -32,6 +32,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
     print(dataMore);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

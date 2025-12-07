@@ -39,6 +39,7 @@ class _AccountCredState extends State<AccountCred> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -433,7 +434,7 @@ class _AccountCredState extends State<AccountCred> {
       "email": email,
       "username": username,
       "password": password,
-      "gender": "1",
+      "gender": "Perempuan",
     };
 
     final url = '${ApiConfig.baseUrl}/register';

@@ -13,6 +13,7 @@ class _PageHomeState extends State<PageHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
       appBar: AppBar(
         title: const Text('PageHome'),

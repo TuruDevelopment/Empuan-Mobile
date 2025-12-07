@@ -45,6 +45,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
     final dataBannerUntuk = dataUntukPuan;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
@@ -123,6 +124,7 @@ class _SuaraPuanState extends State<WidgetUntukPuan> {
       ),
       body: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 20),
             // Hero Image Banner

@@ -97,6 +97,7 @@ class _MoreState extends State<More> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -299,6 +300,7 @@ class _MoreState extends State<More> {
                               commentCount:
                                   post['comments_count']?.toString() ?? '0',
                               idRuangPuan: post['id'] ?? 0,
+                              initialIsLiked: post['is_liked'] == true,
                             ),
                           );
                         }

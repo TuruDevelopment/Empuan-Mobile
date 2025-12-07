@@ -227,6 +227,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
@@ -331,11 +332,12 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                       ),
                     ),
 
-                    // Page 2: Gender Verification
+                    // Page 2: Gender
                     SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
@@ -555,11 +557,12 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                       ),
                     ),
 
-                    // Page 3: Account Credentials
+                    // Page 3: Credentials
                     SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
@@ -807,7 +810,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "email": email,
       "username": username,
       "password": password,
-      "gender": "1",
+      "gender": "Perempuan",
     };
 
     final url = '${ApiConfig.baseUrl}/register';

@@ -15,6 +15,7 @@ class _Intro3State extends State<Intro3> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.bg,
       body: SafeArea(
           child: Center(
@@ -86,7 +87,7 @@ class _Intro3State extends State<Intro3> {
                           backgroundColor: MaterialStateProperty.all(
                               const Color.fromRGBO(251, 111, 146, 1))),
                       child: const Text(
-                        'Let\'s Start',
+                        'Start',
                         style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
                       ),
                     ),

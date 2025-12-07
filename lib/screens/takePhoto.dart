@@ -29,6 +29,7 @@ class _ImageSelectionPageState extends State<ImageSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

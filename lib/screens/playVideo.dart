@@ -38,6 +38,7 @@ class _VideoAppState extends State<VideoApp> {
     return MaterialApp(
       title: 'Video Demo',
       home: Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Center(
           child: _controller.value.isInitialized
               ? AspectRatio(

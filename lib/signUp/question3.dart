@@ -26,6 +26,7 @@ class _Question3State extends State<Question3> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.bg,
       body: SingleChildScrollView(
         child: SafeArea(

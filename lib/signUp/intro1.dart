@@ -14,6 +14,7 @@ class _Intro1State extends State<Intro1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.bg,
       body: SafeArea(
           child: Center(

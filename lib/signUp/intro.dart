@@ -34,6 +34,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -59,6 +60,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                   Center(
                     child: SingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 80),
@@ -133,6 +135,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                   Center(
                     child: SingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 80),
@@ -207,6 +210,7 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
                   Center(
                     child: SingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 80),
@@ -465,7 +469,7 @@ class PageIndicator extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      currentPageIndex == 2 ? 'Let\'s Start' : 'Next',
+                      currentPageIndex == 2 ? 'Start' : 'Next',
                       style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: Colors.white,

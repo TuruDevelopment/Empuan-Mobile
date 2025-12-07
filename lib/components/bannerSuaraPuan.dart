@@ -54,6 +54,7 @@ class BannerSuaraPuanBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 14),
@@ -70,54 +71,62 @@ class BannerSuaraPuanBox extends StatelessWidget {
           child: Center(
             // padding: const EdgeInsets.only(left: 20.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 390,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: AssetImage(media),
-                      fit: BoxFit.cover,
+                Flexible(
+                  flex: 0,
+                  child: Container(
+                    width: 390,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: AssetImage(media),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(height: 10),
-                IntrinsicHeight(
-                  child: Row(
-                    children: [
-                      Text(dop,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.bold,
-                              color: const Color.fromRGBO(251, 111, 146, 1),
-                              fontSize: 12)),
-                      VerticalDivider(
-                        color: Colors.grey,
-                        thickness: 1,
-                      ),
-                      Text(kategori_id,
-                          style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.bold,
-                              color: const Color.fromRGBO(251, 111, 146, 1),
-                              fontSize: 12)),
-                    ],
+                Flexible(
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Text(dop,
+                            style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontWeight: FontWeight.bold,
+                                color: const Color.fromRGBO(251, 111, 146, 1),
+                                fontSize: 12)),
+                        VerticalDivider(
+                          color: Colors.grey,
+                          thickness: 1,
+                        ),
+                        Text(kategori_id,
+                            style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontWeight: FontWeight.bold,
+                                color: const Color.fromRGBO(251, 111, 146, 1),
+                                fontSize: 12)),
+                      ],
+                    ),
                   ),
                 ),
                 // SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 20),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 20),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ],

@@ -51,6 +51,13 @@ class _CatatanHaidState extends State<CatatanHaid> {
   late int startCycle = 28;
   late int endCycle = 34;
 
+  // Stats data from backend
+  double? avgCycleLength;
+  int? lastCycleLength;
+  DateTime? predictedNextPeriod;
+  int? daysUntilNextPeriod;
+  List<dynamic> periodHistory = [];
+
   Future<String?> getCurrentUser() async {
     final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
@@ -70,6 +77,8 @@ class _CatatanHaidState extends State<CatatanHaid> {
   }
 
   Future<void> getData(String userid) async {
+    print('[CATATAN_HAID] 🔄 Fetching period data...');
+
     setState(() {
       isLoading = true;
     });
@@ -85,13 +94,24 @@ class _CatatanHaidState extends State<CatatanHaid> {
         final data = jsonData['data'];
 
         if (data['start_date'] != null && data['end_date'] != null) {
+          print(
+              '[CATATAN_HAID] ✅ Data received: ${data['start_date']} to ${data['end_date']}');
+
           setState(() {
             _rangeStartDay = DateTime.parse(data['start_date']);
             _rangeEndDay = DateTime.parse(data['end_date']);
           });
+
+          print('[CATATAN_HAID] ✅ UI updated with new dates');
         }
       }
     }
+
+    // Fetch stats data
+    await getStats();
+
+    // Fetch period history
+    await getHistory();
 
     setState(() {
       isLoading = false;
@@ -101,6 +121,65 @@ class _CatatanHaidState extends State<CatatanHaid> {
     print('data pas api tarik' + response.body);
   }
 
+  Future<void> getStats({int months = 5}) async {
+    final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
+    final uri = Uri.parse(url);
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      if (jsonData['data'] != null) {
+        final data = jsonData['data'];
+
+        setState(() {
+          avgCycleLength = data['avg_cycle_length']?.toDouble();
+          lastCycleLength = data['last_cycle_length'];
+
+          if (data['next_period'] != null) {
+            if (data['next_period']['predicted_start'] != null) {
+              predictedNextPeriod =
+                  DateTime.parse(data['next_period']['predicted_start']);
+            }
+            daysUntilNextPeriod = data['next_period']['days_until'];
+          }
+
+          // periodHistory is now loaded from dedicated /history endpoint
+          // No longer using data['periods'] from /stats
+        });
+      }
+    }
+
+    print('Stats response: ${response.statusCode}');
+    print('Stats data: ${response.body}');
+  }
+
+  Future<void> getHistory({int months = 5}) async {
+    print('[HISTORY] 📜 Fetching period history (last $months months)...');
+
+    final url = '${ApiConfig.baseUrl}/catatan-haid?history=1&months=$months';
+    final uri = Uri.parse(url);
+    final response = await http
+        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      if (jsonData['data'] != null) {
+        final meta = jsonData['meta'];
+        setState(() {
+          periodHistory = jsonData['data'];
+        });
+
+        print('[HISTORY] ✅ History loaded: ${meta['total']} cycles found');
+        print('[HISTORY] Time window: ${meta['months_window']} months');
+      }
+    } else {
+      print('[HISTORY] ❌ Failed to load history: ${response.statusCode}');
+    }
+
+    print('[HISTORY] Response body: ${response.body}');
+  }
+
   @override
   Widget build(BuildContext context) {
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
@@ -108,9 +187,12 @@ class _CatatanHaidState extends State<CatatanHaid> {
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
     _rangeEndDayminus30 = _rangeEndDay.subtract(const Duration(days: 30));
 
-    // Calculate countdown to next period (same as HomePage)
-    Duration difference = _rangeStartDayplus30.difference(DateTime.now());
-    int countdown = difference.inDays;
+    // Use backend prediction or fallback to manual calculation
+    int countdown = daysUntilNextPeriod ??
+        _rangeStartDayplus30.difference(DateTime.now()).inDays;
+    int displayCycleLength =
+        lastCycleLength ?? (_rangeEndDay.difference(_rangeStartDay).inDays);
+    double displayAvgCycle = avgCycleLength ?? 30.0;
 
     print("start date $_rangeStartDay");
     print("end date $_rangeEndDay");
@@ -120,6 +202,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
     print("end date minus $_rangeEndDayminus30");
     print("countdown to next period: $countdown days");
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -430,7 +513,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
                                 ),
                               ),
                               onPressed: () {
-                                _showMarkDialog(context);
+                                _showMarkDialog();
                               },
                               child: const Row(
                                 children: [
@@ -458,166 +541,67 @@ class _CatatanHaidState extends State<CatatanHaid> {
 
                       const SizedBox(height: 24),
                       // Section Header
-                      const Text(
-                        'Statistics',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.analytics_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Your Statistics',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 16),
-                      // Stats Cards
+                      // Stats Cards - 3 Cards
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           // Last Cycle Card
                           Expanded(
-                            child: Container(
-                              height:
-                                  MediaQuery.of(context).size.width / 2 - 50,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.accent.withOpacity(0.3),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.accent.withOpacity(0.1),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Last Cycle',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.primary.withOpacity(0.1),
-                                    ),
-                                    child: const Text(
-                                      '32',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'days',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            child: _buildStatCard(
+                              icon: Icons.event_note_rounded,
+                              label: 'Last Cycle',
+                              value: '${displayCycleLength ?? 0}',
+                              unit: 'days',
+                              color: AppColors.primary,
                             ),
                           ),
-
-                          const SizedBox(width: 16),
-
+                          const SizedBox(width: 12),
+                          // Average Cycle Card
+                          Expanded(
+                            child: _buildStatCard(
+                              icon: Icons.timeline_rounded,
+                              label: 'Avg Cycle',
+                              value: displayAvgCycle.toStringAsFixed(1),
+                              unit: 'days',
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           // Next Period Card
                           Expanded(
-                            child: Container(
-                              height:
-                                  MediaQuery.of(context).size.width / 2 - 50,
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.accent.withOpacity(0.3),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.accent.withOpacity(0.1),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Next Period',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'in',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          AppColors.secondary.withOpacity(0.2),
-                                          AppColors.accent.withOpacity(0.2),
-                                        ],
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '$countdown',
-                                      style: const TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.secondary,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'days',
-                                    style: TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            child: _buildStatCard(
+                              icon: Icons.event_available_rounded,
+                              label: 'Next In',
+                              value: '$countdown',
+                              unit: 'days',
+                              color: AppColors.accent,
                             ),
                           ),
                         ],
@@ -625,7 +609,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
 
                       const SizedBox(height: 24),
 
-                      // Cycle History Card
+                      // Cycle History Chart
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.surface,
@@ -646,25 +630,49 @@ class _CatatanHaidState extends State<CatatanHaid> {
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             children: [
-                              const Text(
-                                'Cycle History',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppColors.secondary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.bar_chart_rounded,
+                                      color: AppColors.secondary,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Cycle History',
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Last 5 Months',
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              const Text(
-                                '(Last 5 Months)',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 16),
                               BarChartExample(),
                               Container(
                                 width: 280,
@@ -712,6 +720,106 @@ class _CatatanHaidState extends State<CatatanHaid> {
                         ),
                       ),
 
+                      const SizedBox(height: 24),
+
+                      // Period History List
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.history_rounded,
+                              color: AppColors.accent,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Period History',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (periodHistory.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${periodHistory.length} cycles',
+                                style: const TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // History List
+                      if (periodHistory.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.accent.withOpacity(0.2),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.event_busy_rounded,
+                                size: 48,
+                                color: AppColors.textSecondary.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'No history yet',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Mark your first period to start tracking',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ...periodHistory.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final period = entry.value;
+                          return _buildHistoryItem(period, index);
+                        }).toList(),
+
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -719,6 +827,268 @@ class _CatatanHaidState extends State<CatatanHaid> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required String unit,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            unit,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryItem(Map<String, dynamic> period, int index) {
+    final startDate = DateTime.parse(period['start_date']);
+    final endDate =
+        period['end_date'] != null ? DateTime.parse(period['end_date']) : null;
+
+    final duration =
+        endDate != null ? endDate.difference(startDate).inDays + 1 : null;
+
+    final isOngoing = endDate == null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isOngoing
+              ? AppColors.secondary.withOpacity(0.5)
+              : AppColors.accent.withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isOngoing ? AppColors.secondary : AppColors.accent)
+                .withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            // Icon and number
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isOngoing
+                      ? [
+                          AppColors.secondary.withOpacity(0.2),
+                          AppColors.accent.withOpacity(0.2),
+                        ]
+                      : [
+                          AppColors.primary.withOpacity(0.1),
+                          AppColors.accent.withOpacity(0.1),
+                        ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  '#${index + 1}',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isOngoing ? AppColors.secondary : AppColors.primary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Date info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        DateFormat('MMM dd, yyyy').format(startDate),
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (isOngoing) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'ONGOING',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.event_available_rounded,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        endDate != null
+                            ? DateFormat('MMM dd, yyyy').format(endDate)
+                            : 'Still tracking',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Duration badge
+            if (duration != null)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '$duration',
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const Text(
+                      'days',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.pending_rounded,
+                  color: AppColors.secondary,
+                  size: 24,
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -748,6 +1118,139 @@ class _CatatanHaidState extends State<CatatanHaid> {
           _rangeEndDayminus30.subtract(const Duration(days: 30));
     }
     _previousFocusedMonth = _focusedDay;
+  }
+
+  Future<void> _showMarkDialog() async {
+    late TextEditingController dateInputController = TextEditingController();
+    late TextEditingController dateInputControllerend = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'When did your last period start?',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.calendar_month),
+                        border: InputBorder.none,
+                      ),
+                      controller: dateInputController,
+                      readOnly: true,
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime(2050),
+                        );
+
+                        if (pickedDate != null) {
+                          dateInputController.text =
+                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'When did your last period end?',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.calendar_month),
+                        border: InputBorder.none,
+                      ),
+                      controller: dateInputControllerend,
+                      readOnly: true,
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime(2050),
+                        );
+
+                        if (pickedDate != null) {
+                          dateInputControllerend.text =
+                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.pink1),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child:
+                  const Text('Done', style: TextStyle(color: AppColors.pink1)),
+              onPressed: () async {
+                if (dateInputController.text.isNotEmpty &&
+                    dateInputControllerend.text.isNotEmpty) {
+                  // Use POST createData instead of PUT editData
+                  // Backend will handle smart create/update logic
+                  await createData(
+                      dateInputController.text, dateInputControllerend.text);
+
+                  // Refresh data after creating/updating
+                  final userid = await getCurrentUser();
+                  if (userid != null) {
+                    await getData(userid);
+                  }
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -949,140 +1452,6 @@ class Bar extends StatelessWidget {
   }
 }
 
-Future<void> _showMarkDialog(BuildContext context) async {
-  late TextEditingController dateInputController = TextEditingController();
-  late TextEditingController dateInputControllerend = TextEditingController();
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'When did your last period start?',
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 5.0),
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.calendar_month),
-                      border: InputBorder.none,
-                    ),
-                    controller: dateInputController,
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(1950),
-                        lastDate: DateTime(2050),
-                      );
-
-                      if (pickedDate != null) {
-                        dateInputController.text =
-                            DateFormat('yyyy-MM-dd').format(pickedDate);
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'When did your last period end?',
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 5.0),
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.calendar_month),
-                      border: InputBorder.none,
-                    ),
-                    controller: dateInputControllerend,
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(1950),
-                        lastDate: DateTime(2050),
-                      );
-
-                      if (pickedDate != null) {
-                        dateInputControllerend.text =
-                            DateFormat('yyyy-MM-dd').format(pickedDate);
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // const SingleChildScrollView(
-        //   child: ListBody(
-        //     children: <Widget>[
-        //       Column(
-        //         children: [Text('data'),
-
-        //         ],
-        //       )
-        //     ],
-        //   ),
-        // ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.pink1),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Done', style: TextStyle(color: AppColors.pink1)),
-            onPressed: () {
-              if (dateInputController.text.isNotEmpty &&
-                  dateInputControllerend.text.isNotEmpty) {
-                editData(dateInputController.text, dateInputControllerend.text);
-              }
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
 Future<String?> getCurrentUser() async {
   final url = '${ApiConfig.baseUrl}/me';
   final uri = Uri.parse(url);
@@ -1101,14 +1470,28 @@ Future<String?> getCurrentUser() async {
   return null;
 }
 
+Future<void> createData(dateStart, dateEnd) async {
+  final body = {
+    'start_date': dateStart,
+    'end_date': dateEnd,
+  };
+  final url = "${ApiConfig.baseUrl}/catatan-haid";
+  final uri = Uri.parse(url);
+  final response = await http.post(uri, body: jsonEncode(body), headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${AuthService.token}'
+  });
+
+  print('Create response: ${response.statusCode}');
+  print('Create body: ${response.body}');
+}
+
 Future<void> editData(dateStartEdit, dateEndEdit) async {
-  dateStartEdit = dateStartEdit;
-  dateEndEdit = dateEndEdit;
   final body = {
     'start_date': dateStartEdit,
     'end_date': dateEndEdit,
+    // No id sent - backend will auto-target latest record
   };
-  final id = await getCurrentUser();
   final url = "${ApiConfig.baseUrl}/catatan-haid";
   final uri = Uri.parse(url);
   final response = await http.put(uri, body: jsonEncode(body), headers: {
@@ -1116,6 +1499,6 @@ Future<void> editData(dateStartEdit, dateEndEdit) async {
     'Authorization': 'Bearer ${AuthService.token}'
   });
 
-  print(response.statusCode);
-  print(response.body);
+  print('Edit response: ${response.statusCode}');
+  print('Edit body: ${response.body}');
 }

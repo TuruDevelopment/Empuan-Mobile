@@ -81,6 +81,7 @@ class _NavBar extends State<NavBar> {
           // flexibleSpace: NavBar(),
         ),
         Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             centerTitle: true,
             title: const Text('PageView'),

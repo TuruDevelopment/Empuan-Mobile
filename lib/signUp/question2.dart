@@ -56,6 +56,7 @@ class _Question2State extends State<Question2> {
     });
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.bg,
       body: SingleChildScrollView(
         child: SafeArea(

@@ -35,6 +35,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

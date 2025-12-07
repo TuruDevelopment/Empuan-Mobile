@@ -45,6 +45,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
   Widget build(BuildContext context) {
     Widget konten = getDataUntukPuan(dataUntukPuan);
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -245,50 +246,62 @@ class _newUntukPuanState extends State<newUntukPuan> {
                     ),
 
                     const SizedBox(height: 20),
-                    // Sticky Header with Tabs
-                    StickyHeader(
-                      controller: _scrollController,
-                      header: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.08),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                    // Tabs Navigation
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.accent.withOpacity(0.3),
+                          width: 1.5,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: NavBar(
-                            currentTab: currentTab,
-                            onTabChanged: (index) {
-                              controller.jumpToPage(index);
-                            },
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
+                        ],
                       ),
-                      content: Container(
-                        height: (260 * dataUntukPuan.length) + 120,
-                        child: PageView(
-                          controller: controller,
-                          onPageChanged: (index) {
-                            setState(() {
-                              currentTab = index;
-                            });
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: NavBar(
+                          currentTab: currentTab,
+                          onTabChanged: (index) {
+                            controller.jumpToPage(index);
                           },
-                          children: [konten, konten, konten],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 20),
+                    // Content Area
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: PageView(
+                        controller: controller,
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentTab = index;
+                          });
+                        },
+                        children: [
+                          SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 200),
+                            child: konten,
+                          ),
+                          SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 200),
+                            child: konten,
+                          ),
+                          SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 200),
+                            child: konten,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

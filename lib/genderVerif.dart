@@ -32,6 +32,7 @@ class _GenderVerifPageState extends State<GenderVerifPage> {
     bool isImageUploaded = _image != null;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

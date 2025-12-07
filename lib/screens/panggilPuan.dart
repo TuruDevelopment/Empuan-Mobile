@@ -35,6 +35,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
     print(dataMore);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

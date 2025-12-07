@@ -47,6 +47,7 @@ class DataSuaraPuanBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           height: 20,
@@ -56,11 +57,15 @@ class DataSuaraPuanBox extends StatelessWidget {
           height: 200,
           child: Center(
               child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 170,
-                // decoration: BoxDecoration(
-                //     image: DecorationImage(image: AssetImage(header))),
+              Flexible(
+                flex: 0,
+                child: Container(
+                  height: 170,
+                  // decoration: BoxDecoration(
+                  //     image: DecorationImage(image: AssetImage(header))),
+                ),
               )
             ],
           )),

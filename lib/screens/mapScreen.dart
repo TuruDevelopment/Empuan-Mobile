@@ -43,6 +43,7 @@ class _MapScreenState extends State<MapScreen> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text("Map"),
         ),

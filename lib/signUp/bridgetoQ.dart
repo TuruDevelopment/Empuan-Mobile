@@ -24,6 +24,7 @@ class _BridgetoQState extends State<BridgetoQ> {
   Widget build(BuildContext context) {
     print('Username cekkk: ${widget.username}');
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

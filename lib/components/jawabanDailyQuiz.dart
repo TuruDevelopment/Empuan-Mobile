@@ -69,6 +69,7 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
     bool isCorrect = widget.selectedindex.toString() == correctAnswerText;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

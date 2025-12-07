@@ -24,12 +24,10 @@ Widget getDataMore(List<dynamic> dataMore) {
     likeCount = dataMore[i]['like'].toString();
     // Get comment count from API, default to '0' if not available
     commentCount = (dataMore[i]['comments_count'] ?? 0).toString();
-    // Check if current user has liked this post
-    isLiked = dataMore[i]['user_liked'] == true ||
-        dataMore[i]['is_liked'] == true ||
-        dataMore[i]['liked'] == true;
+    // Check if current user has liked this post (backend sends 'is_liked')
+    isLiked = dataMore[i]['is_liked'] == true;
     print(
-        '${teks} - ${date} - ${likeCount} - comments: ${commentCount} - liked: ${isLiked}');
+        '🔍 Post ${idRuangPuan}: ${teks} - ${date} - likes: ${likeCount} - comments: ${commentCount} - is_liked: ${isLiked}');
     dataMoreBoxes.add(MoreBox(
       date: date,
       teks: teks,

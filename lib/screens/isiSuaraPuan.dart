@@ -162,6 +162,7 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
     int currentTab = 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,

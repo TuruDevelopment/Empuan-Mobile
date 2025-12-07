@@ -96,6 +96,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     print("q password: ${widget.password}");
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -421,6 +422,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
@@ -479,6 +481,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
             // Options
             Column(
+              mainAxisSize: MainAxisSize.min,
               children: List.generate(
                 options.length,
                 (index) => _buildModernOption(
@@ -507,6 +510,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),

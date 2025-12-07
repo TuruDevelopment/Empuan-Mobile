@@ -18,9 +18,30 @@ class AuthService {
 
   // Load token from disk on app start
   static Future<void> init() async {
+    print('[AUTH_SERVICE] 🔍 Checking SharedPreferences for stored token...');
+
     final prefs = await SharedPreferences.getInstance();
-    token = prefs.getString(_tokenKey);
+    final storedToken = prefs.getString(_tokenKey);
+
+    print('[AUTH_SERVICE] 📦 Raw value from SharedPreferences:');
+    print('[AUTH_SERVICE]    Key: $_tokenKey');
+    print('[AUTH_SERVICE]    Value exists: ${storedToken != null}');
+    print('[AUTH_SERVICE]    Value length: ${storedToken?.length ?? 0}');
+
+    token = storedToken;
+
+    if (token != null && token!.isNotEmpty) {
+      print('[AUTH_SERVICE] ✅ Token loaded from storage');
+      print(
+          '[AUTH_SERVICE] Token preview: ${token!.substring(0, min(30, token!.length))}...');
+      print('[AUTH_SERVICE] Token length: ${token!.length} characters');
+    } else {
+      print('[AUTH_SERVICE] ❌ No token found in storage');
+      print('[AUTH_SERVICE] All keys in SharedPreferences: ${prefs.getKeys()}');
+    }
   }
+
+  static int min(int a, int b) => a < b ? a : b;
 
   Future<bool> login({required String email, required String password}) async {
     print('[AUTH_SERVICE] Starting login for email: $email');
@@ -108,10 +129,34 @@ class AuthService {
   }
 
   static Future<void> logout() async {
-    token = null;
+    print('\n[LOGOUT] ═══════════════════════════════════════════════');
+    print('[LOGOUT] 🚪 LOGOUT INITIATED');
+    print('[LOGOUT] Stack trace:');
+    print(StackTrace.current.toString().split('\n').take(5).join('\n'));
+    print('[LOGOUT] ═══════════════════════════════════════════════');
 
+    print('[LOGOUT] Step 1: Clearing token from memory...');
+    print(
+        '[LOGOUT]    Before: token = ${token?.substring(0, min(20, token?.length ?? 0))}...');
+
+    // Clear token from memory
+    token = null;
+    print('[LOGOUT]    After: token = $token');
+
+    print('[LOGOUT] Step 2: Clearing token from disk...');
     // Clear token from disk
     final prefs = await SharedPreferences.getInstance();
+    final beforeRemove = prefs.getString(_tokenKey);
+    print(
+        '[LOGOUT]    Before remove: ${beforeRemove?.substring(0, min(20, beforeRemove?.length ?? 0))}...');
+
     await prefs.remove(_tokenKey);
+
+    final afterRemove = prefs.getString(_tokenKey);
+    print('[LOGOUT]    After remove: $afterRemove');
+    print('[LOGOUT]    All remaining keys: ${prefs.getKeys()}');
+
+    print('[LOGOUT] ✅ LOGOUT COMPLETE');
+    print('[LOGOUT] ═══════════════════════════════════════════════\n');
   }
 }

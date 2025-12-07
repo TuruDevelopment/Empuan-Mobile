@@ -59,6 +59,7 @@ class _CommentState extends State<Comment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,

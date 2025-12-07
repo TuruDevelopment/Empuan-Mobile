@@ -62,22 +62,12 @@ class _MainScreenState extends State<MainScreen> {
   bool sosActive = false;
   final DirectSms directSms = DirectSms();
 
-  @override
-  void initState() {
-    super.initState();
-
-    getCurrentUser().then((userid) {
-      if (userid != null) {
-        getData(userid);
-        getDataKontakAman(); // Load emergency contacts on init
-      }
-    });
-    // SchedulerBinding.instance.addPostFrameCallback((_) {
-    //   getDataKontakAman();
-    // });
+  void _buildItems() {
     items = [
       NavModel(
         page: HomePage(
+          key: ValueKey(
+              'home_${_startdate.toString()}'), // Force rebuild on data change
           startdate: _startdate,
           enddate: _enddate,
         ),
@@ -85,6 +75,8 @@ class _MainScreenState extends State<MainScreen> {
       ),
       NavModel(
         page: CatatanHaid(
+          key: ValueKey(
+              'haid_${_startdate.toString()}'), // Force rebuild on data change
           startdate: _startdate,
           enddate: _enddate,
         ),
@@ -99,7 +91,20 @@ class _MainScreenState extends State<MainScreen> {
         navKey: moreNavKey,
       ),
     ];
-    // getDataKontakAman();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _buildItems(); // Initial build
+
+    getCurrentUser().then((userid) {
+      if (userid != null) {
+        getData(userid);
+        getDataKontakAman(); // Load emergency contacts on init
+      }
+    });
   }
 
   Position? _currentPosition;
@@ -156,7 +161,7 @@ class _MainScreenState extends State<MainScreen> {
                     _showLocationSharedDialog();
                   }
                 },
-                onTap: (index) {
+                onTap: (index) async {
                   if (index == selectedTab) {
                     items[index]
                         .navKey
@@ -166,6 +171,14 @@ class _MainScreenState extends State<MainScreen> {
                     setState(() {
                       selectedTab = index;
                     });
+
+                    // Refresh data when switching to HomePage or CatatanHaid tab
+                    if (index == 0 || index == 1) {
+                      final userid = await getCurrentUser();
+                      if (userid != null) {
+                        await getData(userid);
+                      }
+                    }
                   }
                 },
               ),
@@ -207,10 +220,18 @@ class _MainScreenState extends State<MainScreen> {
         final data = jsonData['data'];
 
         if (data['start_date'] != null && data['end_date'] != null) {
+          print('[NAV_SCREEN] 🔄 Updating period data:');
+          print('[NAV_SCREEN] Old: $_startdate to $_enddate');
+          print(
+              '[NAV_SCREEN] New: ${data['start_date']} to ${data['end_date']}');
+
           setState(() {
             _startdate = DateTime.parse(data['start_date']);
             _enddate = DateTime.parse(data['end_date']);
+            _buildItems(); // Rebuild items with new data
           });
+
+          print('[NAV_SCREEN] ✅ Period data updated and widgets rebuilt');
         }
       }
     }

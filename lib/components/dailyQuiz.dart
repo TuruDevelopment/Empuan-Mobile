@@ -64,6 +64,7 @@ class _DailyQuizState extends State<DailyQuiz> {
     bool hasNoQuestions = !isLoading && dataQuestion.isEmpty;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
