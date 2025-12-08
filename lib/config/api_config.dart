@@ -7,9 +7,9 @@ class ApiConfig {
       String.fromEnvironment('ENV', defaultValue: 'development');
 
   // Base URLs for different environments
-  static const String _developmentUrl = 'http://192.168.1.7:8000/api';
-  static const String _productionUrl = 'https://api.empuan.com/api';
-  static const String _stagingUrl = 'https://staging-api.empuan.com/api';
+  static const String _developmentUrl = 'http://192.168.8.76:8000/api';
+  static const String _productionUrl = 'https://empuan.turudev.tech/api';
+  static const String _stagingUrl = 'https://empuan.turudev.tech/api';
 
   // Get base URL based on environment
   static String get baseUrl {

@@ -53,10 +53,15 @@ class _CatatanHaidState extends State<CatatanHaid> {
   @override
   void initState() {
     super.initState();
+    print("🚀 DEBUG: CatatanHaid initialized");
+    print("🚀 DEBUG: Initial startdate: ${widget.startdate}");
+    print("🚀 DEBUG: Initial enddate: ${widget.enddate}");
+    print("🚀 DEBUG: API Base URL: ${ApiConfig.baseUrl}");
     _loadData();
   }
 
   void _loadData() {
+    print("🔄 DEBUG: Loading data...");
     getDataList();
     getStatsData();
   }
@@ -64,28 +69,45 @@ class _CatatanHaidState extends State<CatatanHaid> {
   // 1. API: Get List (Untuk Kalender)
   Future<void> getDataList() async {
     final url = '${ApiConfig.baseUrl}/catatan-haid';
+    print("📅 DEBUG: Calling calendar API: $url");
+
     try {
       final response = await http.get(Uri.parse(url), headers: {
         'Authorization': 'Bearer ${AuthService.token}',
         'Accept': 'application/json'
       });
 
+      print("📅 DEBUG: Calendar Response Status: ${response.statusCode}");
+      print("📅 DEBUG: Calendar Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final data = json['data'];
+
+        print("📅 DEBUG: Data is null? ${data == null}");
+
         if (data != null &&
             data['start_date'] != null &&
             data['end_date'] != null) {
+          print("📅 DEBUG: Start Date: ${data['start_date']}");
+          print("📅 DEBUG: End Date: ${data['end_date']}");
+
           if (mounted) {
             setState(() {
               _rangeStartDay = DateTime.parse(data['start_date']);
               _rangeEndDay = DateTime.parse(data['end_date']);
             });
+            print("✅ DEBUG: Calendar dates updated successfully");
           }
+        } else {
+          print("⚠️ DEBUG: Calendar data is null or missing dates");
         }
+      } else {
+        print("❌ DEBUG: Calendar API error ${response.statusCode}");
       }
-    } catch (e) {
-      print("List Data Error: $e");
+    } catch (e, stackTrace) {
+      print("❌ DEBUG: Calendar Error: $e");
+      print("❌ DEBUG: Stack trace: $stackTrace");
     }
   }
 
@@ -93,6 +115,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
   Future<void> getStatsData() async {
     // Cek token dulu
     if (AuthService.token == null || AuthService.token!.isEmpty) {
+      print("❌ DEBUG: Token is null or empty");
       setState(() {
         isLoading = false;
         errorMessage = "Anda belum login (Token Kosong). Silakan login ulang.";
@@ -100,12 +123,15 @@ class _CatatanHaidState extends State<CatatanHaid> {
       return;
     }
 
+    print("✅ DEBUG: Token exists: ${AuthService.token?.substring(0, 20)}...");
+
     setState(() {
       isLoading = true;
       errorMessage = "";
     });
 
     final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=6';
+    print("📡 DEBUG: Calling API: $url");
 
     try {
       final response = await http.get(Uri.parse(url), headers: {
@@ -113,27 +139,49 @@ class _CatatanHaidState extends State<CatatanHaid> {
         'Accept': 'application/json',
       });
 
+      print("📥 DEBUG: Response Status Code: ${response.statusCode}");
+      print("📥 DEBUG: Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
+        print("✅ DEBUG: JSON decoded successfully");
+        print("📊 DEBUG: JSON structure: ${json.keys.toList()}");
+
         final data = json['data'];
+        print("📊 DEBUG: Data is null? ${data == null}");
+
+        if (data != null) {
+          print("📊 DEBUG: Data keys: ${data.keys.toList()}");
+        }
 
         if (data != null && mounted) {
+          print("✅ DEBUG: Data is not null, processing...");
+
           setState(() {
             // --- A. STATS KARTU ---
             displayLastCycle = data['last_cycle_length']?.toString() ?? "0";
+            print("📊 DEBUG: Last Cycle: $displayLastCycle");
 
             displayAvgCycle = data['avg_cycle_length']?.toString() ?? "0";
+            print("📊 DEBUG: Avg Cycle: $displayAvgCycle");
 
             displayNextIn =
                 data['next_period']?['days_until']?.toString() ?? "0";
+            print("📊 DEBUG: Next In: $displayNextIn");
 
             // --- B. CHART ---
             var chartObj = data['chart'];
+            print("📊 DEBUG: Chart object is null? ${chartObj == null}");
+
             chartData = [];
             chartLabels = [];
 
             if (chartObj != null) {
+              print("📊 DEBUG: Chart keys: ${chartObj.keys.toList()}");
               List<dynamic> rawLengths = chartObj['period_lengths'] ?? [];
+              print("📊 DEBUG: Raw period_lengths: $rawLengths");
+              print("📊 DEBUG: Total raw data: ${rawLengths.length}");
+
               // List<dynamic> rawDates = chartObj['start_dates'] ?? []; // Tidak dipakai untuk label lagi
 
               // Logika Ambil 5 Terakhir
@@ -141,10 +189,14 @@ class _CatatanHaidState extends State<CatatanHaid> {
               int takeCount = totalData > 5 ? 5 : totalData;
               int startIndex = totalData > 5 ? totalData - 5 : 0;
 
+              print(
+                  "📊 DEBUG: Processing from index $startIndex to $totalData");
+
               for (int i = startIndex; i < totalData; i++) {
                 // Parse Data (Nilai batang grafik)
                 int val = int.tryParse(rawLengths[i].toString()) ?? 0;
                 chartData.add(val);
+                print("📊 DEBUG: Added chart value: $val at index $i");
 
                 // --- PERUBAHAN DISINI: Label menggunakan period_length ---
                 // Sebelumnya: Parse Date
@@ -152,11 +204,17 @@ class _CatatanHaidState extends State<CatatanHaid> {
                 chartLabels.add(val.toString());
               }
 
+              print("📊 DEBUG: Final chartData: $chartData");
+              print("📊 DEBUG: Final chartLabels: $chartLabels");
+
               // --- C. STATUS ---
               if (chartData.isNotEmpty) {
+                print("📊 DEBUG: Calculating status...");
                 double sum = 0;
                 for (var n in chartData) sum += n;
                 double localAvg = sum / chartData.length;
+
+                print("📊 DEBUG: Local Average: $localAvg");
 
                 analysisText =
                     "Avg (Shown): ${localAvg.round().toString()} days";
@@ -164,41 +222,57 @@ class _CatatanHaidState extends State<CatatanHaid> {
                 if (chartData.length < 2) {
                   statusText = "New";
                   statusColor = AppColors.primary;
+                  print("📊 DEBUG: Status = New");
                 } else {
                   int minVal = chartData.reduce(math.min);
                   int maxVal = chartData.reduce(math.max);
                   int diff = maxVal - minVal;
 
+                  print("📊 DEBUG: Min=$minVal, Max=$maxVal, Diff=$diff");
+
                   if (localAvg >= 2 && localAvg <= 38) {
                     statusText = "Regular";
                     statusColor = AppColors.secondary;
+                    print("📊 DEBUG: Status = Regular");
                   } else {
                     statusText = "Irregular";
                     statusColor = AppColors.error;
+                    print("📊 DEBUG: Status = Irregular");
                   }
                 }
               } else {
                 analysisText = "No data available";
                 statusText = "-";
+                print("⚠️ DEBUG: Chart data is empty");
               }
+            } else {
+              print("⚠️ DEBUG: Chart object is null");
             }
           });
+        } else {
+          print("⚠️ DEBUG: Data is null or widget not mounted");
         }
       } else if (response.statusCode == 401) {
+        print("❌ DEBUG: Unauthorized (401) - Token might be expired");
         setState(() {
           errorMessage = "Sesi habis. Silakan Login ulang.";
         });
       } else {
+        print("❌ DEBUG: HTTP Error ${response.statusCode}");
+        print("❌ DEBUG: Response body: ${response.body}");
         setState(() {
-          errorMessage = "Gagal memuat data (${response.statusCode})";
+          errorMessage =
+              "Gagal memuat data (${response.statusCode}): ${response.body}";
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("❌ DEBUG: Exception caught: $e");
+      print("❌ DEBUG: Stack trace: $stackTrace");
       setState(() {
-        errorMessage = "Gagal terkoneksi ke server.";
+        errorMessage = "Gagal terkoneksi ke server: $e";
       });
-      print("Error: $e");
     } finally {
+      print("🏁 DEBUG: getStatsData() completed");
       if (mounted) setState(() => isLoading = false);
     }
   }
@@ -931,13 +1005,30 @@ class Bar extends StatelessWidget {
 Future<void> createData(dateStart, dateEnd) async {
   final body = {'start_date': dateStart, 'end_date': dateEnd};
   final url = "${ApiConfig.baseUrl}/catatan-haid";
+
+  print("💾 DEBUG: Creating period data");
+  print("💾 DEBUG: URL: $url");
+  print("💾 DEBUG: Body: $body");
+  print("💾 DEBUG: Token: ${AuthService.token?.substring(0, 20)}...");
+
   try {
-    await http.post(Uri.parse(url), body: jsonEncode(body), headers: {
+    final response =
+        await http.post(Uri.parse(url), body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${AuthService.token}'
     });
-  } catch (e) {
-    print("Error creating data: $e");
+
+    print("💾 DEBUG: Create Response Status: ${response.statusCode}");
+    print("💾 DEBUG: Create Response Body: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("✅ DEBUG: Period data created successfully");
+    } else {
+      print("❌ DEBUG: Failed to create data");
+    }
+  } catch (e, stackTrace) {
+    print("❌ DEBUG: Error creating data: $e");
+    print("❌ DEBUG: Stack trace: $stackTrace");
   }
 }
 
