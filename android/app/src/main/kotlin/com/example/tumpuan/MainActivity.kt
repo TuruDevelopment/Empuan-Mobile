@@ -1,4 +1,4 @@
-package com.example.empuan
+package com.turudev.empuan
 
 import io.flutter.embedding.android.FlutterActivity
 
