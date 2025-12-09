@@ -92,8 +92,9 @@ class _DailyQuizState extends State<DailyQuiz> {
                         ? "Daily Quiz"
                         : "Daily Quiz (${currentQuestionIndex + 1}/${questionsList.length})",
                     style: const TextStyle(
-                        fontFamily: 'Brodies',
+                        fontFamily: 'Plus Jakarta Sans',
                         fontSize: 24,
+                        fontWeight: FontWeight.bold,
                         color: AppColors.primary),
                   )
                 ]),
@@ -104,7 +105,15 @@ class _DailyQuizState extends State<DailyQuiz> {
                 child: isLoadingQuestions
                     ? const Center(child: CircularProgressIndicator())
                     : questionsList.isEmpty
-                        ? const Center(child: Text("No Questions Available"))
+                        ? const Center(
+                            child: Text(
+                            "No Questions Available",
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ))
                         : PageView.builder(
                             controller: _pageController,
                             physics:
@@ -222,8 +231,10 @@ class _QuizPageItemState extends State<QuizPageItem> {
                       offset: const Offset(0, 5))
                 ]),
             child: Text(questionText,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
           ),
 
@@ -256,7 +267,13 @@ class _QuizPageItemState extends State<QuizPageItem> {
                         color: isSelected ? AppColors.error : Colors.grey),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: Text(options[index]['option_text'].toString()))
+                        child: Text(
+                      options[index]['option_text'].toString(),
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 15,
+                      ),
+                    ))
                   ]),
                 ),
               );
@@ -293,7 +310,11 @@ class _QuizPageItemState extends State<QuizPageItem> {
                     widget.onNext();
                   },
             child: const Text("Check Answer",
-                style: TextStyle(color: Colors.white, fontSize: 16)),
+                style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 40),
         ],

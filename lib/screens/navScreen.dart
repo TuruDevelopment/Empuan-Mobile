@@ -17,6 +17,7 @@ import 'package:Empuan/styles/style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:direct_sms/direct_sms.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -273,6 +274,53 @@ class _MainScreenState extends State<MainScreen> {
     return true;
   }
 
+  Future<bool> _handleSmsPermission() async {
+    print('📱 Checking SMS permission...');
+
+    var status = await Permission.sms.status;
+    print('📱 Current SMS permission status: $status');
+
+    if (status.isDenied) {
+      print('📱 SMS permission denied, requesting...');
+      status = await Permission.sms.request();
+      print('📱 SMS permission request result: $status');
+
+      if (status.isDenied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content:
+                  Text('SMS permission is required to send emergency messages'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return false;
+      }
+    }
+
+    if (status.isPermanentlyDenied) {
+      print('📱 SMS permission permanently denied');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+                'SMS permission is permanently denied. Please enable it in settings.'),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+      }
+      return false;
+    }
+
+    print('✅ SMS permission granted');
+    return status.isGranted;
+  }
+
   Future<void> location() async {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission || !mounted) return;
@@ -306,6 +354,13 @@ class _MainScreenState extends State<MainScreen> {
 
     // SMS functionality only works on mobile platforms
     if (!kIsWeb) {
+      // Check SMS permission before sending
+      final hasSmsPermission = await _handleSmsPermission();
+      if (!hasSmsPermission) {
+        print('❌ SMS permission not granted, cannot send messages');
+        return;
+      }
+
       try {
         int successCount = 0;
         int failCount = 0;

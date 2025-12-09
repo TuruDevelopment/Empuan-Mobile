@@ -97,8 +97,9 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                   ),
                   const Text('Quiz Result',
                       style: TextStyle(
-                          fontFamily: 'Brodies',
+                          fontFamily: 'Plus Jakarta Sans',
                           fontSize: 24,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.primary)),
                 ]),
               ),
@@ -118,8 +119,9 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                       const SizedBox(height: 16),
                       Text(isCorrect ? "Correct!" : "Incorrect",
                           style: TextStyle(
-                              fontFamily: 'Brodies',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontSize: 32,
+                              fontWeight: FontWeight.bold,
                               color: isCorrect
                                   ? AppColors.secondary
                                   : AppColors.error)),
@@ -129,7 +131,9 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                       // TEKS SOAL (Dari Data yang Dikirim)
                       Text(widget.questionText,
                           style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center),
 
                       const SizedBox(height: 32),
@@ -169,7 +173,15 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                                       : Colors.grey),
                             ),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(item['text'])),
+                            Expanded(
+                              child: Text(
+                                item['text'],
+                                style: const TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
                           ]),
                         );
                       }),
@@ -197,7 +209,11 @@ class _JawabanDailyQuizState extends State<JawabanDailyQuiz> {
                             widget.isLastQuestion
                                 ? "Finish Quiz"
                                 : "Next Question",
-                            style: const TextStyle(color: Colors.white)),
+                            style: const TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
                       )
                     ],
                   ),

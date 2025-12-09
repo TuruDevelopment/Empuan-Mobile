@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  bool obscurePassword = false; // Added to track password visibility
+  bool obscurePassword = true; // Password hidden by default
   bool _isLoggingIn = false; // Track login state
   String? _currentAddress;
   Position? _currentPosition;

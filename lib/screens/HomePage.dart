@@ -55,29 +55,48 @@ class _HomePageState extends State<HomePage> {
     final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
 
+    print("👤 DEBUG [HomePage]: Fetching current user from $url");
+
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    print(
+        "👤 DEBUG [HomePage]: User API response status: ${response.statusCode}");
+
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
-        if (data.containsKey('id')) {
-          return data['id'];
+      final userData = jsonData['user'];
+
+      if (userData != null && userData is Map) {
+        if (userData.containsKey('id')) {
+          print("✅ DEBUG [HomePage]: User ID retrieved: ${userData['id']}");
+          return userData['id'];
         }
       }
+      print("⚠️ DEBUG [HomePage]: User data is null or invalid");
+    } else {
+      print("❌ DEBUG [HomePage]: Failed to get user (${response.statusCode})");
     }
     return null;
   }
 
   Future<void> getData(int userid) async {
+    print("🔄 DEBUG [HomePage]: Loading period data for user $userid");
+
     setState(() {
       isLoading = true;
     });
 
     final url = '${ApiConfig.baseUrl}/catatan-haid';
+    print("📅 DEBUG [HomePage]: Calling period API: $url");
+
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    print(
+        "📅 DEBUG [HomePage]: Period API response status: ${response.statusCode}");
+    print("📅 DEBUG [HomePage]: Period API response body: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
@@ -85,12 +104,22 @@ class _HomePageState extends State<HomePage> {
         final data = jsonData['data'];
 
         if (data['start_date'] != null && data['end_date'] != null) {
+          print("📅 DEBUG [HomePage]: Start date: ${data['start_date']}");
+          print("📅 DEBUG [HomePage]: End date: ${data['end_date']}");
+
           setState(() {
             _rangeStartDay = DateTime.parse(data['start_date']);
             _rangeEndDay = DateTime.parse(data['end_date']);
           });
+          print("✅ DEBUG [HomePage]: Period dates updated successfully");
+        } else {
+          print("⚠️ DEBUG [HomePage]: Period dates are null");
         }
+      } else {
+        print("⚠️ DEBUG [HomePage]: Period data is null");
       }
+    } else {
+      print("❌ DEBUG [HomePage]: Period API error ${response.statusCode}");
     }
 
     // Fetch stats data
@@ -100,20 +129,33 @@ class _HomePageState extends State<HomePage> {
       isLoading = false;
     });
 
-    print(response.statusCode);
-    print('data pas api tarik' + response.body);
+    print("🏁 DEBUG [HomePage]: Data loading completed");
   }
 
   Future<void> getStats({int months = 5}) async {
+    print("📊 DEBUG [HomePage]: Fetching stats for last $months months");
+
     final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
+    print("📊 DEBUG [HomePage]: Stats API URL: $url");
+
     final uri = Uri.parse(url);
     final response = await http
         .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+
+    print("📊 DEBUG [HomePage]: Stats response status: ${response.statusCode}");
+    print("📊 DEBUG [HomePage]: Stats response body: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['data'] != null) {
         final data = jsonData['data'];
+
+        print("📊 DEBUG [HomePage]: Processing stats data...");
+        print(
+            "📊 DEBUG [HomePage]: Avg cycle length: ${data['avg_cycle_length']}");
+        print(
+            "📊 DEBUG [HomePage]: Last cycle length: ${data['last_cycle_length']}");
+        print("📊 DEBUG [HomePage]: Next period data: ${data['next_period']}");
 
         setState(() {
           avgCycleLength = data['avg_cycle_length']?.toDouble();
@@ -123,15 +165,22 @@ class _HomePageState extends State<HomePage> {
             if (data['next_period']['predicted_start'] != null) {
               predictedNextPeriod =
                   DateTime.parse(data['next_period']['predicted_start']);
+              print(
+                  "📊 DEBUG [HomePage]: Predicted next period: $predictedNextPeriod");
             }
             daysUntilNextPeriod = data['next_period']['days_until'];
+            print(
+                "📊 DEBUG [HomePage]: Days until next period: $daysUntilNextPeriod");
           }
         });
-      }
-    }
 
-    print('Stats response: ${response.statusCode}');
-    print('Stats data: ${response.body}');
+        print("✅ DEBUG [HomePage]: Stats updated successfully");
+      } else {
+        print("⚠️ DEBUG [HomePage]: Stats data is null");
+      }
+    } else {
+      print("❌ DEBUG [HomePage]: Stats API error ${response.statusCode}");
+    }
   }
 
   @override
@@ -793,6 +842,35 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 20),
 
+                      // Stats Cards Row
+                      if (!isLoading)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCard(
+                                icon: Icons.calendar_today_rounded,
+                                label: 'Last Cycle',
+                                value: lastCycleLength?.toString() ?? '-',
+                                unit: 'days',
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                icon: Icons.show_chart_rounded,
+                                label: 'Avg Cycle',
+                                value:
+                                    avgCycleLength?.round().toString() ?? '-',
+                                unit: 'days',
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                      const SizedBox(height: 20),
+
                       // Period Tracker Card
                       Container(
                         padding: const EdgeInsets.all(24),
@@ -958,6 +1036,75 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required String unit,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+          Text(
+            unit,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
