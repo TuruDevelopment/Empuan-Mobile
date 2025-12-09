@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/jwt_decoder.dart';
 import '../config/api_config.dart';
+import '../start_page.dart';
+import 'api_client.dart';
 
 class AuthService {
   static String? token;
@@ -158,5 +161,35 @@ class AuthService {
 
     print('[LOGOUT] ✅ LOGOUT COMPLETE');
     print('[LOGOUT] ═══════════════════════════════════════════════\n');
+  }
+
+  /// Handle session expiration - logout and navigate to login with notification
+  /// This is called when API returns 401/403
+  static Future<void> handleSessionExpired() async {
+    print(
+        '\n[SESSION_EXPIRED] ═══════════════════════════════════════════════');
+    print('[SESSION_EXPIRED] ⚠️ SESSION EXPIRED - AUTO LOGOUT');
+    print('[SESSION_EXPIRED] ═══════════════════════════════════════════════');
+
+    // Logout first
+    await logout();
+
+    // Navigate to start page with session expired flag
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      // Use pushAndRemoveUntil to clear the navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const StartPage(sessionExpired: true),
+        ),
+        (route) => false, // Remove all previous routes
+      );
+      print('[SESSION_EXPIRED] ✅ Navigated to login page');
+    } else {
+      print('[SESSION_EXPIRED] ❌ No context available for navigation');
+    }
+
+    print(
+        '[SESSION_EXPIRED] ═══════════════════════════════════════════════\n');
   }
 }

@@ -217,14 +217,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.4.1"
-  direct_sms:
-    dependency: "direct main"
-    description:
-      name: direct_sms
-      sha256: "4850578b849445fdd539ae76fbac2b79d0d63732a6692cd460b116e920e9e1ca"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.1"
   dots_indicator:
     dependency: "direct main"
     description:

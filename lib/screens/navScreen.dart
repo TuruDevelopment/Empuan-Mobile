@@ -12,11 +12,10 @@ import 'package:Empuan/screens/more.dart';
 import 'package:Empuan/screens/nav_bar.dart';
 import 'package:Empuan/screens/nav_model.dart';
 import 'package:Empuan/screens/panggilPuan.dart';
-import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/services/api_client.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:direct_sms/direct_sms.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MainScreen extends StatefulWidget {
@@ -61,7 +60,6 @@ class _MainScreenState extends State<MainScreen> {
   late DateTime _enddate = DateTime.now();
 
   bool sosActive = false;
-  final DirectSms directSms = DirectSms();
 
   void _buildItems() {
     items = [
@@ -189,10 +187,8 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<int?> getCurrentUser() async {
     final url = '${ApiConfig.baseUrl}/me';
-    final uri = Uri.parse(url);
 
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await ApiClient.get(url);
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       if (jsonData['data'] != null) {
@@ -211,9 +207,7 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     final url = '${ApiConfig.baseUrl}/catatan-haid';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await ApiClient.get(url);
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
@@ -345,7 +339,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _launchUrl(double? lat, double? long) async {
     Uri _url = Uri.parse('https://www.google.com/maps/search/${lat},${long}');
     String message =
-        '🚨 DARURAT! Saya membutuhkan bantuan segera. Ini adalah pesan otomatis dari aplikasi Empuan. Mohon periksa lokasi saya: https://www.google.com/maps/search/${lat},${long}';
+        '🚨 EMERGENCY! I need help immediately. This is an automated message from the Empuan app. Please check my location: https://www.google.com/maps/search/${lat},${long}';
 
     print('Sending emergency SMS to contacts');
     print('Location URL: $_url');
@@ -365,47 +359,128 @@ class _MainScreenState extends State<MainScreen> {
         int successCount = 0;
         int failCount = 0;
 
-        // Send to emergency contacts from database if available
-        if (phoneNumbers.isNotEmpty) {
-          for (var i = 0; i < phoneNumbers.length; i++) {
-            print('Attempting to send SMS to: ${phoneNumbers[i]}');
+        // Determine which contacts to use
+        List<String> recipients =
+            phoneNumbers.isNotEmpty ? phoneNumbers : listNum.cast<String>();
+
+        if (recipients.isEmpty) {
+          print('❌ No emergency contacts found');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.warning_rounded, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'No emergency contacts configured',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: EdgeInsets.all(16),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
+        print('📱 Sending SMS to ${recipients.length} contacts: $recipients');
+
+        // Use url_launcher to open SMS app with pre-filled message
+        // Send to ALL recipients in one SMS (separated by semicolons)
+        try {
+          // Join all recipients with semicolons (Android) or commas (iOS)
+          final String allRecipients = recipients.join(';');
+          final String encodedMessage = Uri.encodeComponent(message);
+
+          print('📱 Opening SMS for ALL contacts: $allRecipients');
+
+          // Try multiple URI formats for compatibility
+          List<Uri> urisToTry = [
+            Uri.parse('sms:$allRecipients?body=$encodedMessage'),
+            Uri.parse('smsto:$allRecipients?body=$encodedMessage'),
+            Uri.parse(
+                'sms:${recipients.join(",")}?body=$encodedMessage'), // comma separated
+          ];
+
+          bool launched = false;
+
+          for (Uri smsUri in urisToTry) {
             try {
-              await directSms.sendSms(
-                phone: phoneNumbers[i],
-                message: message,
+              // Use external application mode to ensure it opens in SMS app
+              launched = await launchUrl(
+                smsUri,
+                mode: LaunchMode.externalApplication,
               );
-              successCount++;
-              print('✓ SMS sent successfully to ${phoneNumbers[i]}');
+              if (launched) {
+                successCount = recipients.length;
+                print(
+                    '✅ SMS app opened for all ${recipients.length} contacts with URI: $smsUri');
+                break;
+              }
             } catch (e) {
-              failCount++;
-              print('✗ Exception sending to ${phoneNumbers[i]}: $e');
+              print('⚠️ Failed with URI $smsUri: $e');
             }
           }
-          print('=== SMS SUMMARY ===');
-          print('Total contacts: ${phoneNumbers.length}');
-          print('Successful: $successCount');
-          print('Failed: $failCount');
-        } else {
-          // Fallback to hardcoded numbers if no emergency contacts in database
-          print('No emergency contacts found, using default numbers');
-          for (var i = 0; i < listNum.length; i++) {
-            print('Attempting to send SMS to default: ${listNum[i]}');
-            try {
-              await directSms.sendSms(
-                phone: listNum[i],
-                message: message,
-              );
-              successCount++;
-              print('✓ SMS sent successfully to ${listNum[i]}');
-            } catch (e) {
-              failCount++;
-              print('✗ Exception sending to ${listNum[i]}: $e');
-            }
+
+          if (!launched) {
+            failCount = recipients.length;
+            print('❌ Cannot launch SMS - No SMS app found (emulator?)');
           }
-          print('=== SMS SUMMARY ===');
-          print('Total default contacts: ${listNum.length}');
-          print('Successful: $successCount');
-          print('Failed: $failCount');
+        } catch (e) {
+          print('❌ SMS Exception: $e');
+          failCount = recipients.length;
+        }
+
+        print('=== SMS SUMMARY ===');
+        print('Total contacts: ${recipients.length}');
+        print('Successful: $successCount');
+        print('Failed: $failCount');
+
+        // Show appropriate message
+        if (failCount > 0 && successCount == 0) {
+          // All failed - likely emulator or no SMS app
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.phone_android, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'No SMS app found. Please test on a real device.',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: EdgeInsets.all(16),
+                duration: Duration(seconds: 4),
+              ),
+            );
+          }
+          return;
         }
 
         // Show result to user
@@ -530,9 +605,7 @@ class _MainScreenState extends State<MainScreen> {
     // get data from form
     // submit data to the server
     final url = '${ApiConfig.baseUrl}/kontak-aman';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+    final response = await ApiClient.get(url);
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] ?? [] as List;

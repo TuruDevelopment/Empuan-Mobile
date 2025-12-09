@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class StartPage extends StatefulWidget {
-  const StartPage({super.key});
+  final bool sessionExpired;
+
+  const StartPage({super.key, this.sessionExpired = false});
 
   @override
   State<StartPage> createState() => _StartPageState();
@@ -23,6 +25,56 @@ class _StartPageState extends State<StartPage> {
   void initState() {
     super.initState();
     _checkApiConnection();
+
+    // Show session expired notification if redirected from expired token
+    if (widget.sessionExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showSessionExpiredNotification();
+      });
+    }
+  }
+
+  void _showSessionExpiredNotification() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.timer_off_rounded, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Session Expired',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    'Please login again to continue',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   Future<void> _checkApiConnection() async {

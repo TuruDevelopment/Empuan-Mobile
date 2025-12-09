@@ -61,7 +61,7 @@ dependencies:
   url_launcher: ^6.2.0
   telephony:
   # flutter_qpython:
-  direct_sms:
+  # direct_sms removed - using url_launcher instead
   permission_handler:
   flutter_sound:
   video_player:

@@ -6,8 +6,8 @@ import 'package:Empuan/config/api_config.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/services/api_client.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:http/http.dart' as http;
 
 class CatatanHaid extends StatefulWidget {
   const CatatanHaid({Key? key, required this.startdate, required this.enddate})
@@ -72,10 +72,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
     print("📅 DEBUG: Calling calendar API: $url");
 
     try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'Authorization': 'Bearer ${AuthService.token}',
-        'Accept': 'application/json'
-      });
+      final response = await ApiClient.get(url);
 
       print("📅 DEBUG: Calendar Response Status: ${response.statusCode}");
       print("📅 DEBUG: Calendar Response Body: ${response.body}");
@@ -134,10 +131,7 @@ class _CatatanHaidState extends State<CatatanHaid> {
     print("📡 DEBUG: Calling API: $url");
 
     try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'Authorization': 'Bearer ${AuthService.token}',
-        'Accept': 'application/json',
-      });
+      final response = await ApiClient.get(url);
 
       print("📥 DEBUG: Response Status Code: ${response.statusCode}");
       print("📥 DEBUG: Response Body: ${response.body}");
@@ -1012,11 +1006,7 @@ Future<void> createData(dateStart, dateEnd) async {
   print("💾 DEBUG: Token: ${AuthService.token?.substring(0, 20)}...");
 
   try {
-    final response =
-        await http.post(Uri.parse(url), body: jsonEncode(body), headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${AuthService.token}'
-    });
+    final response = await ApiClient.post(url, body: body);
 
     print("💾 DEBUG: Create Response Status: ${response.statusCode}");
     print("💾 DEBUG: Create Response Body: ${response.body}");

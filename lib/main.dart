@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'splash_page.dart';
 import 'styles/app_theme.dart';
 import 'services/auth_service.dart';
+import 'services/api_client.dart';
 
 void main() async {
   print('\n╔════════════════════════════════════════════════════════╗');
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const SplashPage(),
