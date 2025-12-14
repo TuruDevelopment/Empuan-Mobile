@@ -26,8 +26,13 @@ class EditEmergencyContact extends StatefulWidget {
 class _EditEmergencyContactState extends State<EditEmergencyContact> {
   bool isLoading = true;
 
+  @override
   void initState() {
     super.initState();
+    // Initialize controllers with current data
+    nameController.text = widget.name;
+    numberController.text = widget.number;
+    relationController.text = widget.relation;
     getData();
   }
 
@@ -257,7 +262,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                       _buildInputField(
                         label: 'Name',
                         controller: nameController,
-                        hint: widget.name,
+                        hint: 'Enter name',
                         icon: Icons.person_rounded,
                       ),
                       const SizedBox(height: 20),
@@ -266,7 +271,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                       _buildInputField(
                         label: 'Phone Number',
                         controller: numberController,
-                        hint: widget.number,
+                        hint: 'Enter phone number',
                         icon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
                       ),
@@ -276,7 +281,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                       _buildInputField(
                         label: 'Relation',
                         controller: relationController,
-                        hint: widget.relation,
+                        hint: 'Enter relation (e.g., Mother, Father)',
                         icon: Icons.family_restroom_rounded,
                       ),
                       const SizedBox(height: 40),

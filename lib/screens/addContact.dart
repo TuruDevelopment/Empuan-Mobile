@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
@@ -129,7 +130,44 @@ class _AddContactState extends State<AddContact> {
                         ),
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 20),
+
+                      // Import from Contacts Button
+                      Container(
+                        width: double.infinity,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.5),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: TextButton.icon(
+                          onPressed: _importFromContacts,
+                          icon: Icon(
+                            Icons.contact_phone_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          label: const Text(
+                            'Import from Contacts',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
 
                       // Name Field
                       _buildModernTextField(
@@ -312,6 +350,117 @@ class _AddContactState extends State<AddContact> {
         ),
       ),
     );
+  }
+
+  Future<void> _importFromContacts() async {
+    try {
+      // Request permission first
+      if (await FlutterContacts.requestPermission()) {
+        // Open contact picker
+        final contact = await FlutterContacts.openExternalPick();
+
+        if (contact != null) {
+          // Get full contact details
+          final fullContact = await FlutterContacts.getContact(contact.id);
+
+          if (fullContact != null) {
+            setState(() {
+              nameController.text = fullContact.displayName;
+
+              // Get the first phone number if available
+              if (fullContact.phones.isNotEmpty) {
+                numberController.text = fullContact.phones.first.number;
+              }
+            });
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: const [
+                      Icon(Icons.check_circle_rounded, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'Contact imported successfully!',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: AppColors.secondary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        }
+      } else {
+        // Permission denied
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.warning_rounded, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Permission denied. Please allow contacts access.',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error importing contact: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Failed to import contact. Please try again.',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> submitData() async {
