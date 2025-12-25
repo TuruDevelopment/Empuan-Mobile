@@ -99,6 +99,7 @@ class SuaraPuanBox extends StatelessWidget {
                         kategori_id: kategori_id,
                         user_id: user_id,
                         video: video,
+                        kategori_name: kategori_name,
                       )));
             },
             child: ClipRRect(
@@ -165,7 +166,7 @@ class SuaraPuanBox extends StatelessWidget {
                           Text(
                             kategori_name,
                             style: const TextStyle(
-                              fontFamily: 'Satoshi',
+                              fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               fontSize: 11,
@@ -187,7 +188,7 @@ class SuaraPuanBox extends StatelessWidget {
                         Text(
                           dop,
                           style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
@@ -202,7 +203,7 @@ class SuaraPuanBox extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontFamily: 'Satoshi',
+                    fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -228,6 +229,7 @@ class SuaraPuanBox extends StatelessWidget {
                                 kategori_id: kategori_id,
                                 user_id: user_id,
                                 video: video,
+                                kategori_name: kategori_name,
                               )));
                     },
                     style: ElevatedButton.styleFrom(
@@ -245,7 +247,7 @@ class SuaraPuanBox extends StatelessWidget {
                         Text(
                           'Read More',
                           style: TextStyle(
-                            fontFamily: 'Satoshi',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),

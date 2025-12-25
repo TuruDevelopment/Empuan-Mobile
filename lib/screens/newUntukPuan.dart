@@ -91,28 +91,28 @@ class _newUntukPuanState extends State<newUntukPuan> {
           bottom: false,
           child: Column(
             children: [
-              /// ================= HEADER (SEARCH FIXED) =================
+              /// ================= HEADER =================
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_rounded),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (value) {
-                          setState(() {
-                            searchQuery = value.toLowerCase();
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          hintText: 'Search recommendations...',
-                          prefixIcon: Icon(Icons.search_rounded),
-                          border: InputBorder.none,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -260,6 +260,7 @@ class _newUntukPuanState extends State<newUntukPuan> {
                                 child: Text(
                                   kategoriList[index]['nama_kategori'],
                                   style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
                                     color: isActive
                                         ? Colors.white
                                         : AppColors.textSecondary,

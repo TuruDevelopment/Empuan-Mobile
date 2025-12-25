@@ -77,49 +77,6 @@ class _SuaraPuanState extends State<SuaraPuan> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Search Bar
-                    Expanded(
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.accent.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Search articles...',
-                            hintStyle: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              color: AppColors.textSecondary,
-                              fontSize: 14,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.search_rounded,
-                              color: AppColors.primary,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Settings Button
                   ],
                 ),
               ),
@@ -155,18 +112,7 @@ class _SuaraPuanState extends State<SuaraPuan> {
                           ],
                         ),
                       ),
-                      // Banner Carousel
-                      SizedBox(
-                        height: 270,
-                        child: PageView(
-                          controller: controller,
-                          children: dataSuaraPuan
-                              .map((item) => BannerWidget(data: item))
-                              .toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Article List
+                      // Article List - all items as vertical cards
                       Container(
                         child: Column(
                           children: [

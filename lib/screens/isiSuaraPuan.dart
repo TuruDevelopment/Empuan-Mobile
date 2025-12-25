@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:Empuan/components/bannerSuaraPuan.dart';
+import 'package:Empuan/components/content_suaraPuan.dart'; // Added for getKategoriById
 import 'dart:ui';
 import 'package:http/http.dart' as http;
-import 'package:Empuan/components/content_suaraPuan.dart';
-import 'package:video_player/video_player.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 
@@ -78,6 +77,7 @@ class IsiSuaraPuan extends StatefulWidget {
   final String kategori_id;
   final String user_id;
   final String video;
+  final String? kategori_name;
 
   const IsiSuaraPuan({
     Key? key,
@@ -89,6 +89,7 @@ class IsiSuaraPuan extends StatefulWidget {
     required this.kategori_id,
     required this.user_id,
     required this.video,
+    this.kategori_name,
   }) : super(key: key);
 
   @override
@@ -97,28 +98,13 @@ class IsiSuaraPuan extends StatefulWidget {
 
 class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
   bool isLoading = true;
+  String? kategoriName;
 
-  late VideoPlayerController _videoController;
   void initState() {
     super.initState();
     getCurrentUser();
     getData();
-
-    // uncomment yang ini klo mau pake link, tinggal ganti linknya
-    // _videoController = VideoPlayerController.networkUrl(Uri.parse(
-    //     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'));
-
-    // ..initialize().then((_) {
-    //   // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-    //   setState(() {});
-    // });
-
-    // ini buat klo data videonya dari local
-    _videoController = VideoPlayerController.asset(widget.video);
-    _videoController.initialize().then((value) {
-      setState(() {});
-    });
-    _videoController.setLooping(true);
+    _loadKategoriName();
   }
 
   List<dynamic> dataComment = [];
@@ -130,6 +116,21 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
 
   late String comment;
   late String dop;
+
+  Future<void> _loadKategoriName() async {
+    if (widget.kategori_name != null) {
+      setState(() {
+        kategoriName = widget.kategori_name;
+      });
+    } else {
+      final name = await getKategoriById(widget.kategori_id);
+      if (mounted) {
+        setState(() {
+          kategoriName = name;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +202,6 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
         ),
         leading: IconButton(
           onPressed: () {
-            _videoController.pause();
             Navigator.pop(context);
           },
           icon: Icon(
@@ -310,7 +310,9 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            getCategory(int.parse(widget.kategori_id)),
+                            kategoriName ??
+                                widget.kategori_name ??
+                                'Loading...',
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontWeight: FontWeight.bold,
@@ -351,94 +353,6 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
                     fontSize: 15,
                     height: 1.6,
                   ),
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Video Player
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.accent.withOpacity(0.3),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.1),
-                        blurRadius: 12,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: _videoController.value.isInitialized
-                        ? AspectRatio(
-                            aspectRatio: _videoController.value.aspectRatio,
-                            child: VideoPlayer(_videoController),
-                          )
-                        : Container(
-                            height: 200,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-
-              // Video Controls
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _videoController.value.isPlaying
-                              ? _videoController.pause()
-                              : _videoController.play();
-                        });
-                      },
-                      icon: Icon(
-                        !_videoController.value.isPlaying ||
-                                _videoController.value.isCompleted
-                            ? Icons.play_arrow_rounded
-                            : Icons.pause_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              // Divider
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(
-                  color: AppColors.accent.withOpacity(0.2),
-                  thickness: 1,
                 ),
               ),
 

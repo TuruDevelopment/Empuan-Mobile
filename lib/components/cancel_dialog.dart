@@ -20,7 +20,7 @@ Future<void> showCancelDialog({
   String message =
       'Are you sure you want to cancel? All your progress will be lost.',
   String cancelButtonText = 'Go Back',
-  String confirmButtonText = 'Yes, Cancel',
+  String confirmButtonText = 'Yes',
   VoidCallback? onConfirm,
   VoidCallback? onCancel,
 }) async {
