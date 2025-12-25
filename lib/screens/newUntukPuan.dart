@@ -1,49 +1,78 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:sticky_headers/sticky_headers.dart';
 import 'package:Empuan/components/dataUntukPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:Empuan/config/api_config.dart';
 
 class newUntukPuan extends StatefulWidget {
   const newUntukPuan({super.key});
 
   @override
-  State<newUntukPuan> createState() {
-    return _newUntukPuanState();
-  }
+  State<newUntukPuan> createState() => _newUntukPuanState();
 }
 
 class _newUntukPuanState extends State<newUntukPuan> {
   final ScrollController _scrollController = ScrollController();
+  final PageController controller = PageController();
+  final TextEditingController searchController = TextEditingController();
 
+  int currentTab = 0;
+  String searchQuery = '';
   bool isLoading = true;
 
+  List<dynamic> dataUntukPuan = [];
+  List<dynamic> kategoriList = [];
+
+  @override
   void initState() {
     super.initState();
-    getData();
+    fetchKategori();
+    fetchUntukPuan();
   }
 
-  List<dynamic> dataUntukPuan = [];
+  /// ================= FILTER KATEGORI + SEARCH =================
+  List<dynamic> get filteredData {
+    if (kategoriList.isEmpty) return [];
 
-  // final DataUntukPuan = [
-  //   ['Spa', 'image', 'Sentul'],
-  //   ['Spa', 'image', 'Sentul'],
-  //   ['Spa', 'image', 'Sentul'],
-  // ];
+    final selectedKategoriId = kategoriList[currentTab]['id'];
 
-  final dataUser = ['Nixonnn', 'images/profilePict.png', '12345'];
+    return dataUntukPuan.where((item) {
+      final matchKategori =
+          item['kategori_id'].toString() == selectedKategoriId.toString();
 
-  final PageController controller = PageController();
-  int currentTab = 0;
+      final matchSearch = searchQuery.isEmpty
+          ? true
+          : item['nama'].toString().toLowerCase().contains(searchQuery) ||
+              item['alamat'].toString().toLowerCase().contains(searchQuery);
+
+      return matchKategori && matchSearch;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget konten = getDataUntukPuan(dataUntukPuan);
+    final content = filteredData.isEmpty
+        ? const Padding(
+            padding: EdgeInsets.only(top: 80),
+            child: Center(
+              child: Text(
+                'Kategori ini belum memiliki data',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          )
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: getDataUntukPuan(filteredData),
+          );
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -62,93 +91,40 @@ class _newUntukPuanState extends State<newUntukPuan> {
           bottom: false,
           child: Column(
             children: [
-              // Modern Header
+              /// ================= HEADER (SEARCH FIXED) =================
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    // Back Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.accent.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: AppColors.primary,
-                        ),
-                      ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded),
                     ),
                     const SizedBox(width: 12),
-                    // Search Bar
                     Expanded(
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.accent.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Search recommendations...',
-                            hintStyle: const TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.search_rounded,
-                              color: AppColors.primary,
-                              size: 22,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                          ),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value.toLowerCase();
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          hintText: 'Search recommendations...',
+                          prefixIcon: Icon(Icons.search_rounded),
+                          border: InputBorder.none,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Settings Button
                   ],
                 ),
               ),
 
-              // Content
               Expanded(
                 child: ListView(
                   controller: _scrollController,
                   children: [
-                    // Banner Card
+                    /// ================= BANNER (TIDAK DIUBAH) =================
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Container(
@@ -174,7 +150,6 @@ class _newUntukPuanState extends State<newUntukPuan> {
                         ),
                         child: Stack(
                           children: [
-                            // Decorative circles
                             Positioned(
                               right: -30,
                               top: -30,
@@ -199,27 +174,19 @@ class _newUntukPuanState extends State<newUntukPuan> {
                                 ),
                               ),
                             ),
-                            // Content
                             Padding(
                               padding: const EdgeInsets.all(24.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.spa_rounded,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
+                                children: const [
+                                  Icon(
+                                    Icons.spa_rounded,
+                                    color: Colors.white,
+                                    size: 28,
                                   ),
-                                  const SizedBox(height: 16),
-                                  const Text(
+                                  SizedBox(height: 16),
+                                  Text(
                                     'For Her',
                                     style: TextStyle(
                                       fontFamily: 'Brodies',
@@ -228,8 +195,8 @@ class _newUntukPuanState extends State<newUntukPuan> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  const Text(
+                                  SizedBox(height: 8),
+                                  Text(
                                     'Find the best places for your wellness',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
@@ -246,62 +213,89 @@ class _newUntukPuanState extends State<newUntukPuan> {
                     ),
 
                     const SizedBox(height: 20),
-                    // Tabs Navigation
+
+                    /// ================= KATEGORI =================
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.accent.withOpacity(0.3),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: NavBar(
-                          currentTab: currentTab,
-                          onTabChanged: (index) {
-                            controller.jumpToPage(index);
-                          },
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(kategoriList.length, (index) {
+                            final isActive = currentTab == index;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  currentTab = index;
+                                  searchQuery = '';
+                                  searchController.clear();
+                                });
+                                controller.jumpToPage(index);
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 18,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: isActive
+                                      ? LinearGradient(
+                                          colors: [
+                                            AppColors.primary,
+                                            AppColors.primaryVariant,
+                                          ],
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppColors.accent.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  kategoriList[index]['nama_kategori'],
+                                  style: TextStyle(
+                                    color: isActive
+                                        ? Colors.white
+                                        : AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 20),
-                    // Content Area
+
+                    /// ================= CONTENT =================
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      child: PageView(
+                      height: MediaQuery.of(context).size.height * 0.62,
+                      child: PageView.builder(
                         controller: controller,
+                        itemCount: kategoriList.length,
                         onPageChanged: (index) {
                           setState(() {
                             currentTab = index;
+                            searchQuery = '';
+                            searchController.clear();
                           });
                         },
-                        children: [
-                          SingleChildScrollView(
-                            padding: const EdgeInsets.only(bottom: 200),
-                            child: konten,
-                          ),
-                          SingleChildScrollView(
-                            padding: const EdgeInsets.only(bottom: 200),
-                            child: konten,
-                          ),
-                          SingleChildScrollView(
-                            padding: const EdgeInsets.only(bottom: 200),
-                            child: konten,
-                          ),
-                        ],
+                        itemBuilder: (_, __) {
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 180),
+                            child: content,
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -312,122 +306,34 @@ class _newUntukPuanState extends State<newUntukPuan> {
     );
   }
 
-  Future<void> getData() async {
-    setState(() {
-      isLoading = true;
-    });
-    // get data from form
-    // submit data to the server
-    final url = '${ApiConfig.baseUrl}/untuk-puan';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+  /// ================= FETCH KATEGORI =================
+  Future<void> fetchKategori() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/kategori-untuk-puan'),
+      headers: {'Authorization': 'Bearer ${AuthService.token}'},
+    );
+
     if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body) as Map;
-      final List<dynamic> resultList = jsonResponse['data'] ?? [];
-
-      for (var data in resultList) {
-        var nama = data['nama'].toString();
-        var alamat = data['alamat'].toString();
-        var deskripsi = data['deskripsi'].toString();
-        var phoneNumber = data['phoneNumber'].toString();
-        var jamBuka = data['jamBuka'].toString();
-        var jamTutup = data['jamTutup'].toString();
-        var foto = data['foto'].toString();
-        var price = data['price'].toString();
-        var website = data['website'].toString();
-        var kategori_id = data['kategori_id'].toString();
-
-        dataUntukPuan.add({
-          'nama': nama,
-          'alamat': alamat,
-          'deskripsi': deskripsi,
-          'phoneNumber': phoneNumber,
-          'jamBuka': jamBuka,
-          'jamTutup': jamTutup,
-          'foto': foto,
-          'price': price,
-          'website': website,
-          'kategori_id': kategori_id
-        });
-      }
-
+      final json = jsonDecode(response.body);
       setState(() {
-        // Update state after fetching data
-        dataUntukPuan = resultList;
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false; // Set isLoading to false if request failed
+        kategoriList = json['data'] ?? [];
       });
     }
-    // showsuccess or fail message based on status
-    print(response.statusCode);
-    print('data pas api tarik' + response.body);
-  }
-}
-
-class NavBar extends StatelessWidget {
-  const NavBar({Key? key, required this.onTabChanged, required this.currentTab})
-      : super(key: key);
-
-  final void Function(int) onTabChanged;
-  final int currentTab;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildTab('Spa & Massage', 0),
-        _buildTab('Saloon', 1),
-        _buildTab('Food', 2),
-      ],
-    );
   }
 
-  Widget _buildTab(String text, int index) {
-    final isActive = currentTab == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTabChanged(index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            gradient: isActive
-                ? LinearGradient(
-                    colors: [
-                      AppColors.primary,
-                      AppColors.primaryVariant,
-                    ],
-                  )
-                : null,
-            color: isActive ? null : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                color: isActive ? Colors.white : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
+  /// ================= FETCH UNTUK PUAN =================
+  Future<void> fetchUntukPuan() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/untuk-puan'),
+      headers: {'Authorization': 'Bearer ${AuthService.token}'},
     );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      setState(() {
+        dataUntukPuan = json['data'] ?? [];
+        isLoading = false;
+      });
+    }
   }
 }
