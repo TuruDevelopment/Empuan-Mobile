@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
@@ -354,55 +355,47 @@ class _AddContactState extends State<AddContact> {
 
   Future<void> _importFromContacts() async {
     try {
-      // Request permission first
-      if (await FlutterContacts.requestPermission()) {
-        // Open contact picker
-        final contact = await FlutterContacts.openExternalPick();
+      // Request permission using permission_handler first
+      var status = await Permission.contacts.status;
+      print('📱 Current contacts permission status: $status');
 
-        if (contact != null) {
-          // Get full contact details
-          final fullContact = await FlutterContacts.getContact(contact.id);
+      if (status.isDenied) {
+        print('📱 Contacts permission denied, requesting...');
+        status = await Permission.contacts.request();
+        print('📱 Contacts permission request result: $status');
+      }
 
-          if (fullContact != null) {
-            setState(() {
-              nameController.text = fullContact.displayName;
-
-              // Get the first phone number if available
-              if (fullContact.phones.isNotEmpty) {
-                numberController.text = fullContact.phones.first.number;
-              }
-            });
-
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: const [
-                      Icon(Icons.check_circle_rounded, color: Colors.white),
-                      SizedBox(width: 12),
-                      Text(
-                        'Contact imported successfully!',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: AppColors.secondary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 2),
+      if (status.isPermanentlyDenied) {
+        print('📱 Contacts permission permanently denied');
+        if (mounted) {
+          // Show dialog to open app settings
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Permission Required'),
+              content: const Text(
+                  'Contacts permission is permanently denied. Please enable it in app settings to import contacts.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
                 ),
-              );
-            }
-          }
+                TextButton(
+                  onPressed: () {
+                    openAppSettings();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Open Settings'),
+                ),
+              ],
+            ),
+          );
         }
-      } else {
-        // Permission denied
+        return;
+      }
+
+      if (!status.isGranted) {
+        // Permission denied (but not permanently)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -429,6 +422,55 @@ class _AddContactState extends State<AddContact> {
               margin: const EdgeInsets.all(16),
             ),
           );
+        }
+        return;
+      }
+
+      print('✅ Contacts permission granted, opening contact picker...');
+
+      // Permission granted, open contact picker
+      final contact = await FlutterContacts.openExternalPick();
+
+      if (contact != null) {
+        // Get full contact details
+        final fullContact = await FlutterContacts.getContact(contact.id);
+
+        if (fullContact != null) {
+          setState(() {
+            nameController.text = fullContact.displayName;
+
+            // Get the first phone number if available
+            if (fullContact.phones.isNotEmpty) {
+              numberController.text = fullContact.phones.first.number;
+            }
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: const [
+                    Icon(Icons.check_circle_rounded, color: Colors.white),
+                    SizedBox(width: 12),
+                    Text(
+                      'Contact imported successfully!',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: AppColors.secondary,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
         }
       }
     } catch (e) {

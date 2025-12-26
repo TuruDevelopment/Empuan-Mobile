@@ -77,14 +77,16 @@ class _ChangePasswordState extends State<ChangePassword> {
       print('DEBUG: Changing password at URL: $url');
       print('DEBUG: Token: ${AuthService.token?.substring(0, 20)}...');
 
-      // Using PUT /user/profile endpoint which accepts 'password' field
+      // Using PATCH /user/profile endpoint with both current_password and password fields
       final Map<String, dynamic> requestBody = {
+        'current_password': _currentPasswordController.text.trim(),
         'password': _newPasswordController.text.trim(),
+        'password_confirmation': _confirmPasswordController.text.trim(),
       };
 
       print('DEBUG: Request body: $requestBody');
 
-      final response = await http.put(
+      final response = await http.patch(
         uri,
         headers: {
           'Authorization': 'Bearer ${AuthService.token}',
