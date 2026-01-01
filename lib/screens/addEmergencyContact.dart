@@ -219,7 +219,8 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (nameController.text.trim().isEmpty ||
-                                numberController.text.trim().isEmpty) {
+                                numberController.text.trim().isEmpty ||
+                                relationController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Row(
@@ -227,11 +228,13 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                                       Icon(Icons.warning_rounded,
                                           color: Colors.white),
                                       SizedBox(width: 12),
-                                      Text(
-                                        'Please fill name and phone number',
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontSize: 14,
+                                      Expanded(
+                                        child: Text(
+                                          'Please fill all fields (Name, Phone, Relation)',
+                                          style: TextStyle(
+                                            fontFamily: 'Plus Jakarta Sans',
+                                            fontSize: 14,
+                                          ),
                                         ),
                                       ),
                                     ],
