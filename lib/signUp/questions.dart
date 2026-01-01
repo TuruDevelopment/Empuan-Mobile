@@ -827,11 +827,11 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     if (_isSubmitting) return;
 
     print('[DEBUG] _handleNext called, page: $_currentPageIndex');
-    print('[DEBUG] Can proceed: ${_canProceed()}');
 
     setState(() => _isSubmitting = true);
 
     try {
+      // Logic untuk halaman terakhir (Finish)
       if (_currentPageIndex == 4) {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const AllSetPage()),
@@ -839,27 +839,34 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
         return;
       }
 
+      // LOGIC PENYIMPANAN DATA (HALAMAN 1 / DATE INPUT)
       if (_currentPageIndex == 1 && dateInputController.text.isNotEmpty) {
         print('[DEBUG] Submitting period data...');
 
-        // Lakukan login otomatis dengan username dan password yang diberikan
+        // 1. Lakukan Login untuk mendapatkan Token
         await doLogin();
 
-        // Ambil ID berdasarkan username
-        final userId = await getIdByUsername(widget.username);
-
-        // Jika ID berhasil diperoleh, kirimkan data catatan haid
-        if (userId != null) {
-          print("[DEBUG] User ID: $userId, submitting data...");
+        // Cek apakah Login berhasil (Token tersedia)
+        if (AuthService.token != null && AuthService.token!.isNotEmpty) {
+          // 2. Langsung Submit Data (Hapus ketergantungan pada getIdByUsername)
+          // Backend biasanya mengenali user dari Token, bukan dari ID manual.
+          print("[DEBUG] Token acquired, submitting data...");
           await submitData();
-        } else {
-          print("[DEBUG] Failed to get user ID");
-        }
 
-        // Lakukan logout setelah submit data catatan haid
-        await AuthService.logout();
+          // JANGAN LOGOUT DI SINI.
+          // Biarkan user tetap login agar bisa lanjut ke halaman Home nanti.
+        } else {
+          print("[ERROR] Login failed. Cannot submit data.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Login failed. Please check connection.')),
+          );
+          // Hentikan proses jika login gagal
+          return;
+        }
       }
 
+      // Pindah ke halaman berikutnya
       _updateCurrentPageIndex(_currentPageIndex + 1);
     } catch (e, stackTrace) {
       print('[ERROR] _handleNext failed: $e');
@@ -867,7 +874,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('An error occurred. Please try again.'),
             backgroundColor: AppColors.error,
           ),
@@ -910,25 +917,35 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   }
 
   Future<void> submitData() async {
-    final dateStart = dateInputController.text;
-    final dateEnd = dateInputControllerend.text;
+    try {
+      final dateStart = dateInputController.text;
+      final dateEnd = dateInputControllerend.text;
 
-    print("ini hasilklan" + dateStart + " " + dateEnd);
+      print("Sending Data: Start=$dateStart End=$dateEnd");
 
-    final body = {
-      'start_date': dateStart,
-      'end_date': dateEnd,
-    };
+      final body = {
+        'start_date': dateStart,
+        'end_date': dateEnd,
+      };
 
-    final url = "${ApiConfig.baseUrl}/catatan-haid";
-    final uri = Uri.parse(url);
-    final response = await http.post(uri, body: jsonEncode(body), headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${AuthService.token}'
-    });
+      final url = "${ApiConfig.baseUrl}/catatan-haid";
+      final uri = Uri.parse(url);
 
-    print(response.statusCode);
-    print(response.body);
+      final response = await http.post(uri, body: jsonEncode(body), headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${AuthService.token}'
+      });
+
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception("Failed to save data: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error inside submitData: $e");
+      rethrow; // Lempar error agar ditangkap oleh _handleNext
+    }
   }
 
   bool _isAnyOptionSelected(int currentPageIndex) {
