@@ -26,6 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
 
+  @override
   void initState() {
     super.initState();
     getCurrentUser().then((userid) {
@@ -35,151 +36,124 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  late int countdown = 22;
+  // State Variables
   late DateTime _rangeStartDay = widget.startdate;
   late DateTime _rangeEndDay = widget.enddate;
   late DateTime _rangeStartDayplus30 =
       _rangeStartDay.add(const Duration(days: 30));
   late DateTime _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
 
-  // Stats data from backend
+  // Stats data from backend (Logic Baru)
   double? avgCycleLength;
   int? lastCycleLength;
   DateTime? predictedNextPeriod;
   int? daysUntilNextPeriod;
 
-  // late DateTime _startdate = DateTime.now();
-  // late DateTime _enddate = DateTime.now();
-
   Future<int?> getCurrentUser() async {
     final url = '${ApiConfig.baseUrl}/me';
     final uri = Uri.parse(url);
 
-    print("👤 DEBUG [HomePage]: Fetching current user from $url");
+    try {
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final userData = jsonData['user'];
 
-    print(
-        "👤 DEBUG [HomePage]: User API response status: ${response.statusCode}");
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      final userData = jsonData['user'];
-
-      if (userData != null && userData is Map) {
-        if (userData.containsKey('id')) {
-          print("✅ DEBUG [HomePage]: User ID retrieved: ${userData['id']}");
-          return userData['id'];
+        if (userData != null && userData is Map) {
+          if (userData.containsKey('id')) {
+            return userData['id'];
+          }
         }
       }
-      print("⚠️ DEBUG [HomePage]: User data is null or invalid");
-    } else {
-      print("❌ DEBUG [HomePage]: Failed to get user (${response.statusCode})");
+    } catch (e) {
+      print("Error fetching user: $e");
     }
     return null;
   }
 
   Future<void> getData(int userid) async {
-    print("🔄 DEBUG [HomePage]: Loading period data for user $userid");
-
     setState(() {
       isLoading = true;
     });
 
+    // 1. Fetch List Data (Untuk kebutuhan kalender range)
     final url = '${ApiConfig.baseUrl}/catatan-haid';
-    print("📅 DEBUG [HomePage]: Calling period API: $url");
-
     final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    print(
-        "📅 DEBUG [HomePage]: Period API response status: ${response.statusCode}");
-    print("📅 DEBUG [HomePage]: Period API response body: ${response.body}");
+    try {
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
-
-        if (data['start_date'] != null && data['end_date'] != null) {
-          print("📅 DEBUG [HomePage]: Start date: ${data['start_date']}");
-          print("📅 DEBUG [HomePage]: End date: ${data['end_date']}");
-
-          setState(() {
-            _rangeStartDay = DateTime.parse(data['start_date']);
-            _rangeEndDay = DateTime.parse(data['end_date']);
-          });
-          print("✅ DEBUG [HomePage]: Period dates updated successfully");
-        } else {
-          print("⚠️ DEBUG [HomePage]: Period dates are null");
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['data'] != null) {
+          final data = jsonData['data'];
+          if (data['start_date'] != null && data['end_date'] != null) {
+            setState(() {
+              _rangeStartDay = DateTime.parse(data['start_date']);
+              _rangeEndDay = DateTime.parse(data['end_date']);
+            });
+          }
         }
-      } else {
-        print("⚠️ DEBUG [HomePage]: Period data is null");
       }
-    } else {
-      print("❌ DEBUG [HomePage]: Period API error ${response.statusCode}");
+    } catch (e) {
+      print("Error fetching list data: $e");
     }
 
-    // Fetch stats data
+    // 2. Fetch stats data (Logic Utama Data)
     await getStats();
 
     setState(() {
       isLoading = false;
     });
-
-    print("🏁 DEBUG [HomePage]: Data loading completed");
   }
 
   Future<void> getStats({int months = 5}) async {
-    print("📊 DEBUG [HomePage]: Fetching stats for last $months months");
-
     final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
-    print("📊 DEBUG [HomePage]: Stats API URL: $url");
-
     final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    print("📊 DEBUG [HomePage]: Stats response status: ${response.statusCode}");
-    print("📊 DEBUG [HomePage]: Stats response body: ${response.body}");
+    try {
+      final response = await http
+          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        if (jsonData['data'] != null) {
+          final data = jsonData['data'];
 
-        print("📊 DEBUG [HomePage]: Processing stats data...");
-        print(
-            "📊 DEBUG [HomePage]: Avg cycle length: ${data['avg_cycle_length']}");
-        print(
-            "📊 DEBUG [HomePage]: Last cycle length: ${data['last_cycle_length']}");
-        print("📊 DEBUG [HomePage]: Next period data: ${data['next_period']}");
-
-        setState(() {
-          avgCycleLength = data['avg_cycle_length']?.toDouble();
-          lastCycleLength = data['last_cycle_length'];
-
-          if (data['next_period'] != null) {
-            if (data['next_period']['predicted_start'] != null) {
-              predictedNextPeriod =
-                  DateTime.parse(data['next_period']['predicted_start']);
-              print(
-                  "📊 DEBUG [HomePage]: Predicted next period: $predictedNextPeriod");
+          setState(() {
+            // Mapping Data: Avg & Last Cycle
+            // Menggunakan tryParse untuk keamanan tipe data
+            if (data['avg_cycle_length'] != null) {
+              avgCycleLength =
+                  double.tryParse(data['avg_cycle_length'].toString());
             }
-            daysUntilNextPeriod = data['next_period']['days_until'];
-            print(
-                "📊 DEBUG [HomePage]: Days until next period: $daysUntilNextPeriod");
-          }
-        });
+            if (data['last_cycle_length'] != null) {
+              lastCycleLength =
+                  int.tryParse(data['last_cycle_length'].toString());
+            }
 
-        print("✅ DEBUG [HomePage]: Stats updated successfully");
-      } else {
-        print("⚠️ DEBUG [HomePage]: Stats data is null");
+            // Mapping Data: Prediksi & Countdown
+            if (data['next_period'] != null) {
+              final nextPeriod = data['next_period'];
+
+              if (nextPeriod['days_until'] != null) {
+                daysUntilNextPeriod =
+                    int.tryParse(nextPeriod['days_until'].toString());
+              }
+
+              if (nextPeriod['predicted_start'] != null) {
+                predictedNextPeriod =
+                    DateTime.tryParse(nextPeriod['predicted_start']);
+              }
+            }
+          });
+        }
       }
-    } else {
-      print("❌ DEBUG [HomePage]: Stats API error ${response.statusCode}");
+    } catch (e) {
+      print("Error fetching stats: $e");
     }
   }
 
@@ -187,28 +161,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
-    print("nbb start date $_rangeStartDay");
-    print("uhu end date $_rangeEndDay");
 
-    // Use backend prediction or fallback to manual calculation
-    countdown = daysUntilNextPeriod ??
-        _rangeStartDayplus30.difference(DateTime.now()).inDays;
+    // LOGIC TAMPILAN (Updated)
+    // 1. Countdown: Jika null tampilkan "-", jika ada angka (termasuk 0) tampilkan angka.
+    String countdownDisplay =
+        daysUntilNextPeriod != null ? "$daysUntilNextPeriod" : "-";
 
-    // Use backend predicted date or fallback
-    DateTime nextPeriodDate = predictedNextPeriod ?? _rangeStartDayplus30;
-    String formattedStartDate =
-        DateFormat('d MMMM yyyy').format(nextPeriodDate);
+    // 2. Prediction Date: Format tanggal dari API
+    String predictionText = 'Prediction: -';
+    if (predictedNextPeriod != null) {
+      predictionText =
+          'Prediction: ${DateFormat('d MMMM yyyy').format(predictedNextPeriod!)}';
+    }
 
-    // Estimate end date based on avg cycle or default 7 days
-    int periodLength =
-        lastCycleLength ?? (_rangeEndDay.difference(_rangeStartDay).inDays);
-    DateTime estimatedEndDate =
-        nextPeriodDate.add(Duration(days: periodLength));
-    String formattedEndDate =
-        DateFormat('d MMMM yyyy').format(estimatedEndDate);
-
-    String prediction =
-        'Prediction: ' + formattedStartDate + ' - ' + formattedEndDate;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -714,7 +679,7 @@ class _HomePageState extends State<HomePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '$countdown Days',
+                                          '$countdownDisplay Days',
                                           style: const TextStyle(
                                             fontFamily: 'Plus Jakarta Sans',
                                             fontSize: 26,
@@ -850,7 +815,10 @@ class _HomePageState extends State<HomePage> {
                               child: _buildStatCard(
                                 icon: Icons.calendar_today_rounded,
                                 label: 'Last Cycle',
-                                value: lastCycleLength?.toString() ?? '-',
+                                // Tampilkan nilai jika ada (termasuk user dengan 1 cycle)
+                                value: (lastCycleLength != null)
+                                    ? lastCycleLength.toString()
+                                    : '-',
                                 unit: 'days',
                                 color: AppColors.primary,
                               ),
@@ -860,8 +828,10 @@ class _HomePageState extends State<HomePage> {
                               child: _buildStatCard(
                                 icon: Icons.show_chart_rounded,
                                 label: 'Avg Cycle',
-                                value:
-                                    avgCycleLength?.round().toString() ?? '-',
+                                // Tampilkan nilai jika ada (termasuk user dengan 1 cycle)
+                                value: (avgCycleLength != null)
+                                    ? avgCycleLength!.round().toString()
+                                    : '-',
                                 unit: 'days',
                                 color: AppColors.secondary,
                               ),
@@ -918,7 +888,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '$countdown Days',
+                                      '$countdownDisplay Days',
                                       style: const TextStyle(
                                         fontFamily: 'Plus Jakarta Sans',
                                         fontSize: 28,
@@ -944,7 +914,7 @@ class _HomePageState extends State<HomePage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                prediction,
+                                predictionText,
                                 style: const TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   fontSize: 12,
