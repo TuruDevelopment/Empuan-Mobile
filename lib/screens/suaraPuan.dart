@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:Empuan/config/api_config.dart';
+import 'package:Empuan/components/skeleton_loading.dart';
 import 'package:Empuan/screens/isiSuaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
@@ -116,7 +117,9 @@ class _SuaraPuanState extends State<SuaraPuan> {
                       Container(
                         child: Column(
                           children: [
-                            getDataSuaraPuan(dataSuaraPuan),
+                            isLoading
+                                ? buildSuaraPuanSkeletonList(itemCount: 4)
+                                : getDataSuaraPuan(dataSuaraPuan),
                           ],
                         ),
                       ),

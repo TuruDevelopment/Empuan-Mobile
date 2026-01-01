@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:Empuan/components/dataUntukPuan.dart';
+import 'package:Empuan/components/skeleton_loading.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
@@ -54,24 +55,26 @@ class _newUntukPuanState extends State<newUntukPuan> {
 
   @override
   Widget build(BuildContext context) {
-    final content = filteredData.isEmpty
-        ? const Padding(
-            padding: EdgeInsets.only(top: 80),
-            child: Center(
-              child: Text(
-                'Kategori ini belum memiliki data',
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+    final content = isLoading
+        ? buildUntukPuanSkeletonList(itemCount: 3)
+        : filteredData.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Center(
+                  child: Text(
+                    'Kategori ini belum memiliki data',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          )
-        : Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: getDataUntukPuan(filteredData),
-          );
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: getDataUntukPuan(filteredData),
+              );
 
     return Scaffold(
       resizeToAvoidBottomInset: false,

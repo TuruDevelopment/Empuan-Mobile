@@ -71,13 +71,13 @@ class _ChangePasswordState extends State<ChangePassword> {
     });
 
     try {
-      final url = '${ApiConfig.baseUrl}/user/profile';
+      final url = '${ApiConfig.baseUrl}/user/change-password';
       final uri = Uri.parse(url);
 
       print('DEBUG: Changing password at URL: $url');
       print('DEBUG: Token: ${AuthService.token?.substring(0, 20)}...');
 
-      // Using PATCH /user/profile endpoint with both current_password and password fields
+      // Using POST /user/change-password endpoint
       final Map<String, dynamic> requestBody = {
         'current_password': _currentPasswordController.text.trim(),
         'password': _newPasswordController.text.trim(),
@@ -86,11 +86,12 @@ class _ChangePasswordState extends State<ChangePassword> {
 
       print('DEBUG: Request body: $requestBody');
 
-      final response = await http.patch(
+      final response = await http.post(
         uri,
         headers: {
           'Authorization': 'Bearer ${AuthService.token}',
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: jsonEncode(requestBody),
       );
@@ -114,10 +115,22 @@ class _ChangePasswordState extends State<ChangePassword> {
           if (response.body.trim().startsWith('{') ||
               response.body.trim().startsWith('[')) {
             final jsonData = jsonDecode(response.body);
-            errorMessage = jsonData['errors'] ??
-                jsonData['message'] ??
-                jsonData['error'] ??
-                errorMessage;
+
+            // Handle nested errors object like {"errors": {"current_password": ["Current password is incorrect"]}}
+            if (jsonData['errors'] != null && jsonData['errors'] is Map) {
+              final errors = jsonData['errors'] as Map;
+              if (errors.isNotEmpty) {
+                final firstError = errors.values.first;
+                if (firstError is List && firstError.isNotEmpty) {
+                  errorMessage = firstError.first.toString();
+                } else {
+                  errorMessage = firstError.toString();
+                }
+              }
+            } else {
+              errorMessage =
+                  jsonData['message'] ?? jsonData['error'] ?? errorMessage;
+            }
           } else {
             errorMessage =
                 'Server error: Unable to change password. Please try again.';

@@ -219,7 +219,7 @@ class _AddContactState extends State<AddContact> {
                           ],
                         ),
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (nameController.text.trim().isEmpty ||
                                 numberController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -248,8 +248,10 @@ class _AddContactState extends State<AddContact> {
                               );
                               return;
                             }
-                            submitData();
-                            Navigator.pop(context);
+                            await submitData();
+                            if (mounted) {
+                              Navigator.pop(context);
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,

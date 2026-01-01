@@ -8,7 +8,7 @@ class ApiConfig {
 
   // Base URLs for different environments
   static const String _developmentUrl = 'https://empuan.turudev.tech/api';
-  static const String _productionUrl = 'https://empuan.turudev.tech/api';
+  static const String _productionUrl = 'https://empuanapp.id/api';
   static const String _stagingUrl = 'https://empuan.turudev.tech/api';
 
   // Get base URL based on environment

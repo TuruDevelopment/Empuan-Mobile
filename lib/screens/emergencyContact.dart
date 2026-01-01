@@ -67,25 +67,27 @@ class _EmergencyContactState extends State<EmergencyContact> {
                       child: Row(
                         children: [
                           Container(
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.error,
+                                  AppColors.error.withOpacity(0.7),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accent.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                                  color: AppColors.error.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: const Icon(
-                                Icons.arrow_back_rounded,
-                                color: AppColors.primary,
-                              ),
+                            child: const Icon(
+                              Icons.emergency_rounded,
+                              color: Colors.white,
+                              size: 28,
                             ),
                           ),
                           const SizedBox(width: 16),
