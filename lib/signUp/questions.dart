@@ -918,10 +918,23 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
   Future<void> submitData() async {
     try {
+      // 1. CEK TOKEN SEBELUM REQUEST
+      // Kita gunakan token langsung dari variable static AuthService
+      final token = AuthService.token;
+
+      if (token == null || token.isEmpty) {
+        print("❌ [SUBMIT DATA] Error: Token kosong. Login mungkin gagal.");
+        throw Exception(
+            "Authentication failed. Please check your internet connection.");
+      }
+
       final dateStart = dateInputController.text;
       final dateEnd = dateInputControllerend.text;
 
-      print("Sending Data: Start=$dateStart End=$dateEnd");
+      print("🔍 [SUBMIT DATA] Preparing request...");
+      print("   Token: ${token.substring(0, 10)}..."); // Print sebagian token
+      print("   Start: $dateStart");
+      print("   End:   $dateEnd");
 
       final body = {
         'start_date': dateStart,
@@ -931,20 +944,35 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       final url = "${ApiConfig.baseUrl}/catatan-haid";
       final uri = Uri.parse(url);
 
+      // 2. KIRIM REQUEST DENGAN HEADER LENGKAP
       final response = await http.post(uri, body: jsonEncode(body), headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${AuthService.token}'
+        'Accept':
+            'application/json', // Wajib untuk Laravel agar return JSON saat error
+        'Authorization': 'Bearer $token'
       });
 
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      print("📨 [RESPONSE] Status Code: ${response.statusCode}");
+      print("📨 [RESPONSE] Body: ${response.body}");
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception("Failed to save data: ${response.statusCode}");
+      // 3. ANALISA HASIL REQUEST
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print("✅ Data berhasil disimpan ke database!");
+      } else if (response.statusCode == 422) {
+        // INI YANG PALING PENTING: Error Validasi Laravel
+        print("❌ Data ditolak Server (Validasi Error).");
+        print(
+            "   Kemungkinan: Tanggal akhir lebih kecil dari tanggal awal ATAU Durasi < 2 hari.");
+        throw Exception("Data invalid: ${response.body}");
+      } else if (response.statusCode == 401) {
+        print("❌ Token Expired atau Tidak Valid.");
+        throw Exception("Session expired. Please login again.");
+      } else {
+        throw Exception("Server Error: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error inside submitData: $e");
-      rethrow; // Lempar error agar ditangkap oleh _handleNext
+      print("❌ Error inside submitData: $e");
+      rethrow;
     }
   }
 

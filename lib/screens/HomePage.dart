@@ -110,7 +110,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> getStats({int months = 5}) async {
+// Update fungsi ini di HomePage.dart
+  Future<void> getStats({int months = 6}) async {
     final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
     final uri = Uri.parse(url);
 
@@ -120,40 +121,55 @@ class _HomePageState extends State<HomePage> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
+
+        // Debugging
+        print("[DEBUG HOME STATS] JSON: $jsonData");
+
         if (jsonData['data'] != null) {
           final data = jsonData['data'];
 
-          setState(() {
-            // Mapping Data: Avg & Last Cycle
-            // Menggunakan tryParse untuk keamanan tipe data
-            if (data['avg_cycle_length'] != null) {
-              avgCycleLength =
-                  double.tryParse(data['avg_cycle_length'].toString());
-            }
-            if (data['last_cycle_length'] != null) {
-              lastCycleLength =
-                  int.tryParse(data['last_cycle_length'].toString());
-            }
-
-            // Mapping Data: Prediksi & Countdown
-            if (data['next_period'] != null) {
-              final nextPeriod = data['next_period'];
-
-              if (nextPeriod['days_until'] != null) {
-                daysUntilNextPeriod =
-                    int.tryParse(nextPeriod['days_until'].toString());
+          if (mounted) {
+            setState(() {
+              // --- 1. OVERVIEW (Untuk keperluan internal/future) ---
+              if (data['overview'] != null) {
+                // Opsional: simpan jika nanti butuh
+                // avgCycleLength = ...
               }
 
-              if (nextPeriod['predicted_start'] != null) {
-                predictedNextPeriod =
-                    DateTime.tryParse(nextPeriod['predicted_start']);
+              // --- 2. PREDICTION (Bagian Lingkaran Pink) ---
+              // Cek object 'prediction' (Format Baru) atau 'next_period' (Format Lama)
+              final prediction = data['prediction'] ?? data['next_period'];
+
+              if (prediction != null) {
+                // A. Countdown Hari (days_remaining)
+                // Backend mengirim 'days_remaining', kodingan lama 'days_until'
+                final daysRaw =
+                    prediction['days_remaining'] ?? prediction['days_until'];
+
+                if (daysRaw != null) {
+                  daysUntilNextPeriod = int.tryParse(daysRaw.toString());
+                }
+
+                // B. Tanggal Prediksi (predicted_date) -- INI FIX UTAMANYA --
+                // Backend mengirim 'predicted_date', kodingan lama 'predicted_start'
+                final dateRaw = prediction['predicted_date'] ??
+                    prediction['predicted_start'];
+
+                if (dateRaw != null) {
+                  predictedNextPeriod = DateTime.tryParse(dateRaw.toString());
+                  print("✅ Tanggal Prediksi Ditemukan: $predictedNextPeriod");
+                } else {
+                  print("❌ Tanggal Prediksi NULL di JSON");
+                }
               }
-            }
-          });
+            });
+          }
         }
+      } else {
+        print("[ERROR HOME] Status Code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error fetching stats: $e");
+      print("Error fetching home stats: $e");
     }
   }
 
@@ -162,12 +178,10 @@ class _HomePageState extends State<HomePage> {
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
 
-    // LOGIC TAMPILAN (Updated)
-    // 1. Countdown: Jika null tampilkan "-", jika ada angka (termasuk 0) tampilkan angka.
+    // LOGIC TAMPILAN
     String countdownDisplay =
         daysUntilNextPeriod != null ? "$daysUntilNextPeriod" : "-";
 
-    // 2. Prediction Date: Format tanggal dari API
     String predictionText = 'Prediction: -';
     if (predictedNextPeriod != null) {
       predictionText =
@@ -520,7 +534,7 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 16),
 
-                      // Quick Actions Row 2 - AI Chatbot and Period Tracker
+                      // Quick Actions Row 2
                       Row(
                         children: [
                           Expanded(
@@ -794,52 +808,8 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 24),
 
-                      // Period Tracker Section
-                      const Text(
-                        'Your Period Tracker',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: AppColors.primary,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Stats Cards Row
-                      if (!isLoading)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                icon: Icons.calendar_today_rounded,
-                                label: 'Last Cycle',
-                                // Tampilkan nilai jika ada (termasuk user dengan 1 cycle)
-                                value: (lastCycleLength != null)
-                                    ? lastCycleLength.toString()
-                                    : '-',
-                                unit: 'days',
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildStatCard(
-                                icon: Icons.show_chart_rounded,
-                                label: 'Avg Cycle',
-                                // Tampilkan nilai jika ada (termasuk user dengan 1 cycle)
-                                value: (avgCycleLength != null)
-                                    ? avgCycleLength!.round().toString()
-                                    : '-',
-                                unit: 'days',
-                                color: AppColors.secondary,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                      const SizedBox(height: 20),
+                      // --- BAGIAN YANG DIHAPUS (Title & Stats Row) ---
+                      // Langsung ke Period Tracker Card (Prediction)
 
                       // Period Tracker Card
                       Container(
