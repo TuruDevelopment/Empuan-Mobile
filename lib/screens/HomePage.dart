@@ -2,22 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:Empuan/components/dailyQuiz.dart';
-import 'package:Empuan/screens/catatanHaid.dart';
 import 'package:Empuan/screens/chatbot.dart';
 import 'package:Empuan/screens/newUntukPuan.dart';
 import 'package:Empuan/screens/suaraPuan.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:Empuan/config/api_config.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.startdate, required this.enddate});
-
-  final DateTime startdate;
-  final DateTime enddate;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -37,17 +32,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   // State Variables
-  late DateTime _rangeStartDay = widget.startdate;
-  late DateTime _rangeEndDay = widget.enddate;
+  late DateTime _rangeStartDay = DateTime.now();
+  late DateTime _rangeEndDay = DateTime.now();
   late DateTime _rangeStartDayplus30 =
       _rangeStartDay.add(const Duration(days: 30));
   late DateTime _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
-
-  // Stats data from backend (Logic Baru)
-  double? avgCycleLength;
-  int? lastCycleLength;
-  DateTime? predictedNextPeriod;
-  int? daysUntilNextPeriod;
 
   Future<int?> getCurrentUser() async {
     final url = '${ApiConfig.baseUrl}/me';
@@ -75,118 +64,14 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> getData(int userid) async {
     setState(() {
-      isLoading = true;
-    });
-
-    // 1. Fetch List Data (Untuk kebutuhan kalender range)
-    final url = '${ApiConfig.baseUrl}/catatan-haid';
-    final uri = Uri.parse(url);
-
-    try {
-      final response = await http
-          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-        if (jsonData['data'] != null) {
-          final data = jsonData['data'];
-          if (data['start_date'] != null && data['end_date'] != null) {
-            setState(() {
-              _rangeStartDay = DateTime.parse(data['start_date']);
-              _rangeEndDay = DateTime.parse(data['end_date']);
-            });
-          }
-        }
-      }
-    } catch (e) {
-      print("Error fetching list data: $e");
-    }
-
-    // 2. Fetch stats data (Logic Utama Data)
-    await getStats();
-
-    setState(() {
       isLoading = false;
     });
-  }
-
-// Update fungsi ini di HomePage.dart
-  Future<void> getStats({int months = 6}) async {
-    final url = '${ApiConfig.baseUrl}/catatan-haid/stats?months=$months';
-    final uri = Uri.parse(url);
-
-    try {
-      final response = await http
-          .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-
-        // Debugging
-        print("[DEBUG HOME STATS] JSON: $jsonData");
-
-        if (jsonData['data'] != null) {
-          final data = jsonData['data'];
-
-          if (mounted) {
-            setState(() {
-              // --- 1. OVERVIEW (Untuk keperluan internal/future) ---
-              if (data['overview'] != null) {
-                // Opsional: simpan jika nanti butuh
-                // avgCycleLength = ...
-              }
-
-              // --- 2. PREDICTION (Bagian Lingkaran Pink) ---
-              // Cek object 'prediction' (Format Baru) atau 'next_period' (Format Lama)
-              final prediction = data['prediction'] ?? data['next_period'];
-
-              if (prediction != null) {
-                // A. Countdown Hari (days_remaining)
-                // Backend mengirim 'days_remaining', kodingan lama 'days_until'
-                final daysRaw =
-                    prediction['days_remaining'] ?? prediction['days_until'];
-
-                if (daysRaw != null) {
-                  daysUntilNextPeriod = int.tryParse(daysRaw.toString());
-                }
-
-                // B. Tanggal Prediksi (predicted_date) -- INI FIX UTAMANYA --
-                // Backend mengirim 'predicted_date', kodingan lama 'predicted_start'
-                final dateRaw = prediction['predicted_date'] ??
-                    prediction['predicted_start'];
-
-                if (dateRaw != null) {
-                  predictedNextPeriod = DateTime.tryParse(dateRaw.toString());
-                  print("✅ Tanggal Prediksi Ditemukan: $predictedNextPeriod");
-                } else {
-                  print("❌ Tanggal Prediksi NULL di JSON");
-                }
-              }
-            });
-          }
-        }
-      } else {
-        print("[ERROR HOME] Status Code: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error fetching home stats: $e");
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     _rangeStartDayplus30 = _rangeStartDay.add(const Duration(days: 30));
     _rangeEndDayplus30 = _rangeEndDay.add(const Duration(days: 30));
-
-    // LOGIC TAMPILAN
-    String countdownDisplay =
-        daysUntilNextPeriod != null ? "$daysUntilNextPeriod" : "-";
-
-    String predictionText = 'Prediction: -';
-    if (predictedNextPeriod != null) {
-      predictionText =
-          'Prediction: ${DateFormat('d MMMM yyyy').format(predictedNextPeriod!)}';
-    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -250,7 +135,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           Text(
-                            'Your health companion',
+                            'Your daily companion',
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
@@ -351,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(height: 8),
                                   const Text(
-                                    'Your complete health companion for women',
+                                    'Your complete daily companion',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 13,
@@ -534,191 +419,84 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 16),
 
-                      // Quick Actions Row 2
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ChatbotScreen()));
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                height: 130,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFF7C4DFF),
-                                      Color(0xFF536DFE),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFF7C4DFF).withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.smart_toy_rounded,
-                                          color: Colors.white,
-                                          size: 26,
-                                        ),
-                                      ),
-                                      const Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'AI Assistant',
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(height: 3),
-                                          Text(
-                                            'Chat with AI',
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontSize: 10.5,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                      // Quick Actions Row 2 - Full width Chatbot
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  const ChatbotScreen()));
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          width: double.infinity,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF7C4DFF),
+                                Color(0xFF536DFE),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              height: 130,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    AppColors.accent,
-                                    AppColors.accent.withOpacity(0.7),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.accent.withOpacity(0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFF7C4DFF).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14.0),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius:
+                                        BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.smart_toy_rounded,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                ),
+                                const Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(7),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withOpacity(0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: const Icon(
-                                            Icons.access_time_rounded,
-                                            color: AppColors.primary,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withOpacity(0.15),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: const Text(
-                                            'Period in',
-                                            style: TextStyle(
-                                              fontFamily: 'Plus Jakarta Sans',
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.primary,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                    Text(
+                                      'AI Assistant',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '$countdownDisplay Days',
-                                          style: const TextStyle(
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontSize: 26,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primary,
-                                            height: 1.0,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        const Text(
-                                          'Next period',
-                                          style: TextStyle(
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontSize: 10,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                      ],
+                                    SizedBox(height: 3),
+                                    Text(
+                                      'Chat with AI',
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontSize: 10.5,
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
 
                       const SizedBox(height: 16),
@@ -804,168 +582,6 @@ class _HomePageState extends State<HomePage> {
                       Container(
                         height: 1,
                         color: AppColors.accent.withOpacity(0.3),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // --- BAGIAN YANG DIHAPUS (Title & Stats Row) ---
-                      // Langsung ke Period Tracker Card (Prediction)
-
-                      // Period Tracker Card
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.accent.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            // Circle Tracker
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset(
-                                  'images/homeCircle.png',
-                                  width: 200,
-                                  height: 200,
-                                ),
-                                Image.asset(
-                                  'images/homeElipse.png',
-                                  width: 200,
-                                  height: 200,
-                                ),
-                                Column(
-                                  children: [
-                                    const Text(
-                                      'Period in',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '$countdownDisplay Days',
-                                      style: const TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Prediction Text
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.accent.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                predictionText,
-                                style: const TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // See Details Button
-                            Container(
-                              width: double.infinity,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    AppColors.primaryVariant,
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  // Navigate to CatatanHaid and wait for result
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => CatatanHaid(
-                                        startdate: _rangeStartDay,
-                                        enddate: _rangeEndDay,
-                                      ),
-                                    ),
-                                  );
-
-                                  // Refresh data when coming back from CatatanHaid
-                                  final userid = await getCurrentUser();
-                                  if (userid != null) {
-                                    await getData(userid);
-                                  }
-                                },
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_month_rounded,
-                                      size: 20,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'See Details',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
 
                       const SizedBox(height: 100),

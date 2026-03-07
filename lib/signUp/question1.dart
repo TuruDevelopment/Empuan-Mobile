@@ -23,9 +23,10 @@ class Question1 extends StatefulWidget {
 
 class _Question1State extends State<Question1> {
   List<Map<String, dynamic>> checkListItems = [
-    {"id": 0, "selected": false, "title": 'My cycle is regular'},
-    {"id": 1, "selected": false, "title": 'My cycle is irregular'},
-    {"id": 2, "selected": false, "title": 'I don\'t know'},
+    {"id": 0, "selected": false, "title": 'Very active'},
+    {"id": 1, "selected": false, "title": 'Moderately active'},
+    {"id": 2, "selected": false, "title": 'Sedentary'},
+    {"id": 3, "selected": false, "title": 'I don\'t know'},
   ];
 
   @override
@@ -223,7 +224,7 @@ class _Question1State extends State<Question1> {
 
                         // Question Text
                         Text(
-                          'Is your menstrual cycle regular?',
+                          'How active is your daily lifestyle?',
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 24,
@@ -233,16 +234,6 @@ class _Question1State extends State<Question1> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          '(varies by no more than 7 days)',
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: 15,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-
-                        const SizedBox(height: 32),
 
                         // Options
                         Column(

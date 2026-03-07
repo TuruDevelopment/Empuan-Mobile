@@ -230,20 +230,20 @@ class _AllSetPageState extends State<AllSetPage>
                       child: Column(
                         children: [
                           _buildFeatureItem(
-                            icon: Icons.track_changes_rounded,
-                            title: 'Track Your Cycle',
-                            description: 'Monitor your menstrual health',
+                            icon: Icons.smart_toy_rounded,
+                            title: 'AI Assistant',
+                            description: 'Get instant answers to your questions',
                           ),
                           const SizedBox(height: 16),
                           _buildFeatureItem(
                             icon: Icons.self_improvement_rounded,
                             title: 'Personalized Insights',
-                            description: 'Get tailored health recommendations',
+                            description: 'Get tailored recommendations',
                           ),
                           const SizedBox(height: 16),
                           _buildFeatureItem(
                             icon: Icons.favorite_rounded,
-                            title: 'Holistic Wellness',
+                            title: 'Wellness Support',
                             description: 'Support for your entire journey',
                           ),
                         ],

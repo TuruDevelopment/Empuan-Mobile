@@ -8,16 +8,16 @@ import 'package:Empuan/screens/addEmergencyContact.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 
-class EmergencyContact extends StatefulWidget {
-  const EmergencyContact({super.key});
+class TrustedContacts extends StatefulWidget {
+  const TrustedContacts({super.key});
 
   @override
-  State<EmergencyContact> createState() {
-    return _EmergencyContactState();
+  State<TrustedContacts> createState() {
+    return _TrustedContactsState();
   }
 }
 
-class _EmergencyContactState extends State<EmergencyContact> {
+class _TrustedContactsState extends State<TrustedContacts> {
   bool isLoading = true;
 
   void initState() {
@@ -71,21 +71,21 @@ class _EmergencyContactState extends State<EmergencyContact> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColors.error,
-                                  AppColors.error.withOpacity(0.7),
+                                  AppColors.secondary,
+                                  AppColors.secondary.withOpacity(0.7),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.error.withOpacity(0.3),
+                                  color: AppColors.secondary.withOpacity(0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
                             child: const Icon(
-                              Icons.emergency_rounded,
+                              Icons.favorite_rounded,
                               color: Colors.white,
                               size: 28,
                             ),
@@ -96,7 +96,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Emergency Contacts',
+                                  'Trusted Contacts',
                                   style: TextStyle(
                                     fontFamily: 'Brodies',
                                     fontSize: 28,
@@ -105,7 +105,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                                   ),
                                 ),
                                 Text(
-                                  'Real emergency contacts',
+                                  'Your trusted safety contacts',
                                   style: TextStyle(
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontSize: 13,
@@ -128,10 +128,10 @@ class _EmergencyContactState extends State<EmergencyContact> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
+                          color: AppColors.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: AppColors.error.withOpacity(0.3),
+                            color: AppColors.secondary.withOpacity(0.3),
                             width: 1,
                           ),
                         ),
@@ -140,12 +140,12 @@ class _EmergencyContactState extends State<EmergencyContact> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
+                                color: AppColors.secondary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
-                                Icons.emergency_rounded,
-                                color: AppColors.error,
+                                Icons.shield_rounded,
+                                color: AppColors.secondary,
                                 size: 24,
                               ),
                             ),
@@ -155,17 +155,17 @@ class _EmergencyContactState extends State<EmergencyContact> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Emergency Contacts',
+                                    'Trusted Contacts',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: AppColors.error,
+                                      color: AppColors.secondary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Contacts to be notified in case of emergency',
+                                    'Contacts to be notified in case you need assistance',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
@@ -225,7 +225,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dataMore.isEmpty
                           ? _buildEmptyState()
-                          : getDataEmergencyContact(dataMore),
+                          : getDataTrustedContact(dataMore),
                     ),
                   ),
 
@@ -262,7 +262,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const AddEmergencyContact(),
+                                    const AddTrustedContact(),
                               ),
                             );
                             getData(); // Refresh after returning
@@ -329,18 +329,18 @@ class _EmergencyContactState extends State<EmergencyContact> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.1),
+              color: AppColors.secondary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.contact_emergency_rounded,
+              Icons.people_rounded,
               size: 48,
-              color: AppColors.error.withOpacity(0.7),
+              color: AppColors.secondary.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 20),
           Text(
-            'No Emergency Contacts',
+            'No Trusted Contacts',
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontWeight: FontWeight.bold,
@@ -350,7 +350,7 @@ class _EmergencyContactState extends State<EmergencyContact> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add contacts to be notified\nin case of emergency',
+            'Add contacts to be notified\nwhen you need assistance',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',

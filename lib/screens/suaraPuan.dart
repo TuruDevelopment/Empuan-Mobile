@@ -358,7 +358,7 @@ String getCategory(int id) {
   else if (id == 3)
     return 'News';
   else if (id == 4)
-    return 'Health';
+    return 'Lifestyle and Personal Growth';
   else
     return '-';
 }

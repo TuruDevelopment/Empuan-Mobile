@@ -6,7 +6,7 @@ import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
-Widget getDataEmergencyContact(List<dynamic> dataMore) {
+Widget getDataTrustedContact(List<dynamic> dataMore) {
   String name;
   String image = 'images/profileDefault.jpg';
   String number;
@@ -112,7 +112,7 @@ class ContactBox extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
-                              builder: (context) => EditEmergencyContact(
+                              builder: (context) => EditTrustedContact(
                                   name: name,
                                   image: image,
                                   number: number,
@@ -309,7 +309,7 @@ class ContactBox extends StatelessWidget {
             ],
           ),
           content: const Text(
-            'Are you sure you want to delete this emergency contact?',
+            'Are you sure you want to delete this trusted contact?',
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
@@ -333,7 +333,7 @@ class ContactBox extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                deleteEmergencyContact(id);
+                deleteTrustedContact(id);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
@@ -360,7 +360,7 @@ class ContactBox extends StatelessWidget {
     );
   }
 
-  Future<void> deleteEmergencyContact(String id) async {
+  Future<void> deleteTrustedContact(String id) async {
     // final id = dataMore.isNotEmpty ? dataMore[0]['id'] : "";
     final url = "${ApiConfig.baseUrl}/kontak-aman/$id";
     final uri = Uri.parse(url);

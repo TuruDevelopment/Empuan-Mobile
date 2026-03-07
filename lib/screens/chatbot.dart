@@ -63,13 +63,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           id: 0,
           role: 'assistant',
           message:
-              'Hello! I\'m your AI health companion specialized in women\'s health. I can help you with:\n\n'
-              '• Menstrual health and period tracking\n'
-              '• Reproductive health questions\n'
-              '• Mental health and wellness\n'
-              '• Pregnancy and maternal care\n'
-              '• Nutrition for women\n'
-              '• General health advice\n\n'
+              'Hello! I\'m your AI assistant. I can help you with:\n\n'
+              '• General questions and answers\n'
+              '• Daily tasks and productivity\n'
+              '• Learning and information\n'
+              '• Problem solving\n'
+              '• Creative writing\n'
+              '• And much more!\n\n'
               'How can I assist you today? 💬',
           timestamp: DateTime.now(),
         ));
@@ -305,7 +305,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'AI Health Assistant',
+                  'AI Assistant',
                   style: TextStyle(
                     fontFamily: 'Brodies',
                     fontSize: 18,
@@ -426,7 +426,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Ask me anything about women\'s health,\nmenstrual cycles, wellness, and more!',
+              'Ask me anything! I\'m here to help\nwith your questions and tasks!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',

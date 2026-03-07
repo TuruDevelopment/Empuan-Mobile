@@ -8,14 +8,14 @@ import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
-class AddEmergencyContact extends StatefulWidget {
-  const AddEmergencyContact({super.key});
+class AddTrustedContact extends StatefulWidget {
+  const AddTrustedContact({super.key});
 
   @override
-  State<AddEmergencyContact> createState() => _AddEmergencyContactState();
+  State<AddTrustedContact> createState() => _AddTrustedContactState();
 }
 
-class _AddEmergencyContactState extends State<AddEmergencyContact> {
+class _AddTrustedContactState extends State<AddTrustedContact> {
   bool isLoading = true;
 
   void initState() {
@@ -83,7 +83,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Text(
-                        'Add Emergency Contact',
+                        'Add Trusted Contact',
                         style: TextStyle(
                           fontFamily: 'Brodies',
                           fontSize: 26,
@@ -265,13 +265,13 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
                               Icon(
-                                Icons.emergency_rounded,
+                                Icons.favorite_rounded,
                                 size: 24,
                                 color: Colors.white,
                               ),
                               SizedBox(width: 12),
                               Text(
-                                'Save Emergency Contact',
+                                'Save Trusted Contact',
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
@@ -527,7 +527,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
 
     // Debug: Print request details
     print('═══════════════════════════════════════════════════════');
-    print('🔍 CREATE EMERGENCY CONTACT - Debug Info:');
+    print('🔍 CREATE TRUSTED CONTACT - Debug Info:');
     print('───────────────────────────────────────────────────────');
     print('Request URL: $url');
     print('Request Body: ${jsonEncode(body)}');
@@ -571,7 +571,7 @@ class _AddEmergencyContactState extends State<AddEmergencyContact> {
                   Icon(Icons.check_circle_rounded, color: Colors.white),
                   SizedBox(width: 12),
                   Text(
-                    'Emergency contact added successfully!',
+                    'Trusted contact added successfully!',
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,

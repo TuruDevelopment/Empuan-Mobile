@@ -6,15 +6,15 @@ import 'package:Empuan/styles/style.dart';
 class NavBar extends StatelessWidget {
   final int pageIndex;
   final Function(int) onTap;
-  final bool sosActive;
-  final VoidCallback onPanicPressed;
+  final bool quickAlertActive;
+  final VoidCallback onQuickAlertPressed;
 
   const NavBar({
     Key? key,
     required this.pageIndex,
     required this.onTap,
-    required this.sosActive,
-    required this.onPanicPressed,
+    required this.quickAlertActive,
+    required this.onQuickAlertPressed,
   }) : super(key: key);
 
   @override
@@ -74,7 +74,7 @@ class NavBar extends StatelessWidget {
                 pageIndex == 1,
                 onTap: () => onTap(1),
               ),
-              _buildPanicButton(),
+              _buildQuickAlertButton(),
               navItem(
                 Icons.phone_rounded,
                 'Fake Call',
@@ -94,12 +94,12 @@ class NavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildPanicButton() {
+  Widget _buildQuickAlertButton() {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: GestureDetector(
-          onTap: onPanicPressed,
+          onTap: onQuickAlertPressed,
           child: Container(
             width: 56,
             height: 56,
@@ -108,7 +108,7 @@ class NavBar extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: sosActive
+                colors: quickAlertActive
                     ? [
                         AppColors.secondary,
                         AppColors.secondary.withOpacity(0.8),
@@ -120,7 +120,7 @@ class NavBar extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: sosActive
+                  color: quickAlertActive
                       ? AppColors.secondary.withOpacity(0.3)
                       : AppColors.error.withOpacity(0.3),
                   blurRadius: 12,
@@ -129,7 +129,7 @@ class NavBar extends StatelessWidget {
               ],
             ),
             child: Icon(
-              sosActive ? Icons.close_rounded : Icons.crisis_alert_rounded,
+              quickAlertActive ? Icons.close_rounded : Icons.notifications_active_rounded,
               size: 28,
               color: Colors.white,
             ),

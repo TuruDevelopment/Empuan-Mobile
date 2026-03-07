@@ -132,10 +132,10 @@ class _PanggilPuanState extends State<PanggilPuan> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
+                          color: AppColors.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: AppColors.error.withOpacity(0.3),
+                            color: AppColors.secondary.withOpacity(0.3),
                             width: 1,
                           ),
                         ),
@@ -144,12 +144,12 @@ class _PanggilPuanState extends State<PanggilPuan> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
+                                color: AppColors.secondary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
-                                Icons.info_outline_rounded,
-                                color: AppColors.error,
+                                Icons.phone_in_talk_rounded,
+                                color: AppColors.secondary,
                                 size: 24,
                               ),
                             ),
@@ -159,17 +159,17 @@ class _PanggilPuanState extends State<PanggilPuan> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Fake Call Feature',
+                                    'Quick Call Feature',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: AppColors.error,
+                                      color: AppColors.secondary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Simulate calls from trusted contacts for emergency situations',
+                                    'Simulate calls from trusted contacts for personal situations',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
@@ -356,7 +356,7 @@ class _PanggilPuanState extends State<PanggilPuan> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your first emergency contact\nto get started',
+            'Add your first trusted contact\nto get started',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',

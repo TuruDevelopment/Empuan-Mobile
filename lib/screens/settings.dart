@@ -201,16 +201,16 @@ class _SettingsState extends State<Settings> {
 
                       const SizedBox(height: 24),
 
-                      // Emergency Contacts - Special Card
+                      // Trusted Contacts - Special Card
                       _buildModernSettingsCard(
-                        icon: Icons.contact_emergency_rounded,
-                        title: 'Emergency Contacts',
-                        subtitle: 'Manage your safety contacts',
-                        iconColor: AppColors.error,
+                        icon: Icons.people_rounded,
+                        title: 'Trusted Contacts',
+                        subtitle: 'Manage your trusted contacts',
+                        iconColor: AppColors.secondary,
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => EmergencyContact(),
+                              builder: (context) => TrustedContacts(),
                             ),
                           );
                         },
@@ -425,7 +425,7 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  // Modern Settings Card (for special items like Emergency Contacts)
+  // Modern Settings Card (for special items like Trusted Contacts)
   Widget _buildModernSettingsCard({
     required IconData icon,
     required String title,

@@ -118,13 +118,13 @@ class PrivacyPolicy extends StatelessWidget {
                         _buildSection(
                           title: '2. Information We Collect',
                           content:
-                              'We collect several types of information to provide and improve our services:\n\n• Personal Information: Name, email address, date of birth, phone number, and profile picture\n\n• Health Information: Menstrual cycle data, period start and end dates, symptoms, and related health information\n\n• Emergency Contacts: Names and phone numbers of your emergency contacts\n\n• Community Content: Posts, comments, and interactions in Suara Puan and Ruang Puan forums\n\n• Usage Data: App usage patterns, features accessed, and interaction data\n\n• Device Information: Device type, operating system, unique device identifiers, and mobile network information\n\n• Location Data: Location information when using emergency features (with your permission)',
+                              'We collect several types of information to provide and improve our services:\n\n• Personal Information: Name, email address, date of birth, phone number, and profile picture\n\n• Personal Preferences: Lifestyle preferences, activity levels, and related personal information\n\n• Trusted Contacts: Names and phone numbers of your trusted contacts\n\n• Community Content: Posts, comments, and interactions in Suara Puan and Ruang Puan forums\n\n• Usage Data: App usage patterns, features accessed, and interaction data\n\n• Device Information: Device type, operating system, unique device identifiers, and mobile network information\n\n• Location Data: Location information when using safety features (with your permission)',
                         ),
 
                         _buildSection(
                           title: '3. How We Use Your Information',
                           content:
-                              'We use your information for the following purposes:\n\n• To provide and maintain the App\'s functionality\n• To personalize your experience and provide tailored health insights\n• To send notifications about your menstrual cycle and health reminders\n• To enable communication in community forums\n• To facilitate emergency contact features and safety services\n• To improve our App through analytics and user feedback\n• To respond to your questions and support requests\n• To detect, prevent, and address technical issues or fraud\n• To comply with legal obligations',
+                              'We use your information for the following purposes:\n\n• To provide and maintain the App\'s functionality\n• To personalize your experience and provide tailored recommendations\n• To send notifications about your activities and reminders\n• To enable communication in community forums\n• To facilitate trusted contact features and safety services\n• To improve our App through analytics and user feedback\n• To respond to your questions and support requests\n• To detect, prevent, and address technical issues or fraud\n• To comply with legal obligations',
                         ),
 
                         _buildSection(

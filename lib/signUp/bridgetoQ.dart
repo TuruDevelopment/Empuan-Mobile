@@ -91,7 +91,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    'Before that, we have a set of questions for you. These questions are used for period tracker data.',
+                    'Before that, we have a set of questions for you. These questions help us personalize your experience.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',

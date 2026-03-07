@@ -130,19 +130,19 @@ class TermsOfService extends StatelessWidget {
                         _buildSection(
                           title: '4. Use of the App',
                           content:
-                              'Empuan is designed to provide women with health information, period tracking, emergency contacts, and community support. You agree to:\n\n• Use the App only for lawful purposes\n• Not violate any local, national, or international laws\n• Not transmit harmful, offensive, or inappropriate content\n• Respect other users\' privacy and rights\n• Not attempt to hack, disrupt, or misuse the App',
+                              'Empuan is designed to provide women with lifestyle information, personal tracking, trusted contacts, and community support. You agree to:\n\n• Use the App only for lawful purposes\n• Not violate any local, national, or international laws\n• Not transmit harmful, offensive, or inappropriate content\n• Respect other users\' privacy and rights\n• Not attempt to hack, disrupt, or misuse the App',
                         ),
 
                         _buildSection(
-                          title: '5. Health Information Disclaimer',
+                          title: '5. Information Disclaimer',
                           content:
-                              'The health information and AI assistant provided through Empuan are for informational purposes only and should not be considered medical advice. Always consult with qualified healthcare professionals for medical concerns. Empuan is not responsible for any decisions made based on information provided through the App.',
+                              'The information and AI assistant provided through Empuan are for informational purposes only and should not be considered professional advice. Always consult with qualified professionals for specific concerns. Empuan is not responsible for any decisions made based on information provided through the App.',
                         ),
 
                         _buildSection(
-                          title: '6. Emergency Features',
+                          title: '6. Safety Features',
                           content:
-                              'Empuan provides emergency contact features including panic button and fake call functionality. While we strive to ensure these features work properly, we cannot guarantee their availability or functionality in all situations. In case of actual emergency, always contact local emergency services (112 in Indonesia).',
+                              'Empuan provides safety contact features including quick alert button and simulated call functionality. While we strive to ensure these features work properly, we cannot guarantee their availability or functionality in all situations. In case of actual emergency, always contact local authorities or emergency services immediately.',
                         ),
 
                         _buildSection(

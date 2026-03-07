@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/screens/HomePage.dart';
-import 'package:Empuan/screens/catatanHaid.dart';
 import 'package:Empuan/screens/more.dart';
 import 'package:Empuan/screens/nav_bar.dart';
 import 'package:Empuan/screens/nav_model.dart';
@@ -34,7 +33,6 @@ class _MainScreenState extends State<MainScreen> {
   // }
 
   final homeNavKey = GlobalKey<NavigatorState>();
-  final haidNavKey = GlobalKey<NavigatorState>();
   final panggilNavKey = GlobalKey<NavigatorState>();
   final moreNavKey = GlobalKey<NavigatorState>();
   int _selectedTab = 0;
@@ -45,41 +43,18 @@ class _MainScreenState extends State<MainScreen> {
     _selectedTab = value;
   }
 
-  // void initState() {
-
-  // }
-
-  bool isLoading = true;
   List<NavModel> items = [];
   List<String> phoneNumbers = [];
 
-  // late DateTime _startdate = DateTime.now();
-  // late DateTime _enddate = DateTime.now();
-
-  late DateTime _startdate = DateTime.now();
-  late DateTime _enddate = DateTime.now();
-
-  bool sosActive = false;
+  bool quickAlertActive = false;
 
   void _buildItems() {
     items = [
       NavModel(
         page: HomePage(
-          key: ValueKey(
-              'home_${_startdate.toString()}'), // Force rebuild on data change
-          startdate: _startdate,
-          enddate: _enddate,
+          key: ValueKey('home_${DateTime.now().toString()}'),
         ),
         navKey: homeNavKey,
-      ),
-      NavModel(
-        page: CatatanHaid(
-          key: ValueKey(
-              'haid_${_startdate.toString()}'), // Force rebuild on data change
-          startdate: _startdate,
-          enddate: _enddate,
-        ),
-        navKey: haidNavKey,
       ),
       NavModel(
         page: PanggilPuan(),
@@ -100,8 +75,7 @@ class _MainScreenState extends State<MainScreen> {
 
     getCurrentUser().then((userid) {
       if (userid != null) {
-        getData(userid);
-        getDataKontakAman(); // Load emergency contacts on init
+        getDataKontakAman(); // Load trusted contacts on init
       }
     });
   }
@@ -146,15 +120,15 @@ class _MainScreenState extends State<MainScreen> {
             ? null
             : NavBar(
                 pageIndex: selectedTab,
-                sosActive: sosActive,
-                onPanicPressed: () {
-                  if (sosActive) {
+                quickAlertActive: quickAlertActive,
+                onQuickAlertPressed: () {
+                  if (quickAlertActive) {
                     setState(() {
-                      sosActive = false;
+                      quickAlertActive = false;
                     });
                   } else {
                     setState(() {
-                      sosActive = true;
+                      quickAlertActive = true;
                     });
                     location();
                     _showLocationSharedDialog();
@@ -170,14 +144,6 @@ class _MainScreenState extends State<MainScreen> {
                     setState(() {
                       selectedTab = index;
                     });
-
-                    // Refresh data when switching to HomePage or CatatanHaid tab
-                    if (index == 0 || index == 1) {
-                      final userid = await getCurrentUser();
-                      if (userid != null) {
-                        await getData(userid);
-                      }
-                    }
                   }
                 },
               ),
@@ -199,44 +165,6 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
     return null;
-  }
-
-  Future<void> getData(int userid) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    final url = '${ApiConfig.baseUrl}/catatan-haid';
-    final response = await ApiClient.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['data'] != null) {
-        final data = jsonData['data'];
-
-        if (data['start_date'] != null && data['end_date'] != null) {
-          print('[NAV_SCREEN] 🔄 Updating period data:');
-          print('[NAV_SCREEN] Old: $_startdate to $_enddate');
-          print(
-              '[NAV_SCREEN] New: ${data['start_date']} to ${data['end_date']}');
-
-          setState(() {
-            _startdate = DateTime.parse(data['start_date']);
-            _enddate = DateTime.parse(data['end_date']);
-            _buildItems(); // Rebuild items with new data
-          });
-
-          print('[NAV_SCREEN] ✅ Period data updated and widgets rebuilt');
-        }
-      }
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-
-    print(response.statusCode);
-    print('data pas api tarik' + response.body);
   }
 
   Future<bool> _handleLocationPermission() async {
@@ -284,7 +212,7 @@ class _MainScreenState extends State<MainScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content:
-                  Text('SMS permission is required to send emergency messages'),
+                  Text('SMS permission is required to send alert messages'),
               duration: Duration(seconds: 3),
             ),
           );
@@ -319,14 +247,14 @@ class _MainScreenState extends State<MainScreen> {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission || !mounted) return;
 
-    // Fetch emergency contacts first
-    print('Fetching emergency contacts before sending SMS...');
+    // Fetch trusted contacts first
+    print('Fetching trusted contacts before sending SMS...');
     await getDataKontakAman();
 
     if (phoneNumbers.isEmpty) {
       if (mounted) {
         setState(() {
-          sosActive = false; // Reset SOS state
+          quickAlertActive = false; // Reset Quick Alert state
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -336,7 +264,7 @@ class _MainScreenState extends State<MainScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'No emergency contacts found. Please add emergency contacts first.',
+                    'No trusted contacts found. Please add trusted contacts first.',
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
@@ -374,12 +302,12 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _launchUrl(double? lat, double? long) async {
     Uri _url = Uri.parse('https://www.google.com/maps/search/${lat},${long}');
     String message =
-        '🚨 EMERGENCY! I need help immediately. This is an automated message from the Empuan app. Please check my location: https://www.google.com/maps/search/${lat},${long}';
+        '🚨 I need assistance right now. This is an automated message from the Empuan app. Please check my location: https://www.google.com/maps/search/${lat},${long}';
 
-    print('Sending emergency SMS to contacts');
+    print('Sending alert SMS to contacts');
     print('Location URL: $_url');
-    print('Emergency contacts count: ${phoneNumbers.length}');
-    print('Emergency contacts: $phoneNumbers');
+    print('Trusted contacts count: ${phoneNumbers.length}');
+    print('Trusted contacts: $phoneNumbers');
 
     // SMS functionality only works on mobile platforms
     if (!kIsWeb) {
@@ -399,7 +327,7 @@ class _MainScreenState extends State<MainScreen> {
             phoneNumbers.isNotEmpty ? phoneNumbers : listNum.cast<String>();
 
         if (recipients.isEmpty) {
-          print('❌ No emergency contacts found');
+          print('❌ No trusted contacts found');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -409,7 +337,7 @@ class _MainScreenState extends State<MainScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'No emergency contacts configured',
+                        'No trusted contacts configured',
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontSize: 14,
@@ -527,7 +455,7 @@ class _MainScreenState extends State<MainScreen> {
                   Icon(Icons.check_circle, color: Colors.white),
                   SizedBox(width: 12),
                   Text(
-                    'Emergency SMS sent to $successCount contact(s)',
+                    'Alert SMS sent to $successCount contact(s)',
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
@@ -583,7 +511,7 @@ class _MainScreenState extends State<MainScreen> {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Emergency SMS error: ${e.toString()}',
+                      'Alert SMS error: ${e.toString()}',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
@@ -649,7 +577,7 @@ class _MainScreenState extends State<MainScreen> {
       List<String> tempPhoneNumbers = [];
       for (var data in result) {
         final phoneNumber = data['phoneNumber'].toString();
-        print('Loading emergency contact: $phoneNumber');
+        print('Loading trusted contact: $phoneNumber');
         tempPhoneNumbers.add(phoneNumber);
       }
 
@@ -658,7 +586,7 @@ class _MainScreenState extends State<MainScreen> {
         phoneNumbers = tempPhoneNumbers;
       });
 
-      print('Emergency contacts loaded: ${phoneNumbers.length} numbers');
+      print('Trusted contacts loaded: ${phoneNumbers.length} numbers');
       print('Phone numbers: $phoneNumbers');
     }
 
@@ -720,7 +648,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Your location has been shared\nwith your emergency contacts",
+                  "Your location has been shared\nwith your trusted contacts",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',

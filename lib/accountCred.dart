@@ -378,7 +378,7 @@ class _AccountCredState extends State<AccountCred> {
                                   Navigator.of(context).push(MaterialPageRoute(
                                     builder: (context) => BridgetoQ(
                                       username: usernameController.text,
-                                      email: emailController.text,
+                                      email: widget.email,
                                       password: passwordController.text,
                                     ),
                                   ));

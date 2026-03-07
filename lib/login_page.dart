@@ -178,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     // Description
                     Text(
-                      'Your holistic health journey awaits 🌸',
+                      'Your personal journey awaits 🌸',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary.withOpacity(0.8),

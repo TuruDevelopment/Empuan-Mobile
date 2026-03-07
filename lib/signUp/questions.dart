@@ -1,15 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/signUp/allSetPage.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
-import 'package:http/http.dart' as http;
-
-import 'package:Empuan/config/api_config.dart';
 
 class questions extends StatefulWidget {
   // questions({Key? key}) : super(key: key);
@@ -33,9 +26,10 @@ double progressPercentage = 0.2;
 
 class _questionsState extends State<questions> with TickerProviderStateMixin {
   List<Map<String, dynamic>> question1 = [
-    {"id": 0, "selected": false, "title": 'My cycle is regular'},
-    {"id": 1, "selected": false, "title": 'My cycle is irregular'},
-    {"id": 2, "selected": false, "title": 'I don\'t know'},
+    {"id": 0, "selected": false, "title": 'Very active'},
+    {"id": 1, "selected": false, "title": 'Moderately active'},
+    {"id": 2, "selected": false, "title": 'Sedentary'},
+    {"id": 3, "selected": false, "title": 'I don\'t know'},
   ];
   List<Map<String, dynamic>> question3 = [
     {"id": 0, "selected": false, "title": 'No, I sleep well'},
@@ -47,13 +41,13 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     {"id": 6, "selected": false, "title": 'Other'},
   ];
   List<Map<String, dynamic>> question4 = [
-    {"id": 0, "selected": false, "title": 'Painful menstrual cramps'},
-    {"id": 1, "selected": false, "title": 'PMS symptoms'},
-    {"id": 2, "selected": false, "title": 'Unusual discharge'},
-    {"id": 3, "selected": false, "title": 'Heavy menstrual flow'},
-    {"id": 4, "selected": false, "title": 'Mood Swings'},
+    {"id": 0, "selected": false, "title": 'Stress management'},
+    {"id": 1, "selected": false, "title": 'Energy levels'},
+    {"id": 2, "selected": false, "title": 'Mood balance'},
+    {"id": 3, "selected": false, "title": 'Physical fitness'},
+    {"id": 4, "selected": false, "title": 'Nutrition'},
     {"id": 5, "selected": false, "title": 'Other'},
-    {"id": 6, "selected": false, "title": 'No, nothings bother me'},
+    {"id": 6, "selected": false, "title": 'No, nothing bothers me'},
   ];
   List<Map<String, dynamic>> question5 = [
     {"id": 0, "selected": false, "title": 'None'},
@@ -67,19 +61,13 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   late PageController _pageViewController = PageController();
   late TabController _tabController;
   int _currentPageIndex = 0;
-  late TextEditingController dateInputController;
-  late TextEditingController dateInputControllerend;
-  bool dontKnowSelected = false;
-  bool dontKnowSelectedEnd = false;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
     _pageViewController = PageController();
-    _tabController = TabController(length: 5, vsync: this);
-    dateInputController = TextEditingController();
-    dateInputControllerend = TextEditingController();
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -205,7 +193,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Question ${_currentPageIndex + 1} of 5',
+                            'Question ${_currentPageIndex + 1} of 4',
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
@@ -214,7 +202,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                             ),
                           ),
                           Text(
-                            '${(((_currentPageIndex + 1) / 5) * 100).toInt()}%',
+                            '${(((_currentPageIndex + 1) / 4) * 100).toInt()}%',
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 13,
@@ -230,7 +218,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                         child: LinearPercentIndicator(
                           padding: EdgeInsets.zero,
                           lineHeight: 8.0,
-                          percent: (_currentPageIndex + 1) / 5,
+                          percent: (_currentPageIndex + 1) / 4,
                           backgroundColor: AppColors.accent.withOpacity(0.3),
                           linearGradient: LinearGradient(
                             colors: [
@@ -257,25 +245,23 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                   children: [
                     _buildQuestionPage(
                       questionNumber: 1,
-                      question: 'Is your menstrual cycle regular?',
-                      subtitle: '(varies by no more than 7 days)',
+                      question: 'How active is your daily lifestyle?',
                       options: question1,
                     ),
-                    _buildDateQuestionPage(),
                     _buildQuestionPage(
-                      questionNumber: 3,
+                      questionNumber: 2,
                       question:
                           'Is there anything you want to improve about your sleep?',
                       options: question3,
                     ),
                     _buildQuestionPage(
-                      questionNumber: 4,
+                      questionNumber: 3,
                       question:
                           'Do you experience discomfort due to any of the following?',
                       options: question4,
                     ),
                     _buildQuestionPage(
-                      questionNumber: 5,
+                      questionNumber: 4,
                       question: 'What\'s your fitness goal?',
                       options: question5,
                     ),
@@ -387,7 +373,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
                                     ),
                                   )
                                 : Text(
-                                    _currentPageIndex == 4
+                                    _currentPageIndex == 3
                                         ? 'Finish'
                                         : 'Save & Next',
                                     style: TextStyle(
@@ -505,240 +491,6 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildDateQuestionPage() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-
-            // Question Number Badge
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                'Question 2',
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Question 1: Start Date
-            Text(
-              'When did your last period start?',
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-                height: 1.3,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Start Date Picker
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                controller: dateInputController,
-                readOnly: true,
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 15,
-                  color: AppColors.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Select start date',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    color: AppColors.textSecondary.withOpacity(0.6),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.calendar_today_rounded,
-                    color: AppColors.primary,
-                    size: 22,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
-                  ),
-                ),
-                onTap: () async {
-                  setState(() {
-                    dontKnowSelected = false;
-                  });
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(1950),
-                    lastDate: DateTime(2050),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: AppColors.primary,
-                            onPrimary: Colors.white,
-                            onSurface: AppColors.textPrimary,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-
-                  if (pickedDate != null) {
-                    setState(() {
-                      dateInputController.text =
-                          DateFormat('yyyy-MM-dd').format(pickedDate);
-                    });
-                  }
-                },
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Question 2: End Date
-            Text(
-              'When did your last period end?',
-              style: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-                height: 1.3,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // End Date Picker
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                controller: dateInputControllerend,
-                readOnly: true,
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 15,
-                  color: AppColors.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Select end date',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    color: AppColors.textSecondary.withOpacity(0.6),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.calendar_today_rounded,
-                    color: AppColors.primary,
-                    size: 22,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
-                  ),
-                ),
-                onTap: () async {
-                  setState(() {
-                    dontKnowSelectedEnd = false;
-                  });
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(1950),
-                    lastDate: DateTime(2050),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: AppColors.primary,
-                            onPrimary: Colors.white,
-                            onSurface: AppColors.textPrimary,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-
-                  if (pickedDate != null) {
-                    setState(() {
-                      dateInputControllerend.text =
-                          DateFormat('yyyy-MM-dd').format(pickedDate);
-                    });
-                  }
-                },
-              ),
-            ),
-
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildModernOption({
     required String title,
     required bool isSelected,
@@ -816,10 +568,6 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   }
 
   bool _canProceed() {
-    if (_currentPageIndex == 1) {
-      return dateInputController.text.isNotEmpty &&
-          dateInputControllerend.text.isNotEmpty;
-    }
     return _isAnyOptionSelected(_currentPageIndex);
   }
 
@@ -832,38 +580,11 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
     try {
       // Logic untuk halaman terakhir (Finish)
-      if (_currentPageIndex == 4) {
+      if (_currentPageIndex == 3) {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const AllSetPage()),
         );
         return;
-      }
-
-      // LOGIC PENYIMPANAN DATA (HALAMAN 1 / DATE INPUT)
-      if (_currentPageIndex == 1 && dateInputController.text.isNotEmpty) {
-        print('[DEBUG] Submitting period data...');
-
-        // 1. Lakukan Login untuk mendapatkan Token
-        await doLogin();
-
-        // Cek apakah Login berhasil (Token tersedia)
-        if (AuthService.token != null && AuthService.token!.isNotEmpty) {
-          // 2. Langsung Submit Data (Hapus ketergantungan pada getIdByUsername)
-          // Backend biasanya mengenali user dari Token, bukan dari ID manual.
-          print("[DEBUG] Token acquired, submitting data...");
-          await submitData();
-
-          // JANGAN LOGOUT DI SINI.
-          // Biarkan user tetap login agar bisa lanjut ke halaman Home nanti.
-        } else {
-          print("[ERROR] Login failed. Cannot submit data.");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Login failed. Please check connection.')),
-          );
-          // Hentikan proses jika login gagal
-          return;
-        }
       }
 
       // Pindah ke halaman berikutnya
@@ -887,103 +608,14 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> doLogin() async {
-    final email2 = widget.email;
-    final password2 = widget.password;
-
-    bool isSuccess =
-        await AuthService().login(email: email2, password: password2);
-
-    if (!isSuccess) {
-      print(isSuccess);
-    }
-  }
-
-  Future<String?> getIdByUsername(String username) async {
-    final url = '${ApiConfig.baseUrl}/users/username/$username';
-    final uri = Uri.parse(url);
-    final response = await http
-        .get(uri, headers: {'Authorization': 'Bearer ${AuthService.token}'});
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map;
-      final result = json['data'];
-      if (result != null && result.containsKey('id')) {
-        return result['id'].toString();
-      }
-    }
-
-    return null;
-  }
-
-  Future<void> submitData() async {
-    try {
-      // 1. CEK TOKEN SEBELUM REQUEST
-      // Kita gunakan token langsung dari variable static AuthService
-      final token = AuthService.token;
-
-      if (token == null || token.isEmpty) {
-        print("❌ [SUBMIT DATA] Error: Token kosong. Login mungkin gagal.");
-        throw Exception(
-            "Authentication failed. Please check your internet connection.");
-      }
-
-      final dateStart = dateInputController.text;
-      final dateEnd = dateInputControllerend.text;
-
-      print("🔍 [SUBMIT DATA] Preparing request...");
-      print("   Token: ${token.substring(0, 10)}..."); // Print sebagian token
-      print("   Start: $dateStart");
-      print("   End:   $dateEnd");
-
-      final body = {
-        'start_date': dateStart,
-        'end_date': dateEnd,
-      };
-
-      final url = "${ApiConfig.baseUrl}/catatan-haid";
-      final uri = Uri.parse(url);
-
-      // 2. KIRIM REQUEST DENGAN HEADER LENGKAP
-      final response = await http.post(uri, body: jsonEncode(body), headers: {
-        'Content-Type': 'application/json',
-        'Accept':
-            'application/json', // Wajib untuk Laravel agar return JSON saat error
-        'Authorization': 'Bearer $token'
-      });
-
-      print("📨 [RESPONSE] Status Code: ${response.statusCode}");
-      print("📨 [RESPONSE] Body: ${response.body}");
-
-      // 3. ANALISA HASIL REQUEST
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        print("✅ Data berhasil disimpan ke database!");
-      } else if (response.statusCode == 422) {
-        // INI YANG PALING PENTING: Error Validasi Laravel
-        print("❌ Data ditolak Server (Validasi Error).");
-        print(
-            "   Kemungkinan: Tanggal akhir lebih kecil dari tanggal awal ATAU Durasi < 2 hari.");
-        throw Exception("Data invalid: ${response.body}");
-      } else if (response.statusCode == 401) {
-        print("❌ Token Expired atau Tidak Valid.");
-        throw Exception("Session expired. Please login again.");
-      } else {
-        throw Exception("Server Error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("❌ Error inside submitData: $e");
-      rethrow;
-    }
-  }
-
   bool _isAnyOptionSelected(int currentPageIndex) {
     if (currentPageIndex == 0) {
       return question1.any((item) => item['selected'] == true);
-    } else if (currentPageIndex == 2) {
+    } else if (currentPageIndex == 1) {
       return question3.any((item) => item['selected'] == true);
-    } else if (currentPageIndex == 3) {
+    } else if (currentPageIndex == 2) {
       return question4.any((item) => item['selected'] == true);
-    } else if (currentPageIndex == 4) {
+    } else if (currentPageIndex == 3) {
       return question5.any((item) => item['selected'] == true);
     }
     return false;

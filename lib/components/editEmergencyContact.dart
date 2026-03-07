@@ -6,8 +6,8 @@ import 'package:Empuan/services/auth_service.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:http/http.dart' as http;
 
-class EditEmergencyContact extends StatefulWidget {
-  const EditEmergencyContact(
+class EditTrustedContact extends StatefulWidget {
+  const EditTrustedContact(
       {super.key,
       required this.name,
       required this.image,
@@ -20,10 +20,10 @@ class EditEmergencyContact extends StatefulWidget {
   final String relation;
 
   @override
-  State<EditEmergencyContact> createState() => _EditEmergencyContactState();
+  State<EditTrustedContact> createState() => _EditTrustedContactState();
 }
 
-class _EditEmergencyContactState extends State<EditEmergencyContact> {
+class _EditTrustedContactState extends State<EditTrustedContact> {
   bool isLoading = true;
 
   @override
@@ -98,7 +98,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                     // Title
                     Expanded(
                       child: Text(
-                        'Edit Emergency Contact',
+                        'Edit Trusted Contact',
                         style: TextStyle(
                           fontFamily: 'Brodies',
                           fontWeight: FontWeight.bold,
@@ -147,7 +147,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      // Avatar with SOS indicator
+                      // Avatar with trust indicator
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -156,13 +156,13 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColors.error,
-                                  AppColors.error.withOpacity(0.8),
+                                  AppColors.secondary,
+                                  AppColors.secondary.withOpacity(0.8),
                                 ],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.error.withOpacity(0.3),
+                                  color: AppColors.secondary.withOpacity(0.3),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -176,7 +176,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                               child: Icon(
                                 Icons.person_rounded,
                                 size: 50,
-                                color: AppColors.error,
+                                color: AppColors.secondary,
                               ),
                             ),
                           ),
@@ -188,8 +188,8 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    AppColors.error,
-                                    AppColors.error.withOpacity(0.8),
+                                    AppColors.secondary,
+                                    AppColors.secondary.withOpacity(0.8),
                                   ],
                                 ),
                                 shape: BoxShape.circle,
@@ -199,7 +199,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                                 ),
                               ),
                               child: const Icon(
-                                Icons.crisis_alert_rounded,
+                                Icons.favorite_rounded,
                                 color: Colors.white,
                                 size: 20,
                               ),
@@ -220,7 +220,7 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Emergency Badge
+                      // Trusted Badge
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -229,8 +229,8 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.error,
-                              AppColors.error.withOpacity(0.8),
+                              AppColors.secondary,
+                              AppColors.secondary.withOpacity(0.8),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
@@ -239,13 +239,13 @@ class _EditEmergencyContactState extends State<EditEmergencyContact> {
                           mainAxisSize: MainAxisSize.min,
                           children: const [
                             Icon(
-                              Icons.emergency_rounded,
+                              Icons.favorite_rounded,
                               color: Colors.white,
                               size: 16,
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'Emergency Contact',
+                              'Trusted Contact',
                               style: TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.bold,

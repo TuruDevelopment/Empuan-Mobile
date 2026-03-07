@@ -15,10 +15,10 @@ class Question4 extends StatefulWidget {
 
 class _Question4State extends State<Question4> {
   List<Map<String, dynamic>> checkListItems = [
-    {"id": 0, "selected": false, "title": 'Painful menstrual cramps'},
-    {"id": 1, "selected": false, "title": 'PMS symptoms'},
-    {"id": 2, "selected": false, "title": 'Unusual discharge'},
-    {"id": 3, "selected": false, "title": 'Heavy menstrual flow'},
+    {"id": 0, "selected": false, "title": 'Stress management'},
+    {"id": 1, "selected": false, "title": 'Energy levels'},
+    {"id": 2, "selected": false, "title": 'Mood balance'},
+    {"id": 3, "selected": false, "title": 'Physical fitness'},
     {"id": 4, "selected": false, "title": 'Mood Swings'},
     {"id": 5, "selected": false, "title": 'Other'},
     {"id": 6, "selected": false, "title": 'No, nothings bother me'},

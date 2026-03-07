@@ -143,7 +143,7 @@ class _StartPageState extends State<StartPage> {
 
                     // Subtitle
                     const Text(
-                      'Strength & Holistic Health',
+                      'Strength & Wellness',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
