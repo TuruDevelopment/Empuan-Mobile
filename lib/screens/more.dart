@@ -286,27 +286,26 @@ class _MoreState extends State<More> {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        if (index < posts.length) {
-                          final post = posts[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0,
-                              vertical: 6.0,
-                            ),
-                            child: MoreBox(
-                              teks: post['threadName'] ?? '',
-                              date: post['threadDate'] ?? '',
-                              likeCount: post['like']?.toString() ?? '0',
-                              commentCount:
-                                  post['comments_count']?.toString() ?? '0',
-                              idRuangPuan: post['id'] ?? 0,
-                              initialIsLiked: post['is_liked'] == true,
-                            ),
-                          );
-                        }
-                        return null;
+                        final post = posts[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0,
+                            vertical: 6.0,
+                          ),
+                          child: MoreBox(
+                            teks: post['threadName'] ?? '',
+                            date: post['threadDate'] ?? '',
+                            likeCount: post['like']?.toString() ?? '0',
+                            commentCount:
+                                post['comments_count']?.toString() ?? '0',
+                            idRuangPuan: post['id'] ?? 0,
+                            initialIsLiked: post['is_liked'] == true,
+                          ),
+                        );
                       },
                       childCount: posts.length,
+                      addAutomaticKeepAlives: true,
+                      addRepaintBoundaries: true,
                     ),
                   ),
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // import 'package:Empuan/signUpPage.dart';
 import 'package:Empuan/start_page.dart';
 import 'package:Empuan/styles/style.dart';
-import 'package:Empuan/tempSignUpPage.dart';
+import 'package:Empuan/signUp/tempSignUpPage.dart';
 
 class Intro extends StatefulWidget {
   const Intro({super.key});
@@ -454,7 +454,7 @@ class PageIndicator extends StatelessWidget {
                       if (currentPageIndex == 2) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const tempSignUpPage(),
+                            builder: (context) => tempSignUpPage(),
                           ),
                         );
                         return;

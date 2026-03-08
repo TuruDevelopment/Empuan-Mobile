@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:Empuan/signUp/allSetPage.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
+import 'package:http/http.dart' as http;
+import 'package:Empuan/config/api_config.dart';
+import 'package:Empuan/services/auth_service.dart';
 
 class questions extends StatefulWidget {
   // questions({Key? key}) : super(key: key);
@@ -10,12 +15,14 @@ class questions extends StatefulWidget {
   final String username;
   final String email;
   final String password;
+  final String token;
 
   const questions({
     Key? key,
     required this.username,
     required this.email,
     required this.password,
+    required this.token,
   }) : super(key: key);
 
   @override
@@ -47,7 +54,7 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     {"id": 3, "selected": false, "title": 'Physical fitness'},
     {"id": 4, "selected": false, "title": 'Nutrition'},
     {"id": 5, "selected": false, "title": 'Other'},
-    {"id": 6, "selected": false, "title": 'No, nothing bothers me'},
+    {"id": 6, "selected": false, 'title': 'No, nothing bothers me'},
   ];
   List<Map<String, dynamic>> question5 = [
     {"id": 0, "selected": false, "title": 'None'},
@@ -58,16 +65,23 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     {"id": 5, "selected": false, "title": 'Get more energy'},
     {"id": 6, "selected": false, "title": 'Other'},
   ];
+  
+  // Store actual backend question/option IDs
+  Map<int, int> questionIdMap = {}; // frontend_id -> backend_question_id
+  Map<int, Map<int, int>> optionIdMap = {}; // frontend_question_id -> (frontend_option_id -> backend_option_id)
+  
   late PageController _pageViewController = PageController();
   late TabController _tabController;
   int _currentPageIndex = 0;
   bool _isSubmitting = false;
+  bool _isLoadingQuestions = true;
 
   @override
   void initState() {
     super.initState();
     _pageViewController = PageController();
     _tabController = TabController(length: 4, vsync: this);
+    _fetchWellnessQuestions();
   }
 
   @override
@@ -77,11 +91,129 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     _tabController.dispose();
   }
 
+  Future<void> _fetchWellnessQuestions() async {
+    print('[ONBOARDING] Fetching wellness questions from backend...');
+    
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/wellness/questions?type=wellness&limit=10');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Accept': 'application/json',
+        },
+      );
+
+      print('[ONBOARDING] Fetch questions status: ${response.statusCode}');
+      print('[ONBOARDING] Fetch questions response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final questions = data['data'] as List;
+        
+        print('[ONBOARDING] Received ${questions.length} questions');
+
+        // Map backend questions to frontend question indices
+        // Frontend: 0=activity, 1=sleep, 2=wellness, 3=fitness
+        int questionIndex = 0;
+        for (var q in questions) {
+          final qId = q['id'] as int;
+          final qText = q['question'] as String;
+          final options = q['options'] as List;
+          
+          print('[ONBOARDING] === Question $questionIndex ===');
+          print('[ONBOARDING] Backend ID: $qId');
+          print('[ONBOARDING] Text: $qText');
+          print('[ONBOARDING] Options: ${options.map((o) => "${o['id']}: ${o['text']}").join(", ")}');
+          
+          // Map by index order (assumes backend returns questions in same order as frontend)
+          if (questionIndex == 0) {
+            // Activity level question
+            questionIdMap[0] = qId;
+            optionIdMap[0] = {};
+            for (var i = 0; i < options.length && i < question1.length; i++) {
+              optionIdMap[0]![i] = options[i]['id'] as int;
+              print('[ONBOARDING]   Map option $i (${question1[i]['title']}) -> ${options[i]['id']}');
+            }
+          } else if (questionIndex == 1) {
+            // Sleep question
+            questionIdMap[1] = qId;
+            optionIdMap[1] = {};
+            for (var i = 0; i < options.length && i < question3.length; i++) {
+              optionIdMap[1]![i] = options[i]['id'] as int;
+              print('[ONBOARDING]   Map option $i (${question3[i]['title']}) -> ${options[i]['id']}');
+            }
+          } else if (questionIndex == 2) {
+            // Wellness concerns question
+            questionIdMap[2] = qId;
+            optionIdMap[2] = {};
+            for (var i = 0; i < options.length && i < question4.length; i++) {
+              optionIdMap[2]![i] = options[i]['id'] as int;
+              print('[ONBOARDING]   Map option $i (${question4[i]['title']}) -> ${options[i]['id']}');
+            }
+          }
+          
+          questionIndex++;
+        }
+
+        print('[ONBOARDING] === Final Mapping ===');
+        print('[ONBOARDING] Question ID map: $questionIdMap');
+        print('[ONBOARDING] Option ID map: $optionIdMap');
+      }
+
+      setState(() => _isLoadingQuestions = false);
+    } catch (e) {
+      print('[ONBOARDING] Error fetching questions: $e');
+      setState(() => _isLoadingQuestions = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // cek username ama password
     print("q username: ${widget.username}");
     print("q password: ${widget.password}");
+
+    // Show loading while fetching questions
+    if (_isLoadingQuestions) {
+      return Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.background,
+                AppColors.surface,
+                AppColors.accent.withOpacity(0.15),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Loading questions...',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -574,28 +706,27 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
   Future<void> _handleNext() async {
     if (_isSubmitting) return;
 
-    print('[DEBUG] _handleNext called, page: $_currentPageIndex');
+    print('[ONBOARDING] _handleNext called, page: $_currentPageIndex');
 
     setState(() => _isSubmitting = true);
 
     try {
       // Logic untuk halaman terakhir (Finish)
       if (_currentPageIndex == 3) {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const AllSetPage()),
-        );
+        // Submit onboarding data before navigating
+        await _submitOnboarding();
         return;
       }
 
       // Pindah ke halaman berikutnya
       _updateCurrentPageIndex(_currentPageIndex + 1);
     } catch (e, stackTrace) {
-      print('[ERROR] _handleNext failed: $e');
-      print('[ERROR] Stack trace: $stackTrace');
+      print('[ONBOARDING] _handleNext failed: $e');
+      print('[ONBOARDING] Stack trace: $stackTrace');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('An error occurred. Please try again.'),
             backgroundColor: AppColors.error,
           ),
@@ -604,6 +735,165 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _submitOnboarding() async {
+    print('[ONBOARDING] Starting onboarding submission...');
+
+    // Collect answers from all questions
+    final selectedActivity = question1.firstWhere((item) => item['selected'] == true);
+    final selectedSleep = question3.firstWhere((item) => item['selected'] == true);
+    final selectedWellness = question4.firstWhere((item) => item['selected'] == true);
+
+    // Map frontend selections to backend expected values
+    final activityLevel = selectedActivity['title'];
+    final sleepQuality = selectedSleep['title'];
+    final wellnessConcerns = [selectedWellness['title']];
+
+    print('[ONBOARDING] Activity Level: $activityLevel');
+    print('[ONBOARDING] Sleep Quality: $sleepQuality');
+    print('[ONBOARDING] Wellness Concerns: $wellnessConcerns');
+
+    // Get backend question/option IDs
+    final backendQuestionId1 = questionIdMap[0]; // activity
+    final backendQuestionId2 = questionIdMap[1]; // sleep
+    final backendQuestionId4 = questionIdMap[2]; // wellness
+    
+    final backendOptionId1 = optionIdMap[0]?[selectedActivity['id']];
+    final backendOptionId2 = optionIdMap[1]?[selectedSleep['id']];
+    final backendOptionId4 = optionIdMap[2]?[selectedWellness['id']];
+
+    print('[ONBOARDING] Backend Question IDs: Q1=$backendQuestionId1, Q2=$backendQuestionId2, Q4=$backendQuestionId4');
+    print('[ONBOARDING] Backend Option IDs: Opt1=$backendOptionId1, Opt2=$backendOptionId2, Opt4=$backendOptionId4');
+
+    // Show loading indicator
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Text('Saving your preferences...'),
+            ],
+          ),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+
+    // Prepare request body with actual backend IDs
+    final answers = <Map<String, dynamic>>[];
+    
+    if (backendQuestionId1 != null && backendOptionId1 != null) {
+      answers.add({
+        'question_id': backendQuestionId1,
+        'option_id': backendOptionId1,
+        'answer_text': null,
+        'answer_type': 'wellness',
+      });
+    }
+    if (backendQuestionId2 != null && backendOptionId2 != null) {
+      answers.add({
+        'question_id': backendQuestionId2,
+        'option_id': backendOptionId2,
+        'answer_text': null,
+        'answer_type': 'wellness',
+      });
+    }
+    if (backendQuestionId4 != null && backendOptionId4 != null) {
+      answers.add({
+        'question_id': backendQuestionId4,
+        'option_id': backendOptionId4,
+        'answer_text': null,
+        'answer_type': 'wellness',
+      });
+    }
+
+    final body = {
+      'answers': answers,
+      'activity_level': activityLevel,
+      'sleep_quality': sleepQuality,
+      'wellness_concerns': wellnessConcerns,
+    };
+
+    print('[ONBOARDING] Submitting to: ${ApiConfig.baseUrl}/onboarding/submit');
+    print('[ONBOARDING] Request body: $body');
+
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/onboarding/submit');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('[ONBOARDING] Response status: ${response.statusCode}');
+      print('[ONBOARDING] Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('[ONBOARDING] ✅ Onboarding submitted successfully');
+        
+        // Save token to AuthService for future API calls
+        AuthService.token = widget.token;
+        
+        // Navigate to success page
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AllSetPage()),
+            (route) => false, // Remove all previous routes
+          );
+        }
+      } else {
+        print('[ONBOARDING] ❌ Onboarding submission failed');
+        final errorData = jsonDecode(response.body);
+        print('[ONBOARDING] Error: $errorData');
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save preferences: ${errorData['message'] ?? 'Unknown error'}'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('[ONBOARDING] ❌ Exception during onboarding submission: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Network error. Please check your connection.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
       }
     }
   }

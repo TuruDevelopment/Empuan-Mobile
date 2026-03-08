@@ -8,11 +8,13 @@ class BridgetoQ extends StatefulWidget {
   final String username;
   final String email;
   final String password;
+  final String token;
   const BridgetoQ({
     Key? key,
     required this.username,
     required this.email,
     required this.password,
+    required this.token,
   }) : super(key: key);
 
   @override
@@ -240,6 +242,7 @@ class _BridgetoQState extends State<BridgetoQ> {
                             username: widget.username,
                             email: widget.email,
                             password: widget.password,
+                            token: widget.token,
                           ),
                         ),
                       );

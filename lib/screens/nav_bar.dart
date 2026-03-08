@@ -60,32 +60,43 @@ class NavBar extends StatelessWidget {
           height: 68,
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              navItem(
-                Icons.home_rounded,
-                'Home',
-                pageIndex == 0,
-                onTap: () => onTap(0),
+              // Left side - Home (takes 2 menu spaces)
+              Expanded(
+                flex: 2,
+                child: navItem(
+                  Icons.home_rounded,
+                  'Home',
+                  pageIndex == 0,
+                  onTap: () => onTap(0),
+                ),
               ),
-              navItem(
-                Icons.calendar_month_rounded,
-                'Diary',
-                pageIndex == 1,
-                onTap: () => onTap(1),
-              ),
+              // Quick Alert Button (center)
               _buildQuickAlertButton(),
-              navItem(
-                Icons.phone_rounded,
-                'Fake Call',
-                pageIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              navItem(
-                Icons.more_horiz_rounded,
-                'More',
-                pageIndex == 3,
-                onTap: () => onTap(3),
+              // Right side - Panggil Puan and Her Space
+              Expanded(
+                flex: 2,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: navItem(
+                        Icons.phone_rounded,
+                        'Panggil',
+                        pageIndex == 1,
+                        onTap: () => onTap(1),
+                      ),
+                    ),
+                    Expanded(
+                      child: navItem(
+                        Icons.forum_rounded,
+                        'Space',
+                        pageIndex == 2,
+                        onTap: () => onTap(2),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -95,44 +106,42 @@ class NavBar extends StatelessWidget {
   }
 
   Widget _buildQuickAlertButton() {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: GestureDetector(
-          onTap: onQuickAlertPressed,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: quickAlertActive
-                    ? [
-                        AppColors.secondary,
-                        AppColors.secondary.withOpacity(0.8),
-                      ]
-                    : [
-                        AppColors.error,
-                        AppColors.error.withOpacity(0.8),
-                      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GestureDetector(
+        onTap: onQuickAlertPressed,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: quickAlertActive
+                  ? [
+                      AppColors.secondary,
+                      AppColors.secondary.withOpacity(0.8),
+                    ]
+                  : [
+                      AppColors.error,
+                      AppColors.error.withOpacity(0.8),
+                    ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: quickAlertActive
+                    ? AppColors.secondary.withOpacity(0.3)
+                    : AppColors.error.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: quickAlertActive
-                      ? AppColors.secondary.withOpacity(0.3)
-                      : AppColors.error.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              quickAlertActive ? Icons.close_rounded : Icons.notifications_active_rounded,
-              size: 28,
-              color: Colors.white,
-            ),
+            ],
+          ),
+          child: Icon(
+            quickAlertActive ? Icons.close_rounded : Icons.notifications_active_rounded,
+            size: 28,
+            color: Colors.white,
           ),
         ),
       ),

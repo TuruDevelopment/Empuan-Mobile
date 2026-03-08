@@ -6,10 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:Empuan/screens/takePhoto.dart';
 import 'package:Empuan/signUp/bridgetoQ.dart';
+import 'package:Empuan/signUp/questions.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 import 'package:Empuan/config/api_config.dart';
 
 class tempSignUpPage extends StatefulWidget {
@@ -788,7 +788,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
     );
   }
 
-  Future<void> RegistrationUser(
+  Future<Map<String, dynamic>?> RegistrationUser(
       var firstNameController,
       var dateInputController,
       var emailController,
@@ -800,9 +800,10 @@ class _tempSignUpPageState extends State<tempSignUpPage>
     final username = usernameController.text;
     final password = passwordController.text;
 
-    print('Name: $name');
-    print('DOB: $dob');
-    print('Email: $email');
+    print('[REGISTRATION] Starting registration for: $username');
+    print('[REGISTRATION] Name: $name');
+    print('[REGISTRATION] DOB: $dob');
+    print('[REGISTRATION] Email: $email');
 
     final body = {
       "name": name,
@@ -811,16 +812,40 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "username": username,
       "password": password,
       "gender": "Perempuan",
+      "app_version": "general", // IMPORTANT: Set to "general" for wellness app
     };
 
     final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
+    
+    print('[REGISTRATION] POST to: $url');
+    print('[REGISTRATION] Body: $body');
+    
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     });
 
-    print(response.statusCode);
-    print(response.body);
+    print('[REGISTRATION] Response status: ${response.statusCode}');
+    print('[REGISTRATION] Response body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = jsonDecode(response.body);
+      print('[REGISTRATION] ✅ Registration successful');
+      print('[REGISTRATION] Token: ${responseData['token']}');
+      
+      // Return token and user data
+      return {
+        'token': responseData['token'],
+        'user': responseData['user'],
+        'username': username,
+        'email': email,
+        'password': password,
+      };
+    } else {
+      print('[REGISTRATION] ❌ Registration failed');
+      return null;
+    }
   }
 }
 
@@ -852,7 +877,12 @@ class PageIndicator extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final bool isImageUploaded;
-  final Function registrationUser;
+  final Future<Map<String, dynamic>?> Function(
+      TextEditingController,
+      TextEditingController,
+      TextEditingController,
+      TextEditingController,
+      TextEditingController) registrationUser;
 
   @override
   Widget build(BuildContext context) {
@@ -919,7 +949,7 @@ class PageIndicator extends StatelessWidget {
               ],
             ),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Page 1: Personal Details
                 if (currentPageIndex == 0) {
                   if (formKey.currentState!.validate() == false) {
@@ -950,22 +980,68 @@ class PageIndicator extends StatelessWidget {
                 // Page 3: Account Credentials
                 if (currentPageIndex == 2) {
                   if (formKey.currentState!.validate()) {
-                    registrationUser(
+                    // Show loading
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text('Creating account...'),
+                          ],
+                        ),
+                        backgroundColor: AppColors.primary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+
+                    // Register user
+                    final result = await registrationUser(
                       firstNameController,
                       dateInputController,
                       emailController,
                       usernameController,
                       passwordController,
                     );
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BridgetoQ(
-                          username: usernameController.text,
-                          email: emailController.text,
-                          password: passwordController.text,
+
+                    if (result != null) {
+                      // Registration successful, navigate to questions with token
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => questions(
+                            username: usernameController.text,
+                            email: emailController.text,
+                            password: passwordController.text,
+                            token: result['token'], // Pass the auth token
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      // Registration failed
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Registration failed. Please try again.'),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
                   }
                   return;
                 }

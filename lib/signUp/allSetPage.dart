@@ -3,7 +3,9 @@ import 'package:Empuan/login_page.dart';
 import 'package:Empuan/styles/style.dart';
 
 class AllSetPage extends StatefulWidget {
-  const AllSetPage({super.key});
+  final bool onboardingCompleted;
+  
+  const AllSetPage({super.key, this.onboardingCompleted = true});
 
   @override
   State<AllSetPage> createState() => _AllSetPageState();
@@ -158,7 +160,9 @@ class _AllSetPageState extends State<AllSetPage>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Registration Complete',
+                              widget.onboardingCompleted 
+                                  ? 'Onboarding Complete' 
+                                  : 'Registration Complete',
                               style: TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontSize: 13,
@@ -194,7 +198,9 @@ class _AllSetPageState extends State<AllSetPage>
                     FadeTransition(
                       opacity: _fadeAnimation ?? AlwaysStoppedAnimation(1.0),
                       child: Text(
-                        'Sign up process has been completed.',
+                        widget.onboardingCompleted
+                            ? 'Your profile has been set up successfully.'
+                            : 'Sign up process has been completed.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
@@ -211,7 +217,9 @@ class _AllSetPageState extends State<AllSetPage>
                     FadeTransition(
                       opacity: _fadeAnimation ?? AlwaysStoppedAnimation(1.0),
                       child: Text(
-                        'Let\'s log on to your account!',
+                        widget.onboardingCompleted
+                            ? 'You\'re ready to get started!'
+                            : 'Let\'s log on to your account!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
