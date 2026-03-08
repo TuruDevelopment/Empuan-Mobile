@@ -800,6 +800,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
     final username = usernameController.text;
     final password = passwordController.text;
 
+    print('[REGISTRATION] Health App Version - Registering user...');
     print('Name: $name');
     print('DOB: $dob');
     print('Email: $email');
@@ -811,16 +812,22 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "username": username,
       "password": password,
       "gender": "Perempuan",
+      "app_version": "health",  // ← HEALTH APP VERSION
     };
 
     final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
     final response = await http.post(uri, body: jsonEncode(body), headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     });
 
-    print(response.statusCode);
-    print(response.body);
+    print('[REGISTRATION] Response status: ${response.statusCode}');
+    print('[REGISTRATION] Response body: ${response.body}');
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('[REGISTRATION] ✅ Registration successful for HEALTH app version');
+    }
   }
 }
 

@@ -67,10 +67,20 @@ class ApiClient {
 
   /// Handle API response and check for token expiration
   static Future<void> _handleResponse(http.Response response) async {
-    if (response.statusCode == 401 || response.statusCode == 403) {
+    // Only logout on 401 (Unauthorized) - token is invalid/expired
+    // DO NOT logout on 403 (Forbidden) - user is authenticated but lacks permission
+    if (response.statusCode == 401) {
       print(
           '[API_CLIENT] ⚠️ Token expired or invalid (${response.statusCode})');
+      print('[API_CLIENT] Triggering session expired handler...');
       await AuthService.handleSessionExpired();
+    } else if (response.statusCode == 403) {
+      // 403 Forbidden - User is authenticated but lacks permission
+      // This is OK - don't trigger logout, just log the error
+      print(
+          '[API_CLIENT] ℹ️ Access forbidden (${response.statusCode}) - User lacks permission');
+      print('[API_CLIENT] Response: ${response.body}');
+      print('[API_CLIENT] NOT triggering logout - this is a permission issue, not auth issue');
     }
   }
 }

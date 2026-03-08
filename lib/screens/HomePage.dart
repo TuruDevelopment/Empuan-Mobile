@@ -78,6 +78,44 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
+    // First, check user's app version
+    final appVersion = await _checkAppVersion();
+    print('[HOME] User app version: $appVersion');
+
+    // If general version, try auto-upgrade to health
+    if (appVersion == 'general') {
+      print('[HOME] User is general version, attempting auto-upgrade...');
+      final upgraded = await _autoUpgradeToHealth();
+      if (upgraded) {
+        print('[HOME] Successfully auto-upgraded to health version');
+      } else {
+        print('[HOME] Auto-upgrade failed or not needed, skipping period tracking');
+        // User is general version and couldn't upgrade - show message but don't crash
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Period tracking is available for Health version users'),
+              backgroundColor: AppColors.secondary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
+            ),
+          );
+        }
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+    }
+
     // 1. Fetch List Data (Untuk kebutuhan kalender range)
     final url = '${ApiConfig.baseUrl}/catatan-haid';
     final uri = Uri.parse(url);
@@ -97,6 +135,21 @@ class _HomePageState extends State<HomePage> {
             });
           }
         }
+      } else if (response.statusCode == 403) {
+        print('[HOME] 403 Forbidden - User needs health version');
+        // Handle gracefully - user is general version
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Upgrade to Health version for period tracking'),
+              backgroundColor: AppColors.secondary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       print("Error fetching list data: $e");
@@ -108,6 +161,116 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  // Check user's app version
+  Future<String> _checkAppVersion() async {
+    try {
+      final url = '${ApiConfig.baseUrl}/me';
+      final uri = Uri.parse(url);
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer ${AuthService.token}'},
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final user = jsonData['user'];
+        if (user != null && user['app_version'] != null) {
+          return user['app_version'];
+        }
+      }
+    } catch (e) {
+      print('[HOME] Error checking app version: $e');
+    }
+    return 'general'; // Default to general
+  }
+
+  // Auto-upgrade user from general to health
+  Future<bool> _autoUpgradeToHealth() async {
+    try {
+      final url = '${ApiConfig.baseUrl}/wellness/upgrade-to-health';
+      final uri = Uri.parse(url);
+      
+      // Get current token - make sure it's the full token
+      String? token = AuthService.token;
+      
+      print('[HOME] ═══════════════════════════════════════');
+      print('[HOME] 🔐 Auto-Upgrade Token Check');
+      print('[HOME] Token exists: ${token != null}');
+      print('[HOME] Token length: ${token?.length ?? 0}');
+      if (token != null && token.length > 20) {
+        print('[HOME] Token preview: ${token.substring(0, 20)}...');
+        print('[HOME] Token starts with number: ${RegExp(r"^[0-9]+\\|").hasMatch(token)}');
+      }
+      print('[HOME] ═══════════════════════════════════════');
+      
+      if (token == null || token.isEmpty) {
+        print('[HOME] ❌ No token available for upgrade');
+        return false;
+      }
+      
+      // Ensure token doesn't have "Bearer " prefix already
+      if (token.startsWith('Bearer ')) {
+        token = token.substring(7);
+        print('[HOME] Removed Bearer prefix from token');
+      }
+      
+      print('[HOME] 📡 Calling upgrade endpoint: $url');
+      
+      // Use http.post directly with proper Bearer token format
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',  // Add Bearer prefix here
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({}), // Send empty body
+      );
+
+      print('[HOME] 📥 Upgrade response status: ${response.statusCode}');
+      print('[HOME] 📥 Upgrade response headers: ${response.headers}');
+      print('[HOME] 📥 Upgrade response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        try {
+          final jsonData = jsonDecode(response.body);
+          final alreadyUpgraded = jsonData['already_upgraded'] ?? false;
+          print('[HOME] ✅ Already upgraded: $alreadyUpgraded');
+          print('[HOME] ═══════════════════════════════════════');
+          return !alreadyUpgraded; // Return true if upgraded
+        } catch (e) {
+          print('[HOME] ❌ Error parsing response: $e');
+          print('[HOME] Raw response: ${response.body}');
+          return false;
+        }
+      } else if (response.statusCode == 401) {
+        // Token invalid - but don't trigger logout, just return false
+        print('[HOME] ⚠️ Upgrade endpoint returned 401 - Token invalid/expired');
+        print('[HOME] This is a backend authentication issue');
+        print('[HOME] ═══════════════════════════════════════');
+        return false;
+      } else if (response.statusCode == 404) {
+        // Endpoint doesn't exist on backend
+        print('[HOME] ⚠️ Upgrade endpoint not found (404)');
+        print('[HOME] ═══════════════════════════════════════');
+        return false;
+      } else if (response.statusCode == 403) {
+        print('[HOME] ⚠️ Upgrade endpoint returned 403 - Forbidden');
+        print('[HOME] ═══════════════════════════════════════');
+        return false;
+      } else {
+        print('[HOME] ⚠️ Upgrade endpoint returned ${response.statusCode}');
+        print('[HOME] ═══════════════════════════════════════');
+        return false;
+      }
+    } catch (e) {
+      print('[HOME] ❌ Error upgrading to health: $e');
+      print('[HOME] Stack trace: ${StackTrace.current}');
+      print('[HOME] ═══════════════════════════════════════');
+    }
+    return false;
   }
 
 // Update fungsi ini di HomePage.dart
@@ -164,6 +327,16 @@ class _HomePageState extends State<HomePage> {
               }
             });
           }
+        }
+      } else if (response.statusCode == 403) {
+        // Handle 403 gracefully - user is general version
+        print("[HOME] 403 Forbidden - User needs health version for stats");
+        if (mounted) {
+          setState(() {
+            // Set default values
+            daysUntilNextPeriod = null;
+            predictedNextPeriod = null;
+          });
         }
       } else {
         print("[ERROR HOME] Status Code: ${response.statusCode}");
