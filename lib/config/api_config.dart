@@ -82,6 +82,14 @@ class ApiConfig {
   static String questionOptions(int questionId) =>
       '/questions/$questionId/options';
 
+  // Wellness & Onboarding endpoints
+  static const String wellnessQuestions = '/wellness/questions';
+  static const String onboardingSubmit = '/onboarding/submit';
+  static const String wellnessProfile = '/wellness/profile';
+  static const String wellnessUpgradeToHealth = '/wellness/upgrade-to-health';
+  static const String wellnessAnswers = '/wellness/answers';
+  static const String wellnessStats = '/wellness/stats';
+
   // Chatbot endpoints
   static const String chatbotSend = '/chatbot/send';
   static const String chatbotSessions = '/chatbot/sessions';

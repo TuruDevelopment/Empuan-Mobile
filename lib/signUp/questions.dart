@@ -8,6 +8,7 @@ import 'package:Empuan/components/cancel_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/services/auth_service.dart';
+import 'package:Empuan/services/wellness_service.dart';
 
 class questions extends StatefulWidget {
   // questions({Key? key}) : super(key: key);
@@ -95,75 +96,99 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
     print('[ONBOARDING] Fetching wellness questions from backend...');
     
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/wellness/questions?type=wellness&limit=10');
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Accept': 'application/json',
-        },
+      // Use WellnessService to fetch questions
+      final questions = await WellnessService().getQuestions(
+        type: 'wellness',
+        limit: 10,
       );
 
-      print('[ONBOARDING] Fetch questions status: ${response.statusCode}');
-      print('[ONBOARDING] Fetch questions response: ${response.body}');
+      print('[ONBOARDING] Received ${questions.length} questions');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final questions = data['data'] as List;
+      if (questions.isEmpty) {
+        print('[ONBOARDING] ⚠️ No questions returned from backend');
+        setState(() => _isLoadingQuestions = false);
+        return;
+      }
+
+      // Map backend questions to frontend question indices
+      // Frontend: 0=activity, 1=sleep, 2=wellness, 3=fitness
+      int questionIndex = 0;
+      for (var q in questions) {
+        final qId = q['id'] as int;
+        final qText = q['question'] as String;
+        final options = q['options'] as List;
         
-        print('[ONBOARDING] Received ${questions.length} questions');
-
-        // Map backend questions to frontend question indices
-        // Frontend: 0=activity, 1=sleep, 2=wellness, 3=fitness
-        int questionIndex = 0;
-        for (var q in questions) {
-          final qId = q['id'] as int;
-          final qText = q['question'] as String;
-          final options = q['options'] as List;
-          
-          print('[ONBOARDING] === Question $questionIndex ===');
-          print('[ONBOARDING] Backend ID: $qId');
-          print('[ONBOARDING] Text: $qText');
-          print('[ONBOARDING] Options: ${options.map((o) => "${o['id']}: ${o['text']}").join(", ")}');
-          
-          // Map by index order (assumes backend returns questions in same order as frontend)
-          if (questionIndex == 0) {
-            // Activity level question
-            questionIdMap[0] = qId;
-            optionIdMap[0] = {};
-            for (var i = 0; i < options.length && i < question1.length; i++) {
-              optionIdMap[0]![i] = options[i]['id'] as int;
-              print('[ONBOARDING]   Map option $i (${question1[i]['title']}) -> ${options[i]['id']}');
-            }
-          } else if (questionIndex == 1) {
-            // Sleep question
-            questionIdMap[1] = qId;
-            optionIdMap[1] = {};
-            for (var i = 0; i < options.length && i < question3.length; i++) {
-              optionIdMap[1]![i] = options[i]['id'] as int;
-              print('[ONBOARDING]   Map option $i (${question3[i]['title']}) -> ${options[i]['id']}');
-            }
-          } else if (questionIndex == 2) {
-            // Wellness concerns question
-            questionIdMap[2] = qId;
-            optionIdMap[2] = {};
-            for (var i = 0; i < options.length && i < question4.length; i++) {
-              optionIdMap[2]![i] = options[i]['id'] as int;
-              print('[ONBOARDING]   Map option $i (${question4[i]['title']}) -> ${options[i]['id']}');
-            }
+        print('[ONBOARDING] === Question $questionIndex ===');
+        print('[ONBOARDING] Backend ID: $qId');
+        print('[ONBOARDING] Text: $qText');
+        print('[ONBOARDING] Options: ${options.map((o) => "${o['id']}: ${o['text']}").join(", ")}');
+        
+        // Map by index order (assumes backend returns questions in same order as frontend)
+        if (questionIndex == 0) {
+          // Activity level question
+          questionIdMap[0] = qId;
+          optionIdMap[0] = {};
+          for (var i = 0; i < options.length && i < question1.length; i++) {
+            optionIdMap[0]![i] = options[i]['id'] as int;
+            print('[ONBOARDING]   Map option $i (${question1[i]['title']}) -> ${options[i]['id']}');
           }
-          
-          questionIndex++;
+        } else if (questionIndex == 1) {
+          // Sleep question
+          questionIdMap[1] = qId;
+          optionIdMap[1] = {};
+          for (var i = 0; i < options.length && i < question3.length; i++) {
+            optionIdMap[1]![i] = options[i]['id'] as int;
+            print('[ONBOARDING]   Map option $i (${question3[i]['title']}) -> ${options[i]['id']}');
+          }
+        } else if (questionIndex == 2) {
+          // Wellness concerns question
+          questionIdMap[2] = qId;
+          optionIdMap[2] = {};
+          for (var i = 0; i < options.length && i < question4.length; i++) {
+            optionIdMap[2]![i] = options[i]['id'] as int;
+            print('[ONBOARDING]   Map option $i (${question4[i]['title']}) -> ${options[i]['id']}');
+          }
         }
+        
+        questionIndex++;
+      }
 
-        print('[ONBOARDING] === Final Mapping ===');
-        print('[ONBOARDING] Question ID map: $questionIdMap');
-        print('[ONBOARDING] Option ID map: $optionIdMap');
+      print('[ONBOARDING] === Final Mapping ===');
+      print('[ONBOARDING] Question ID map: $questionIdMap');
+      print('[ONBOARDING] Option ID map: $optionIdMap');
+      
+      // Show success message if questions loaded
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Loaded ${questions.length} questions'),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
 
       setState(() => _isLoadingQuestions = false);
     } catch (e) {
       print('[ONBOARDING] Error fetching questions: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load questions. Please check your connection.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+      
       setState(() => _isLoadingQuestions = false);
     }
   }
@@ -851,22 +876,19 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('[ONBOARDING] ✅ Onboarding submitted successfully');
-        
+
         // Save token to AuthService for future API calls
         AuthService.token = widget.token;
-        
-        // Navigate to success page
+
+        // Show success message
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const AllSetPage()),
-            (route) => false, // Remove all previous routes
-          );
+          _showOnboardingSuccess();
         }
       } else {
         print('[ONBOARDING] ❌ Onboarding submission failed');
         final errorData = jsonDecode(response.body);
         print('[ONBOARDING] Error: $errorData');
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -924,6 +946,224 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
       index,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
+    );
+  }
+
+  /// Show success dialog after onboarding completion
+  void _showOnboardingSuccess() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.surface,
+                  AppColors.background,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Success icon with animation
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 64,
+                    color: AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Title
+                Text(
+                  'All Set!',
+                  style: TextStyle(
+                    fontFamily: 'Brodies',
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Subtitle
+                Text(
+                  'Your profile has been set up successfully.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Features preview
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.accent.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildFeatureRow(
+                        icon: Icons.smart_toy_rounded,
+                        title: 'AI Assistant',
+                        description: 'Get instant answers',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildFeatureRow(
+                        icon: Icons.self_improvement_rounded,
+                        title: 'Personalized Insights',
+                        description: 'Tailored recommendations',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildFeatureRow(
+                        icon: Icons.favorite_rounded,
+                        title: 'Wellness Support',
+                        description: 'Your journey companion',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Continue button
+                Container(
+                  width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primaryVariant,
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close dialog
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const AllSetPage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeatureRow({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 22,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                description,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
