@@ -823,31 +823,30 @@ class _questionsState extends State<questions> with TickerProviderStateMixin {
 
     // Prepare request body with actual backend IDs
     final answers = <Map<String, dynamic>>[];
-    
-    if (backendQuestionId1 != null && backendOptionId1 != null) {
-      answers.add({
-        'question_id': backendQuestionId1,
-        'option_id': backendOptionId1,
-        'answer_text': null,
-        'answer_type': 'wellness',
-      });
-    }
-    if (backendQuestionId2 != null && backendOptionId2 != null) {
-      answers.add({
-        'question_id': backendQuestionId2,
-        'option_id': backendOptionId2,
-        'answer_text': null,
-        'answer_type': 'wellness',
-      });
-    }
-    if (backendQuestionId4 != null && backendOptionId4 != null) {
-      answers.add({
-        'question_id': backendQuestionId4,
-        'option_id': backendOptionId4,
-        'answer_text': null,
-        'answer_type': 'wellness',
-      });
-    }
+
+    // Activity level answer (question index 0)
+    answers.add({
+      'question_id': backendQuestionId1,
+      'option_id': backendOptionId1,
+      'answer_text': activityLevel,
+      'answer_type': 'wellness',
+    });
+
+    // Sleep quality answer (question index 1)
+    answers.add({
+      'question_id': backendQuestionId2,
+      'option_id': backendOptionId2,
+      'answer_text': sleepQuality,
+      'answer_type': 'wellness',
+    });
+
+    // Wellness concern answer (question index 2)
+    answers.add({
+      'question_id': backendQuestionId4,
+      'option_id': backendOptionId4,
+      'answer_text': selectedWellness['title'],
+      'answer_type': 'wellness',
+    });
 
     final body = {
       'answers': answers,
