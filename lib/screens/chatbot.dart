@@ -70,6 +70,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               '• Pregnancy and maternal care\n'
               '• Nutrition for women\n'
               '• General health advice\n\n'
+              '⚠️ *Important Disclaimer:*\n'
+              'I am an AI assistant and *not a medical professional*. My responses are for informational purposes only and should *not replace professional medical advice*, diagnosis, or treatment.\n\n'
+              'Always consult with a qualified healthcare provider for any medical concerns or before making health-related decisions. If you have a medical emergency, contact emergency services immediately.\n\n'
               'How can I assist you today? 💬',
           timestamp: DateTime.now(),
         ));
@@ -229,6 +232,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         },
                       ),
               ),
+
+              // Medical Disclaimer Banner
+              _buildDisclaimerBanner(),
 
               // Input Area
               _buildInputArea(),
@@ -435,8 +441,80 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 height: 1.5,
               ),
             ),
+            const SizedBox(height: 24),
+            // Disclaimer notice in empty state
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'AI responses are for informational purposes only. Always consult a healthcare professional for medical advice.',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDisclaimerBanner() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 20,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'AI responses are for informational purposes only. Always consult a healthcare professional for medical advice.',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 11,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
