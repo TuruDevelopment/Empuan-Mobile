@@ -431,16 +431,19 @@ class _AddTrustedContactState extends State<AddTrustedContact> {
 
       print('✅ Contacts permission granted, opening contact picker...');
 
-      // Permission granted, open contact picker
-      final contact = await FlutterContacts.openExternalPick();
+      // Permission granted, open native contact picker
+      final contactId = await FlutterContacts.native.showPicker();
 
-      if (contact != null) {
-        // Get full contact details
-        final fullContact = await FlutterContacts.getContact(contact.id);
+      if (contactId != null) {
+        // Load contact details including phone numbers
+        final fullContact = await FlutterContacts.get(
+          contactId,
+          properties: {ContactProperty.phone},
+        );
 
         if (fullContact != null) {
           setState(() {
-            nameController.text = fullContact.displayName;
+            nameController.text = fullContact.displayName ?? '';
 
             // Get the first phone number if available
             if (fullContact.phones.isNotEmpty) {

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:Empuan/components/dailyQuiz.dart';
 import 'package:Empuan/screens/chatbot.dart';
 import 'package:Empuan/screens/newUntukPuan.dart';
@@ -20,15 +22,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
+  final AudioPlayer _sirenPlayer = AudioPlayer();
+  bool _isSirenPlaying = false;
 
   @override
   void initState() {
     super.initState();
+    _sirenPlayer.setReleaseMode(ReleaseMode.loop);
+
     getCurrentUser().then((userid) {
       if (userid != null) {
         getData(userid);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _sirenPlayer.dispose();
+    super.dispose();
   }
 
   // State Variables
@@ -65,6 +77,43 @@ class _HomePageState extends State<HomePage> {
   Future<void> getData(int userid) async {
     setState(() {
       isLoading = false;
+    });
+  }
+
+  Future<void> _fadeOutSiren() async {
+    const steps = 8;
+    const duration = Duration(milliseconds: 180);
+    final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
+
+    for (var step = steps - 1; step >= 0; step--) {
+      if (!mounted) return;
+      await _sirenPlayer.setVolume(step / steps);
+      await Future<void>.delayed(stepDuration);
+    }
+
+    await _sirenPlayer.stop();
+  }
+
+  Future<void> _togglePoliceSiren() async {
+    if (_isSirenPlaying) {
+      await _fadeOutSiren();
+      if (!mounted) return;
+      setState(() {
+        _isSirenPlaying = false;
+      });
+      return;
+    }
+
+    await _sirenPlayer.play(AssetSource('police_siren.wav'), volume: 0.0);
+    await _sirenPlayer.setVolume(0.0);
+    for (var step = 1; step <= 6; step++) {
+      if (!mounted) return;
+      await _sirenPlayer.setVolume(step / 6);
+      await Future<void>.delayed(const Duration(milliseconds: 35));
+    }
+    if (!mounted) return;
+    setState(() {
+      _isSirenPlaying = true;
     });
   }
 
@@ -423,8 +472,7 @@ class _HomePageState extends State<HomePage> {
                       InkWell(
                         onTap: () {
                           Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  const ChatbotScreen()));
+                              builder: (context) => const ChatbotScreen()));
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
@@ -451,17 +499,14 @@ class _HomePageState extends State<HomePage> {
                           child: Padding(
                             padding: const EdgeInsets.all(14.0),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.2),
-                                    borderRadius:
-                                        BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
                                     Icons.smart_toy_rounded,
@@ -470,8 +515,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 const Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       'AI Assistant',
@@ -501,79 +545,171 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 16),
 
-                      // Daily Quiz - Full width
-                      InkWell(
-                        onTap: () {
-                          Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
-                                  builder: (context) => const DailyQuiz()));
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          height: 130,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.error,
-                                AppColors.error.withOpacity(0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.error.withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: _togglePoliceSiren,
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                height: 118,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      const Color(0xFFDC2626),
+                                      const Color(0xFF2563EB),
+                                    ],
                                   ),
-                                  child: const Icon(
-                                    Icons.quiz_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Daily Quiz',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(height: 3),
-                                    Text(
-                                      'Test Your Knowledge',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 10.5,
-                                        color: Colors.white70,
-                                      ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFDC2626)
+                                          .withOpacity(0.25),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
-                              ],
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(
+                                          _isSirenPlaying
+                                              ? Icons.stop_circle_rounded
+                                              : Icons.campaign_rounded,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Sirine Polisi',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            _isSirenPlaying
+                                                ? 'Tekan untuk berhenti'
+                                                : 'Tekan untuk memutar',
+                                            style: const TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: 10.0,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context, rootNavigator: true)
+                                    .push(MaterialPageRoute(
+                                        builder: (context) =>
+                                            const DailyQuiz()));
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                height: 118,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.error,
+                                      AppColors.error.withOpacity(0.8),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          AppColors.error.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(
+                                          Icons.quiz_rounded,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Daily Quiz',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 3),
+                                          Text(
+                                            'Test Your Knowledge',
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontSize: 10.0,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 24),

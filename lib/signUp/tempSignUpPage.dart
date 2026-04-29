@@ -1,3 +1,4 @@
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -795,7 +796,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       var usernameController,
       var passwordController) async {
     final name = firstNameController.text;
-    final dob = dateInputController.text;
+    String dob = dateInputController.text;
     final email = emailController.text;
     final username = usernameController.text;
     final password = passwordController.text;
@@ -815,36 +816,93 @@ class _tempSignUpPageState extends State<tempSignUpPage>
       "app_version": "general", // IMPORTANT: Set to "general" for wellness app
     };
 
+    if (dob.isNotEmpty) {
+      final parts = dob.split('-');
+      if (parts.length == 3 && parts[0].length == 2 && parts[2].length == 4) {
+        dob = '${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}';
+      }
+    }
+
     final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
     
     print('[REGISTRATION] POST to: $url');
     print('[REGISTRATION] Body: $body');
     
-    final response = await http.post(uri, body: jsonEncode(body), headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    });
+    try {
+      final response = await http
+          .post(uri, body: jsonEncode(body), headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }).timeout(const Duration(seconds: 20));
 
-    print('[REGISTRATION] Response status: ${response.statusCode}');
-    print('[REGISTRATION] Response body: ${response.body}');
+      print('[REGISTRATION] Response status: ${response.statusCode}');
+      print('[REGISTRATION] Response body: ${response.body}');
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = jsonDecode(response.body);
-      print('[REGISTRATION] ✅ Registration successful');
-      print('[REGISTRATION] Token: ${responseData['token']}');
-      
-      // Return token and user data
-      return {
-        'token': responseData['token'],
-        'user': responseData['user'],
-        'username': username,
-        'email': email,
-        'password': password,
-      };
-    } else {
+      Map<String, dynamic>? responseData;
+      if (response.body.isNotEmpty) {
+        responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = responseData?['token'];
+        if (token == null) {
+          print('[REGISTRATION] ❌ Missing token in response');
+          return {
+            'ok': false,
+            'message': 'Server mengembalikan respons sukses tetapi token tidak ada.',
+          };
+        }
+
+        print('[REGISTRATION] ✅ Registration successful');
+        print('[REGISTRATION] Token: $token');
+
+        return {
+          'ok': true,
+          'token': token,
+          'user': responseData?['user'],
+          'username': username,
+          'email': email,
+          'password': password,
+        };
+      }
+
       print('[REGISTRATION] ❌ Registration failed');
-      return null;
+      return {
+        'ok': false,
+        'message': (responseData?['message'] ?? responseData?['error'] ?? 'Registration failed').toString(),
+        'statusCode': response.statusCode,
+      };
+    } on TimeoutException {
+      print('[REGISTRATION] ❌ Request timeout');
+      return {
+        'ok': false,
+        'message': 'Request registrasi timeout. Periksa koneksi ke server atau alamat API.',
+      };
+    } on SocketException catch (e) {
+      print('[REGISTRATION] ❌ SocketException: $e');
+      return {
+        'ok': false,
+        'message': 'Tidak dapat terhubung ke server. Cek jaringan dan base URL.',
+      };
+    } on FormatException catch (e) {
+      print('[REGISTRATION] ❌ FormatException: $e');
+      return {
+        'ok': false,
+        'message': 'Respon server tidak valid.',
+      };
+    } on HttpException catch (e) {
+      print('[REGISTRATION] ❌ HttpException: $e');
+      return {
+        'ok': false,
+        'message': 'Terjadi kesalahan HTTP saat registrasi.',
+      };
+    } catch (e) {
+      print('[REGISTRATION] ❌ Unexpected error: $e');
+      return {
+        'ok': false,
+        'message': 'Terjadi kesalahan tidak terduga saat registrasi.',
+      };
     }
   }
 }
@@ -1017,7 +1075,7 @@ class PageIndicator extends StatelessWidget {
                       passwordController,
                     );
 
-                    if (result != null) {
+                    if (result != null && result['ok'] == true) {
                       // Registration successful, navigate to questions with token
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1025,15 +1083,16 @@ class PageIndicator extends StatelessWidget {
                             username: usernameController.text,
                             email: emailController.text,
                             password: passwordController.text,
-                            token: result['token'], // Pass the auth token
+                            token: result['token'].toString(), // Pass the auth token
                           ),
                         ),
                       );
                     } else {
                       // Registration failed
+                      final errorMessage = (result?['message'] ?? 'Registration failed. Please try again.').toString();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('Registration failed. Please try again.'),
+                          content: Text(errorMessage),
                           backgroundColor: AppColors.error,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
@@ -35,6 +36,7 @@ class _AccountCredState extends State<AccountCred> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -372,18 +374,56 @@ class _AccountCredState extends State<AccountCred> {
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  RegistrationUser();
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => BridgetoQ(
-                                      username: usernameController.text,
-                                      email: widget.email,
-                                      password: passwordController.text,
-                                    ),
-                                  ));
-                                }
-                              },
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : () async {
+                                      if (_formKey.currentState?.validate() !=
+                                          true) {
+                                        return;
+                                      }
+
+                                      setState(() {
+                                        _isSubmitting = true;
+                                      });
+
+                                      try {
+                                        final result = await RegistrationUser();
+
+                                        if (!mounted) return;
+
+                                        if (result != null &&
+                                            result['ok'] == true) {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => BridgetoQ(
+                                                username:
+                                                    usernameController.text,
+                                                email: widget.email,
+                                                password:
+                                                    passwordController.text,
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          final message = (result?['message'] ??
+                                                  'Registration failed. Please try again.')
+                                              .toString();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(message),
+                                              backgroundColor: AppColors.error,
+                                            ),
+                                          );
+                                        }
+                                      } finally {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isSubmitting = false;
+                                          });
+                                        }
+                                      }
+                                    },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
@@ -392,7 +432,7 @@ class _AccountCredState extends State<AccountCred> {
                                 ),
                               ),
                               child: Text(
-                                'Complete',
+                                _isSubmitting ? 'Submitting...' : 'Complete',
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.bold,
@@ -416,7 +456,7 @@ class _AccountCredState extends State<AccountCred> {
     );
   }
 
-  Future<void> RegistrationUser() async {
+  Future<Map<String, dynamic>?> RegistrationUser() async {
     final name = widget.name;
     final dob = widget.dob;
     final email = widget.email;
@@ -439,12 +479,45 @@ class _AccountCredState extends State<AccountCred> {
 
     final url = '${ApiConfig.baseUrl}/register';
     final uri = Uri.parse(url);
-    final response = await http.post(uri, body: jsonEncode(body), headers: {
-      'Content-Type': 'application/json',
-    });
+    try {
+      final response = await http.post(uri, body: jsonEncode(body), headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }).timeout(const Duration(seconds: 20));
 
-    print(response.statusCode);
-    print(response.body);
+      print(response.statusCode);
+      print(response.body);
+
+      final responseData = response.body.isNotEmpty
+          ? jsonDecode(response.body) as Map<String, dynamic>
+          : <String, dynamic>{};
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'ok': true,
+          'token': responseData['token'],
+          'user': responseData['user'],
+        };
+      }
+
+      return {
+        'ok': false,
+        'message': (responseData['message'] ??
+                responseData['error'] ??
+                'Registration failed')
+            .toString(),
+      };
+    } on TimeoutException {
+      return {
+        'ok': false,
+        'message': 'Request registrasi timeout. Silakan coba lagi.',
+      };
+    } catch (e) {
+      return {
+        'ok': false,
+        'message': 'Terjadi kesalahan saat registrasi: $e',
+      };
+    }
   }
 
   Widget _buildModernTextField({

@@ -31,7 +31,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.turudev.empuan"
     compileSdk = 36
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -88,11 +88,3 @@ flutter {
 }
 
 dependencies {}
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
-        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0'
-        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0'
-    }
-}
