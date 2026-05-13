@@ -81,37 +81,34 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: Text("Map"),
-        ),
-        body: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          child: GoogleMap(
-            zoomControlsEnabled: false,
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(48.8561, 2.2930),
-              zoom: 12.0,
-            ),
-            onMapCreated: (GoogleMapController controller) {
-              _controller = controller;
-            },
-            markers: _markers,
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: const Text("Map"),
+      ),
+      body: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: GoogleMap(
+          zoomControlsEnabled: false,
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(48.8561, 2.2930),
+            zoom: 12.0,
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: const Icon(
-            Icons.location_searching,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            getLocation();
+          onMapCreated: (GoogleMapController controller) {
+            _controller = controller;
           },
+          markers: _markers,
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(
+          Icons.location_searching,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          getLocation();
+        },
       ),
     );
   }

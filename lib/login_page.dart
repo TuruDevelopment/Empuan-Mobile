@@ -647,14 +647,14 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> location() async {
     final hasPermission = await _handleLocationPermission();
     if (!hasPermission) return;
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    print('test');
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-        .then((Position position) {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
       setState(() => _currentPosition = position);
-    }).catchError((e) {
-      debugPrint(e);
-    });
+    } catch (e) {
+      debugPrint('$e');
+    }
 
     print('LAT: ${_currentPosition?.latitude ?? ""}');
     print('LNG: ${_currentPosition?.longitude ?? ""}');
