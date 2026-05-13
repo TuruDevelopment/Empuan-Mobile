@@ -134,234 +134,230 @@ class _IsiSuaraPuanState extends State<IsiSuaraPuan> {
 
   @override
   Widget build(BuildContext context) {
-    final dataSuaraPuan = [
-      [
-        'Vivienne Westwood Menghasilkan Uang Rp 1,6 M Per Hari di Tahun Dia Meninggal',
-        'images/business-1.jpg',
-        '21 February 2024',
-        'Business',
-        'title2'
-      ],
-      [
-        'Buttonscarves dan Kami. Rilis Koleksi Kolaborasi Tema Pemberdayaan Wanita',
-        'images/lifestyle-1.jpg',
-        '13 February 2023',
-        'Lifestyle',
-        'title'
-      ],
-      [
-        'Polisi dan Psikolog Dampingi Anak Dayang Santi untuk Hilangkan Trauma',
-        'images/news-1.jpeg',
-        '9 February 2024',
-        'News',
-        'title3'
-      ],
-    ];
-
-    final dataBannerSuara = dataSuaraPuan.sublist(0, 3);
-    final PageController controller = PageController();
-    int currentTab = 0;
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.surface,
-        title: Container(
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.accent.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: TextField(
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 14,
-              color: AppColors.textPrimary,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              hintText: 'Search...',
-              hintStyle: TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 14,
-                color: AppColors.textSecondary.withOpacity(0.5),
-              ),
-              suffixIcon: Icon(
-                Icons.search_rounded,
+        backgroundColor: Colors.transparent,
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Material(
+            color: AppColors.surface,
+            shape: const CircleBorder(),
+            elevation: 2,
+            shadowColor: AppColors.primary.withOpacity(0.2),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => Navigator.pop(context),
+              child: const Icon(
+                Icons.arrow_back_rounded,
                 color: AppColors.primary,
+                size: 22,
               ),
             ),
-          ),
-        ),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.primary,
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.surface,
-              AppColors.background,
-              AppColors.accent.withOpacity(0.05),
-            ],
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Image Container
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.2),
-                        blurRadius: 20,
-                        offset: Offset(0, 8),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Hero image with gradient overlay + floating category chip
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
+                  ),
+                  child: Image.network(
+                    widget.media,
+                    width: double.infinity,
+                    height: 320,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 320,
+                      color: AppColors.accent.withOpacity(0.3),
+                      child: Icon(Icons.broken_image_rounded,
+                          size: 64, color: AppColors.textSecondary),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(28),
+                        bottomRight: Radius.circular(28),
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.25),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.55),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryVariant,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          kategoriName ?? widget.kategori_name ?? 'Loading...',
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: 11,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontFamily: 'Brodies',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 26,
+                          height: 1.25,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 8,
+                              color: Colors.black45,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      widget.media,
-                      width: MediaQuery.of(context).size.width,
-                      height: 220,
-                      fit: BoxFit.cover,
-                    ),
+                ),
+              ],
+            ),
+
+            // Meta info row (date, reading time)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Row(
+                children: [
+                  _metaChip(
+                    icon: Icons.calendar_today_rounded,
+                    label: widget.dop,
+                  ),
+                  const SizedBox(width: 10),
+                  _metaChip(
+                    icon: Icons.access_time_rounded,
+                    label: '${_readingMinutes(widget.content)} min read',
+                  ),
+                ],
+              ),
+            ),
+
+            // Divider
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.accent.withOpacity(0.0),
+                      AppColors.accent.withOpacity(0.5),
+                      AppColors.accent.withOpacity(0.0),
+                    ],
                   ),
                 ),
               ),
+            ),
 
-              // Title and Meta Info
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontFamily: 'Brodies',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                        fontSize: 24,
-                        height: 1.3,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                size: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                widget.dop,
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryVariant,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            kategoriName ??
-                                widget.kategori_name ??
-                                'Loading...',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            // Content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              child: Text(
+                widget.content,
+                textAlign: TextAlign.justify,
+                style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: FontWeight.normal,
+                  color: AppColors.textPrimary,
+                  fontSize: 15.5,
+                  height: 1.7,
+                  letterSpacing: 0.1,
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // Divider
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(
-                  color: AppColors.accent.withOpacity(0.2),
-                  thickness: 1,
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              // Content
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  widget.content,
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: FontWeight.normal,
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    height: 1.6,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 24),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _metaChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.accent.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.accent.withOpacity(0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _readingMinutes(String text) {
+    final words = text.trim().split(RegExp(r'\s+')).length;
+    final minutes = (words / 200).ceil();
+    return minutes < 1 ? 1 : minutes;
   }
 
   Future<void> getData() async {
