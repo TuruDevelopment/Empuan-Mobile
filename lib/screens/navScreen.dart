@@ -10,6 +10,7 @@ import 'package:Empuan/screens/HomePage.dart';
 import 'package:Empuan/screens/more.dart';
 import 'package:Empuan/screens/nav_bar.dart';
 import 'package:Empuan/screens/nav_model.dart';
+import 'package:Empuan/screens/newUntukPuan.dart';
 import 'package:Empuan/screens/panggilPuan.dart';
 import 'package:Empuan/services/api_client.dart';
 import 'package:Empuan/styles/style.dart';
@@ -33,6 +34,7 @@ class _MainScreenState extends State<MainScreen> {
   // }
 
   final homeNavKey = GlobalKey<NavigatorState>();
+  final forHerNavKey = GlobalKey<NavigatorState>();
   final panggilNavKey = GlobalKey<NavigatorState>();
   final moreNavKey = GlobalKey<NavigatorState>();
   int _selectedTab = 0;
@@ -55,6 +57,10 @@ class _MainScreenState extends State<MainScreen> {
           key: ValueKey('home_${DateTime.now().toString()}'),
         ),
         navKey: homeNavKey,
+      ),
+      NavModel(
+        page: const newUntukPuan(),
+        navKey: forHerNavKey,
       ),
       NavModel(
         page: PanggilPuan(),

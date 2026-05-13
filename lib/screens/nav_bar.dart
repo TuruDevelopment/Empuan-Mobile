@@ -60,11 +60,9 @@ class NavBar extends StatelessWidget {
           height: 68,
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Left side - Home (takes 2 menu spaces)
+              // Left - Home
               Expanded(
-                flex: 2,
                 child: navItem(
                   Icons.home_rounded,
                   'Home',
@@ -72,30 +70,33 @@ class NavBar extends StatelessWidget {
                   onTap: () => onTap(0),
                 ),
               ),
-              // Quick Alert Button (center)
-              _buildQuickAlertButton(),
-              // Right side - Panggil Puan and Her Space
+              // Left - For Her
               Expanded(
-                flex: 2,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: navItem(
-                        Icons.phone_rounded,
-                        'Panggil',
-                        pageIndex == 1,
-                        onTap: () => onTap(1),
-                      ),
-                    ),
-                    Expanded(
-                      child: navItem(
-                        Icons.forum_rounded,
-                        'Space',
-                        pageIndex == 2,
-                        onTap: () => onTap(2),
-                      ),
-                    ),
-                  ],
+                child: navItem(
+                  Icons.favorite_rounded,
+                  'For Her',
+                  pageIndex == 1,
+                  onTap: () => onTap(1),
+                ),
+              ),
+              // Quick Alert Button (center, fixed width)
+              _buildQuickAlertButton(),
+              // Right - Panggil Puan
+              Expanded(
+                child: navItem(
+                  Icons.phone_rounded,
+                  'Panggil',
+                  pageIndex == 2,
+                  onTap: () => onTap(2),
+                ),
+              ),
+              // Right - Her Space
+              Expanded(
+                child: navItem(
+                  Icons.forum_rounded,
+                  'Space',
+                  pageIndex == 3,
+                  onTap: () => onTap(3),
                 ),
               ),
             ],
@@ -154,75 +155,73 @@ class NavBar extends StatelessWidget {
     bool selected, {
     Function()? onTap,
   }) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          splashColor: AppColors.primary.withOpacity(0.1),
-          highlightColor: AppColors.accent.withOpacity(0.05),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: selected
-                  ? LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.primary.withOpacity(0.08),
-                        AppColors.accent.withOpacity(0.12),
-                      ],
-                    )
-                  : null,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon with animation
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.all(selected ? 4 : 3),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.primary.withOpacity(0.12)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: selected ? 24 : 22,
-                    color: selected
-                        ? AppColors.primary
-                        : AppColors.textSecondary.withOpacity(0.6),
-                  ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: AppColors.primary.withOpacity(0.1),
+        highlightColor: AppColors.accent.withOpacity(0.05),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: selected
+                ? LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.primary.withOpacity(0.08),
+                      AppColors.accent.withOpacity(0.12),
+                    ],
+                  )
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon with animation
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.all(selected ? 4 : 3),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.primary.withOpacity(0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 3),
-                // Text with animation
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontWeight: selected ? FontWeight.bold : FontWeight.w600,
-                    fontSize: selected ? 10.5 : 9.5,
-                    color: selected
-                        ? AppColors.primary
-                        : AppColors.textSecondary.withOpacity(0.7),
-                    letterSpacing: 0.2,
-                    height: 1.1,
-                  ),
-                  child: Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                child: Icon(
+                  icon,
+                  size: selected ? 24 : 22,
+                  color: selected
+                      ? AppColors.primary
+                      : AppColors.textSecondary.withOpacity(0.6),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 3),
+              // Text with animation
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: selected ? 10.5 : 9.5,
+                  color: selected
+                      ? AppColors.primary
+                      : AppColors.textSecondary.withOpacity(0.7),
+                  letterSpacing: 0.2,
+                  height: 1.1,
+                ),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       ),
