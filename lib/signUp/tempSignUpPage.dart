@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:Empuan/screens/takePhoto.dart';
-import 'package:Empuan/signUp/bridgetoQ.dart';
 import 'package:Empuan/signUp/questions.dart';
 import 'package:Empuan/styles/style.dart';
 import 'package:Empuan/components/cancel_dialog.dart';
@@ -22,8 +20,6 @@ class tempSignUpPage extends StatefulWidget {
 
 class _tempSignUpPageState extends State<tempSignUpPage>
     with TickerProviderStateMixin {
-  File? _image;
-
   late PageController _pageViewController = PageController();
   late TabController _tabController;
   int _currentPageIndex = 0;
@@ -32,7 +28,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
   void initState() {
     super.initState();
     _pageViewController = PageController();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -56,8 +52,6 @@ class _tempSignUpPageState extends State<tempSignUpPage>
 
   @override
   Widget build(BuildContext context) {
-    bool isImageUploaded = _image != null;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -169,7 +163,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Step ${_currentPageIndex + 1} of 3',
+                                'Step ${_currentPageIndex + 1} of 2',
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.textSecondary,
@@ -178,7 +172,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                                 ),
                               ),
                               Text(
-                                '${((_currentPageIndex + 1) / 3 * 100).toInt()}%',
+                                '${((_currentPageIndex + 1) / 2 * 100).toInt()}%',
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   color: AppColors.primary,
@@ -194,7 +188,7 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                             child: LinearPercentIndicator(
                               padding: EdgeInsets.zero,
                               lineHeight: 8.0,
-                              percent: (_currentPageIndex + 1) / 3,
+                              percent: (_currentPageIndex + 1) / 2,
                               backgroundColor:
                                   AppColors.accent.withOpacity(0.3),
                               linearGradient: LinearGradient(
@@ -333,232 +327,8 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                       ),
                     ),
 
-                    // Page 2: Gender
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Gender Verification',
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 28,
-                                color: AppColors.textPrimary,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Upload a clear photo of your ID',
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontSize: 15,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            Center(
-                              child: _image == null
-                                  ? GestureDetector(
-                                      onTap: () async {
-                                        final pickedImage =
-                                            await Navigator.push<File?>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ImageSelectionPage(),
-                                          ),
-                                        );
-                                        setState(() {
-                                          _image = pickedImage;
-                                        });
-                                      },
-                                      child: Container(
-                                        width: 280,
-                                        height: 280,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surface,
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          border: Border.all(
-                                            color: AppColors.accent
-                                                .withOpacity(0.4),
-                                            width: 2,
-                                            strokeAlign:
-                                                BorderSide.strokeAlignInside,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppColors.accent
-                                                  .withOpacity(0.15),
-                                              blurRadius: 16,
-                                              offset: const Offset(0, 8),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(20),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.1),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Icon(
-                                                Icons
-                                                    .add_photo_alternate_outlined,
-                                                size: 60,
-                                                color: AppColors.primary,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 20),
-                                            Text(
-                                              'Upload KTP',
-                                              style: TextStyle(
-                                                fontFamily: 'Plus Jakarta Sans',
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textPrimary,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 32),
-                                              child: Text(
-                                                'Tap to select from gallery or camera',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontFamily:
-                                                      'Plus Jakarta Sans',
-                                                  fontSize: 13,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 280,
-                                      height: 280,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: AppColors.secondary,
-                                          width: 3,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppColors.secondary
-                                                .withOpacity(0.3),
-                                            blurRadius: 16,
-                                            offset: const Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(17),
-                                        child: Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            Image.file(
-                                              _image!,
-                                              fit: BoxFit.cover,
-                                            ),
-                                            Positioned(
-                                              top: 12,
-                                              right: 12,
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.surface,
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.2),
-                                                      blurRadius: 8,
-                                                      offset:
-                                                          const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: IconButton(
-                                                  icon: Icon(
-                                                    Icons.edit,
-                                                    color: AppColors.primary,
-                                                    size: 20,
-                                                  ),
-                                                  onPressed: () async {
-                                                    final pickedImage =
-                                                        await Navigator.push<
-                                                            File?>(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ImageSelectionPage(),
-                                                      ),
-                                                    );
-                                                    setState(() {
-                                                      _image = pickedImage;
-                                                    });
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            const SizedBox(height: 24),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.secondary.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color: AppColors.secondary,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Make sure your ID is clearly visible and readable',
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontSize: 13,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
 
-                    // Page 3: Credentials
+                    // Page 2: Credentials
                     SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -644,7 +414,6 @@ class _tempSignUpPageState extends State<tempSignUpPage>
                   emailController: emailController,
                   usernameController: usernameController,
                   passwordController: passwordController,
-                  isImageUploaded: isImageUploaded,
                   registrationUser: RegistrationUser,
                 ),
               ),
@@ -920,7 +689,6 @@ class PageIndicator extends StatelessWidget {
     required this.emailController,
     required this.usernameController,
     required this.passwordController,
-    required this.isImageUploaded,
     required this.registrationUser,
   });
 
@@ -934,7 +702,6 @@ class PageIndicator extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
-  final bool isImageUploaded;
   final Future<Map<String, dynamic>?> Function(
       TextEditingController,
       TextEditingController,
@@ -1018,25 +785,8 @@ class PageIndicator extends StatelessWidget {
                   print(emailController.text);
                 }
 
-                // Page 2: Gender Verification
+                // Page 2: Account Credentials
                 if (currentPageIndex == 1) {
-                  if (isImageUploaded == false) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Please upload your KTP'),
-                        backgroundColor: AppColors.error,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                }
-
-                // Page 3: Account Credentials
-                if (currentPageIndex == 2) {
                   if (formKey.currentState!.validate()) {
                     // Show loading
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1115,7 +865,7 @@ class PageIndicator extends StatelessWidget {
                 ),
               ),
               child: Text(
-                currentPageIndex == 2 ? 'Finish' : 'Save & Next',
+                currentPageIndex == 1 ? 'Finish' : 'Save & Next',
                 style: const TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.bold,
