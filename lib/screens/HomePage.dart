@@ -83,7 +83,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fadeOutSiren() async {
     const steps = 8;
     const duration = Duration(milliseconds: 180);
-    final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
+    final stepDuration =
+        Duration(milliseconds: duration.inMilliseconds ~/ steps);
 
     for (var step = steps - 1; step >= 0; step--) {
       if (!mounted) return;
@@ -600,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           const Text(
-                                            'Sirine Polisi',
+                                            'Police Siren',
                                             style: TextStyle(
                                               fontFamily: 'Plus Jakarta Sans',
                                               fontSize: 15.5,
@@ -631,8 +632,8 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: InkWell(
                               onTap: () {
-                                Navigator.of(context, rootNavigator: true)
-                                    .push(MaterialPageRoute(
+                                Navigator.of(context, rootNavigator: true).push(
+                                    MaterialPageRoute(
                                         builder: (context) =>
                                             const DailyQuiz()));
                               },
@@ -651,8 +652,7 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color:
-                                          AppColors.error.withOpacity(0.3),
+                                      color: AppColors.error.withOpacity(0.3),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
