@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:Empuan/components/dailyQuiz.dart';
+import 'package:Empuan/features/learning/screens/learning_hub_screen.dart';
 import 'package:Empuan/screens/chatbot.dart';
 import 'package:Empuan/screens/newUntukPuan.dart';
 import 'package:Empuan/screens/suaraPuan.dart';
@@ -297,6 +298,93 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Semantics(
+                        button: true,
+                        label: 'Buka Empuan Learning',
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const LearningHubScreen(),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.accent.withValues(alpha: 0.65),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.primaryGradient,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.school_outlined,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Empuan Learning',
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Text(
+                                        'Materi keterampilan sesuai tahap '
+                                        'kehidupan, untuk usia 18+',
+                                        style: TextStyle(
+                                          fontFamily: 'Plus Jakarta Sans',
+                                          fontSize: 12.5,
+                                          height: 1.4,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppColors.primary,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
 

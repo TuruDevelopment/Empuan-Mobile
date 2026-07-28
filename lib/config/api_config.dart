@@ -99,6 +99,24 @@ class ApiConfig {
   static String chatbotDeleteSession(String sessionId) =>
       '/chatbot/sessions/$sessionId';
 
+  // Learning endpoints (18+)
+  static const String learningHome = '/learning/home';
+  static const String learningLifeStages = '/learning/life-stages';
+  static const String learningCategories = '/learning/categories';
+  static const String learningCourses = '/learning/courses';
+  static const String learningProgress = '/learning/me/progress';
+  static String learningCourse(String slug) => '/learning/courses/$slug';
+  static String learningEnroll(String slug) => '/learning/courses/$slug/enroll';
+  static String learningLesson(int id) => '/learning/lessons/$id';
+  static String learningLessonQuiz(int id) => '/learning/lessons/$id/quiz';
+  static String learningLessonProgress(int id) =>
+      '/learning/lessons/$id/progress';
+  static String learningQuizAttempts(int id) =>
+      '/learning/quizzes/$id/attempts';
+  static String learningCertificate(String slug) =>
+      '/learning/courses/$slug/certificate';
+  static const String learningCertificates = '/learning/me/certificates';
+
   // Helper method to get full URL
   static String getUrl(String endpoint) {
     return '$baseUrl$endpoint';
