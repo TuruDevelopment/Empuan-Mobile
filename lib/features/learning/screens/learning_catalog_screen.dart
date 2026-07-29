@@ -52,8 +52,11 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
   }
 
   Future<void> _reload() async {
-    setState(() => _coursesFuture = _loadCourses());
-    await _coursesFuture;
+    final coursesFuture = _loadCourses();
+    setState(() {
+      _coursesFuture = coursesFuture;
+    });
+    await coursesFuture;
   }
 
   void _onSearchChanged(String _) {

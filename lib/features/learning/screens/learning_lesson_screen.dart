@@ -38,8 +38,11 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
   }
 
   Future<void> _reload() async {
-    setState(() => _lessonFuture = widget.service.getLesson(widget.lessonId));
-    await _lessonFuture;
+    final lessonFuture = widget.service.getLesson(widget.lessonId);
+    setState(() {
+      _lessonFuture = lessonFuture;
+    });
+    await lessonFuture;
   }
 
   Future<void> _markCompleted() async {
@@ -385,6 +388,18 @@ class _VideoLessonState extends State<_VideoLesson> {
     super.dispose();
   }
 
+  Future<void> _togglePlayback() async {
+    if (_controller.value.isPlaying) {
+      await _controller.pause();
+    } else {
+      await _controller.play();
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
@@ -430,15 +445,7 @@ class _VideoLessonState extends State<_VideoLesson> {
                       ? 'Jeda video'
                       : 'Putar video',
                   child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (_controller.value.isPlaying) {
-                          _controller.pause();
-                        } else {
-                          _controller.play();
-                        }
-                      });
-                    },
+                    onPressed: _togglePlayback,
                     color: Colors.white,
                     iconSize: 34,
                     icon: Icon(

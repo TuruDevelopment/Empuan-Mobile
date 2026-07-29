@@ -35,8 +35,11 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
   }
 
   Future<void> _reload() async {
-    setState(() => _homeFuture = _service.getHome());
-    await _homeFuture;
+    final homeFuture = _service.getHome();
+    setState(() {
+      _homeFuture = homeFuture;
+    });
+    await homeFuture;
   }
 
   void _openCatalog({String? category}) {

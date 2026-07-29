@@ -33,8 +33,11 @@ class _LearningCourseDetailScreenState
   }
 
   Future<void> _reload() async {
-    setState(() => _courseFuture = widget.service.getCourse(widget.slug));
-    await _courseFuture;
+    final courseFuture = widget.service.getCourse(widget.slug);
+    setState(() {
+      _courseFuture = courseFuture;
+    });
+    await courseFuture;
   }
 
   Future<void> _enroll() async {
