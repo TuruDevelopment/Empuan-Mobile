@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/chat_markdown_message.dart';
 import '../models/chat_message.dart';
 import '../services/chatbot_service.dart';
 import '../styles/style.dart';
@@ -581,15 +582,18 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.message,
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: 14,
-                      color: isUser ? Colors.white : AppColors.textPrimary,
-                      height: 1.5,
-                    ),
-                  ),
+                  if (isUser)
+                    Text(
+                      message.message,
+                      style: const TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.5,
+                      ),
+                    )
+                  else
+                    ChatMarkdownMessage(data: message.message),
                   if (isStreaming) ...[
                     const SizedBox(height: 8),
                     Row(
