@@ -64,17 +64,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           id: 0,
           role: 'assistant',
           message:
-              'Hello! I\'m your AI health companion specialized in women\'s health. I can help you with:\n\n'
-              '• Menstrual health and period tracking\n'
-              '• Reproductive health questions\n'
-              '• Mental health and wellness\n'
-              '• Pregnancy and maternal care\n'
-              '• Nutrition for women\n'
-              '• General health advice\n\n'
-              '⚠️ *Important Disclaimer:*\n'
-              'I am an AI assistant and *not a medical professional*. My responses are for informational purposes only and should *not replace professional medical advice*, diagnosis, or treatment.\n\n'
-              'Always consult with a qualified healthcare provider for any medical concerns or before making health-related decisions. If you have a medical emergency, contact emergency services immediately.\n\n'
-              'How can I assist you today? 💬',
+              'Halo! Saya **Empuan AI**, asisten informasi dan pendamping untuk perempuan Indonesia. Saya dapat membantu topik:\n\n'
+              '- Kesehatan dan kesejahteraan perempuan\n'
+              '- Keamanan, hak, dan relasi yang sehat\n'
+              '- Pendidikan, karier, dan kepemimpinan\n'
+              '- Literasi digital dan keuangan\n'
+              '- Kewirausahaan dan pemberdayaan perempuan\n\n'
+              '> Informasi kesehatan yang saya berikan bersifat umum, bukan diagnosis atau pengganti tenaga kesehatan profesional.\n\n'
+              'Apa yang ingin Anda diskusikan hari ini?',
           timestamp: DateTime.now(),
         ));
       });
@@ -176,7 +173,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           print('Stream error: $error');
           setState(() {
             _messages[aiMessageIndex] = _messages[aiMessageIndex].copyWith(
-              message: '❌ Failed to get response. Please try again.',
+              message:
+                  'Maaf, koneksi ke Empuan AI sedang bermasalah. Silakan coba lagi.',
               isStreaming: false,
             );
             _isLoading = false;
@@ -187,7 +185,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       print('Error: $e');
       setState(() {
         _messages[aiMessageIndex] = _messages[aiMessageIndex].copyWith(
-          message: '❌ Error occurred. Please try again.',
+          message:
+              'Maaf, terjadi kendala saat memproses pesan. Silakan coba lagi.',
           isStreaming: false,
         );
         _isLoading = false;
@@ -506,7 +505,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'AI responses are for informational purposes only. Always consult a healthcare professional for medical advice.',
+              'Jawaban AI bersifat informatif. Untuk keputusan medis, hukum, atau keuangan penting, konsultasikan dengan profesional terkait.',
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontSize: 11,

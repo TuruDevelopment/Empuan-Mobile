@@ -1,11 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import '../models/chat_message.dart';
 import '../config/api_config.dart';
 import 'api_client.dart';
 
+typedef ChatGetRequest = Future<http.Response> Function(String url);
+
 class ChatbotService {
+  ChatbotService({ChatGetRequest? getRequest})
+      : _getRequest = getRequest ?? ((url) => ApiClient.get(url));
+
   final String baseUrl = ApiConfig.baseUrl;
+  final ChatGetRequest _getRequest;
 
   /// Send message and get AI response with streaming simulation
   /// Returns a stream that emits partial responses character by character
@@ -52,7 +61,7 @@ class ChatbotService {
         throw Exception('Failed to send message: ${response.statusCode}');
       }
     } catch (_) {
-      yield '❌ Error: Failed to get response. Please try again.';
+      yield 'Maaf, koneksi ke Empuan AI sedang bermasalah. Silakan coba lagi.';
     }
   }
 
@@ -84,7 +93,7 @@ class ChatbotService {
 
   /// Get all sessions
   Future<List<ChatSession>> getSessions() async {
-    final response = await ApiClient.get('$baseUrl/chatbot/sessions');
+    final response = await _getRequest('$baseUrl/chatbot/sessions');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -98,16 +107,35 @@ class ChatbotService {
 
   /// Get chat history
   Future<List<ChatMessage>> getHistory(String sessionId) async {
-    final response = await ApiClient.get('$baseUrl/chatbot/history/$sessionId');
+    final history = <ChatMessage>[];
+    var currentPage = 1;
+    var lastPage = 1;
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data['data']['history'] as List)
-          .map((json) => ChatMessage.fromJson(json))
-          .toList();
-    }
+    do {
+      final response = await _getRequest(
+        '$baseUrl/chatbot/history/$sessionId'
+        '?per_page=100&page=$currentPage',
+      );
 
-    return [];
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load chat history: ${response.statusCode}');
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final pageItems = data['data']?['history'] as List<dynamic>? ?? [];
+
+      history.addAll(
+        pageItems.map(
+          (json) => ChatMessage.fromJson(json as Map<String, dynamic>),
+        ),
+      );
+
+      final meta = data['meta'] as Map<String, dynamic>?;
+      lastPage = (meta?['last_page'] as num?)?.toInt() ?? 1;
+      currentPage++;
+    } while (currentPage <= lastPage);
+
+    return history;
   }
 
   /// Delete session
