@@ -43,7 +43,7 @@ class _LearningQuizScreenState extends State<LearningQuizScreen> {
     if (_answers.length != quiz.questions.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Jawab semua pertanyaan terlebih dahulu.')),
+            content: Text('Answer all questions before submitting.')),
       );
       return;
     }
@@ -67,7 +67,7 @@ class _LearningQuizScreenState extends State<LearningQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Kuis')),
+      appBar: AppBar(title: const Text('Quiz')),
       body: FutureBuilder<LearningQuiz>(
         future: _quizFuture,
         builder: (context, snapshot) {
@@ -158,9 +158,9 @@ class _QuizForm extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               Text(
-                'Nilai lulus ${quiz.passingScore}%'
+                'Passing score ${quiz.passingScore}%'
                 '${quiz.maxAttempts == null ? '' : ' • '
-                    '${quiz.attemptsUsed}/${quiz.maxAttempts} percobaan'}',
+                    '${quiz.attemptsUsed}/${quiz.maxAttempts} attempts'}',
                 style: const TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 12,
@@ -194,10 +194,10 @@ class _QuizForm extends StatelessWidget {
               : const Icon(Icons.send_rounded),
           label: Text(
             !quiz.canAttempt
-                ? 'Batas percobaan tercapai'
+                ? 'Attempt limit reached'
                 : submitting
-                    ? 'Menilai jawaban...'
-                    : 'Kirim jawaban',
+                    ? 'Grading answers...'
+                    : 'Submit answers',
           ),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(52),
@@ -314,7 +314,7 @@ class _QuizResultView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                attempt.passed ? 'Kamu lulus!' : 'Belum lulus',
+                attempt.passed ? 'You passed!' : 'Not passed yet',
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 23,
@@ -324,7 +324,7 @@ class _QuizResultView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Nilai ${attempt.score.round()} dari 100',
+                'Score: ${attempt.score.round()} out of 100',
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
@@ -347,11 +347,11 @@ class _QuizResultView extends StatelessWidget {
                       ? AppColors.secondary
                       : AppColors.error,
                 ),
-                title: Text('Pertanyaan ${entry.key + 1}'),
+                title: Text('Question ${entry.key + 1}'),
                 subtitle: Text(
                   entry.value.correct
-                      ? 'Jawaban benar'
-                      : 'Jawaban benar: ${entry.value.correctOptionKey}'
+                      ? 'Correct answer'
+                      : 'Correct answer: ${entry.value.correctOptionKey}'
                           '${entry.value.explanation == null ? '' : '\n'
                               '${entry.value.explanation}'}',
                 ),
@@ -362,7 +362,7 @@ class _QuizResultView extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onTryAgain,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Coba lagi'),
+            label: const Text('Try again'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
             ),
@@ -374,7 +374,7 @@ class _QuizResultView extends StatelessWidget {
             minimumSize: const Size.fromHeight(50),
             backgroundColor: AppColors.primary,
           ),
-          child: const Text('Kembali ke materi'),
+          child: const Text('Back to lesson'),
         ),
       ],
     );

@@ -305,7 +305,7 @@ class _HomePageState extends State<HomePage> {
 
                       Semantics(
                         button: true,
-                        label: 'Buka Empuan Learning',
+                        label: 'Open Empuan Learning',
                         child: InkWell(
                           onTap: () {
                             Navigator.of(context).push(
@@ -365,8 +365,8 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       SizedBox(height: 5),
                                       Text(
-                                        'Materi keterampilan sesuai tahap '
-                                        'kehidupan, untuk usia 18+',
+                                        'Practical skills for every stage '
+                                        'of life, for ages 18+',
                                         style: TextStyle(
                                           fontFamily: 'Plus Jakarta Sans',
                                           fontSize: 12.5,

@@ -10,17 +10,17 @@ void main() {
       final course = LearningCourse.fromJson({
         'slug': 'personal-branding',
         'title': 'Personal Branding',
-        'summary': 'Ringkasan',
+        'summary': 'Summary',
         'estimated_minutes': 25,
         'difficulty': 'beginner',
         'minimum_age': 18,
         'certificate_enabled': true,
         'is_enrolled': false,
-        'category': {'code': 'career', 'name': 'Karier'},
+        'category': {'code': 'career', 'name': 'Career'},
         'life_stages': [
           {
             'code': 'age_18_24',
-            'name': '18-24 tahun',
+            'name': 'Ages 18-24',
             'min_age': 18,
             'max_age': 24,
           },
@@ -28,7 +28,7 @@ void main() {
       });
 
       expect(course.slug, 'personal-branding');
-      expect(course.category?.name, 'Karier');
+      expect(course.category?.name, 'Career');
       expect(course.lifeStages.single.minAge, 18);
       expect(course.sections, isEmpty);
     });
@@ -37,17 +37,17 @@ void main() {
       final quiz = LearningQuiz.fromJson({
         'id': 3,
         'lesson_id': 7,
-        'title': 'Cek Pemahaman',
+        'title': 'Knowledge Check',
         'passing_score': 70,
         'attempts_used': 0,
         'questions': [
           {
             'id': 9,
-            'prompt': 'Pilih jawaban',
+            'prompt': 'Choose an answer',
             'points': 1,
             'options': [
-              {'key': 'A', 'text': 'Pilihan A'},
-              {'key': 'B', 'text': 'Pilihan B'},
+              {'key': 'A', 'text': 'Option A'},
+              {'key': 'B', 'text': 'Option B'},
             ],
           },
         ],

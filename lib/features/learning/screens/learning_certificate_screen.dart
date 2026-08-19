@@ -40,7 +40,7 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Sertifikat')),
+      appBar: AppBar(title: const Text('Certificate')),
       body: FutureBuilder<LearningCertificate>(
         future: _certificateFuture,
         builder: (context, snapshot) {
@@ -94,7 +94,7 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Diberikan kepada',
+                      'Awarded to',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
@@ -113,7 +113,7 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'telah menyelesaikan course',
+                      'has completed the course',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: AppColors.textSecondary,
@@ -165,20 +165,20 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Nomor sertifikat disalin.'),
+                      content: Text('Certificate number copied.'),
                     ),
                   );
                 },
                 icon: const Icon(Icons.copy_rounded),
-                label: const Text('Salin nomor sertifikat'),
+                label: const Text('Copy certificate number'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                 ),
               ),
               const SizedBox(height: 12),
               const Text(
-                'Sertifikat menunjukkan penyelesaian course edukasi Empuan '
-                'dan bukan sertifikasi profesi.',
+                'This certificate confirms completion of an Empuan educational '
+                'course and is not a professional certification.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',

@@ -272,7 +272,7 @@ class LearningCertificate {
     return LearningCertificate(
       publicId: json['public_id']?.toString() ?? '',
       certificateNumber: json['certificate_number']?.toString() ?? '',
-      label: json['label']?.toString() ?? 'Sertifikat Penyelesaian',
+      label: json['label']?.toString() ?? 'Certificate of Completion',
       recipientName: json['recipient_name']?.toString() ?? '',
       courseTitle: json['course_title']?.toString() ?? '',
       courseVersion: _asInt(json['course_version']),

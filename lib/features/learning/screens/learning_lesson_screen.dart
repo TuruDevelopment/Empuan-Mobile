@@ -56,8 +56,8 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
         SnackBar(
           content: Text(
             result.synced
-                ? 'Materi ditandai selesai.'
-                : 'Progres disimpan dan akan disinkronkan saat online.',
+                ? 'Lesson marked as complete.'
+                : 'Progress saved and will sync when you are online.',
           ),
         ),
       );
@@ -82,7 +82,7 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(title: Text(lesson?.title ?? 'Materi')),
+          appBar: AppBar(title: Text(lesson?.title ?? 'Lesson')),
           bottomNavigationBar: lesson == null || !widget.canTrackProgress
               ? null
               : Material(
@@ -107,7 +107,7 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
                                   : Icons.check_rounded,
                             ),
                       label: Text(
-                        completed ? 'Materi selesai' : 'Tandai selesai',
+                        completed ? 'Lesson completed' : 'Mark as complete',
                       ),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
@@ -211,7 +211,7 @@ class _LessonContent extends StatelessWidget {
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Ini adalah materi preview.',
+                    'This is a preview lesson.',
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontWeight: FontWeight.w600,
@@ -235,7 +235,7 @@ class _LessonContent extends StatelessWidget {
             child: Image.network(
               lesson.mediaUrl!,
               fit: BoxFit.contain,
-              semanticLabel: 'Infografis ${lesson.title}',
+              semanticLabel: 'Infographic: ${lesson.title}',
               errorBuilder: (_, __, ___) => const _MediaError(),
             ),
           ),
@@ -306,7 +306,7 @@ class _LessonContent extends StatelessWidget {
               if (passed == true) await onQuizCompleted();
             },
             icon: const Icon(Icons.quiz_outlined),
-            label: const Text('Kerjakan kuis'),
+            label: const Text('Take quiz'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               backgroundColor: AppColors.primary,
@@ -315,7 +315,7 @@ class _LessonContent extends StatelessWidget {
         ],
         if (lesson.sources.isNotEmpty) ...[
           const SizedBox(height: 26),
-          const LearningSectionTitle(title: 'Sumber'),
+          const LearningSectionTitle(title: 'Sources'),
           const SizedBox(height: 8),
           ...lesson.sources.map(
             (source) => ListTile(
@@ -345,8 +345,8 @@ class _LessonContent extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Text(
-            'Materi ini bersifat edukasi umum. Gunakan sumber profesional '
-            'yang sesuai untuk keputusan medis, hukum, atau keuangan.',
+            'This material provides general education. Consult an appropriate '
+            'professional source for medical, legal, or financial decisions.',
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 12,
@@ -442,8 +442,8 @@ class _VideoLessonState extends State<_VideoLesson> {
                 Semantics(
                   button: true,
                   label: _controller.value.isPlaying
-                      ? 'Jeda video'
-                      : 'Putar video',
+                      ? 'Pause video'
+                      : 'Play video',
                   child: IconButton(
                     onPressed: _togglePlayback,
                     color: Colors.white,
@@ -485,7 +485,7 @@ class _MediaError extends StatelessWidget {
             size: 36,
           ),
           SizedBox(height: 8),
-          Text('Media tidak dapat dimuat'),
+          Text('Media could not be loaded'),
         ],
       ),
     );

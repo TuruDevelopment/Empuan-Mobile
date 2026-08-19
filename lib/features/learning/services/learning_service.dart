@@ -158,7 +158,7 @@ class LearningService {
       if (response.statusCode == 401) {
         await AuthService.handleSessionExpired();
         throw const LearningApiException(
-          'Sesi telah berakhir. Silakan masuk kembali.',
+          'Your session has expired. Please sign in again.',
           statusCode: 401,
         );
       }
@@ -166,7 +166,7 @@ class LearningService {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw LearningApiException(
           decoded['message']?.toString() ??
-              'Learning belum dapat dimuat. Coba lagi.',
+              'Learning could not be loaded. Please try again.',
           statusCode: response.statusCode,
         );
       }
@@ -174,17 +174,17 @@ class LearningService {
       return decoded;
     } on TimeoutException {
       throw const LearningApiException(
-        'Koneksi terlalu lama. Periksa internet lalu coba lagi.',
+        'The connection timed out. Check your internet connection and try again.',
       );
     } on FormatException {
       throw const LearningApiException(
-        'Respons Learning tidak dapat dibaca.',
+        'The Learning response could not be read.',
       );
     } on LearningApiException {
       rethrow;
     } catch (_) {
       throw const LearningApiException(
-        'Tidak dapat terhubung ke Learning. Coba lagi.',
+        'Could not connect to Learning. Please try again.',
       );
     }
   }

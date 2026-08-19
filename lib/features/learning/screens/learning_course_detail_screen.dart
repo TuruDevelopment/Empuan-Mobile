@@ -47,7 +47,8 @@ class _LearningCourseDetailScreenState
       await widget.service.enroll(widget.slug);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil terdaftar pada course.')),
+        const SnackBar(
+            content: Text('You have successfully enrolled in the course.')),
       );
       await _reload();
     } catch (error) {
@@ -69,7 +70,7 @@ class _LearningCourseDetailScreenState
     if (!canOpen) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Daftar ke course untuk membuka materi ini.'),
+          content: Text('Enroll in the course to open this lesson.'),
         ),
       );
       return;
@@ -109,7 +110,7 @@ class _LearningCourseDetailScreenState
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: Text(course?.title ?? 'Detail Course'),
+            title: Text(course?.title ?? 'Course Details'),
           ),
           bottomNavigationBar: course == null
               ? null
@@ -188,14 +189,14 @@ class _CourseContent extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onOpenCertificate,
               icon: const Icon(Icons.workspace_premium_outlined),
-              label: const Text('Lihat sertifikat'),
+              label: const Text('View certificate'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
               ),
             ),
           ],
           const SizedBox(height: 24),
-          const LearningSectionTitle(title: 'Tentang course'),
+          const LearningSectionTitle(title: 'About this course'),
           const SizedBox(height: 10),
           SelectableText(
             _plainText(course.description ?? course.summary),
@@ -208,7 +209,7 @@ class _CourseContent extends StatelessWidget {
           ),
           if (course.learningOutcomes.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const LearningSectionTitle(title: 'Yang akan dipelajari'),
+            const LearningSectionTitle(title: 'What you will learn'),
             const SizedBox(height: 12),
             ...course.learningOutcomes.map(
               (outcome) => Padding(
@@ -240,14 +241,14 @@ class _CourseContent extends StatelessWidget {
           ],
           const SizedBox(height: 20),
           LearningSectionTitle(
-            title: 'Daftar materi',
-            subtitle: '${course.lessons.length} materi',
+            title: 'Lessons',
+            subtitle: '${course.lessons.length} lessons',
           ),
           const SizedBox(height: 12),
           if (course.sections.isEmpty)
             const LearningEmptyState(
-              title: 'Materi belum tersedia',
-              message: 'Admin masih menyiapkan isi course ini.',
+              title: 'Lessons are not available yet',
+              message: 'Administrators are still preparing this course.',
             )
           else
             ...course.sections.asMap().entries.map(
@@ -260,7 +261,7 @@ class _CourseContent extends StatelessWidget {
                 ),
           if (course.sources.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const LearningSectionTitle(title: 'Sumber materi'),
+            const LearningSectionTitle(title: 'Course sources'),
             const SizedBox(height: 10),
             ...course.sources.map(
               (source) => ListTile(
@@ -342,7 +343,7 @@ class _CourseHeader extends StatelessWidget {
             children: [
               _HeaderFact(
                 icon: Icons.schedule_outlined,
-                label: '${course.estimatedMinutes} menit',
+                label: '${course.estimatedMinutes} minutes',
               ),
               _HeaderFact(
                 icon: Icons.signal_cellular_alt_rounded,
@@ -351,7 +352,7 @@ class _CourseHeader extends StatelessWidget {
               if (course.certificateEnabled)
                 const _HeaderFact(
                   icon: Icons.workspace_premium_outlined,
-                  label: 'Sertifikat',
+                  label: 'Certificate',
                 ),
             ],
           ),
@@ -430,7 +431,7 @@ class _SectionCard extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        subtitle: Text('${section.lessons.length} materi'),
+        subtitle: Text('${section.lessons.length} lessons'),
         children: section.lessons.map((lesson) {
           final unlocked = enrolled || lesson.isPreview;
           final completed = lesson.progress?.isCompleted == true;
@@ -439,8 +440,8 @@ class _SectionCard extends StatelessWidget {
             button: unlocked,
             enabled: unlocked,
             label: unlocked
-                ? 'Buka materi ${lesson.title}'
-                : 'Materi ${lesson.title} terkunci',
+                ? 'Open lesson ${lesson.title}'
+                : 'Lesson ${lesson.title} is locked',
             child: ListTile(
               onTap: unlocked ? () => onOpenLesson(lesson) : null,
               minVerticalPadding: 12,
@@ -524,10 +525,10 @@ class _CourseActionBar extends StatelessWidget {
                 ),
           label: Text(
             enrolling
-                ? 'Mendaftarkan...'
+                ? 'Enrolling...'
                 : course.isEnrolled
-                    ? 'Lanjutkan belajar'
-                    : 'Daftar course',
+                    ? 'Continue learning'
+                    : 'Enroll in course',
           ),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(52),
@@ -554,24 +555,24 @@ String _lessonTypeLabel(String type) {
   return switch (type) {
     'video' => 'Video',
     'microlearning' => 'Microlearning',
-    'infographic' => 'Infografis',
-    'case_study' => 'Studi kasus',
-    'simulation' => 'Simulasi',
-    _ => 'Artikel',
+    'infographic' => 'Infographic',
+    'case_study' => 'Case study',
+    'simulation' => 'Simulation',
+    _ => 'Article',
   };
 }
 
 String _difficultyLabel(String difficulty) {
   return switch (difficulty) {
-    'advanced' => 'Lanjutan',
-    'intermediate' => 'Menengah',
-    _ => 'Pemula',
+    'advanced' => 'Advanced',
+    'intermediate' => 'Intermediate',
+    _ => 'Beginner',
   };
 }
 
 String _durationLabel(int seconds) {
   final minutes = (seconds / 60).ceil();
-  return '$minutes menit';
+  return '$minutes minutes';
 }
 
 String _plainText(String html) {

@@ -21,7 +21,7 @@ class LearningCourseCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Buka course ${course.title}',
+      label: 'Open course ${course.title}',
       child: Card(
         margin: EdgeInsets.zero,
         elevation: 0,
@@ -53,7 +53,7 @@ class LearningCourseCard extends StatelessWidget {
                           ),
                         _InfoPill(
                           icon: Icons.schedule_outlined,
-                          label: '${course.estimatedMinutes} menit',
+                          label: '${course.estimatedMinutes} minutes',
                         ),
                       ],
                     ),
@@ -119,15 +119,15 @@ class LearningCourseCard extends StatelessWidget {
                           valueColor: const AlwaysStoppedAnimation(
                             AppColors.primary,
                           ),
-                          semanticsLabel: 'Progres course',
+                          semanticsLabel: 'Course progress',
                           semanticsValue:
-                              '${progress!.progressPercent.round()} persen',
+                              '${progress!.progressPercent.round()} percent',
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${progress!.completedLessons} dari '
-                        '${progress!.totalLessons} materi selesai',
+                        '${progress!.completedLessons} of '
+                        '${progress!.totalLessons} lessons completed',
                         style: const TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontSize: 12,
@@ -192,7 +192,7 @@ class LearningErrorState extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Coba lagi'),
+              label: const Text('Try again'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(140, 48),
               ),
@@ -317,7 +317,7 @@ class _CourseThumbnail extends StatelessWidget {
             : Image.network(
                 url!,
                 fit: BoxFit.cover,
-                semanticLabel: 'Sampul course',
+                semanticLabel: 'Course cover',
                 errorBuilder: (_, __, ___) => const _ThumbnailFallback(),
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;

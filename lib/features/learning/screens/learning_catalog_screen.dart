@@ -88,7 +88,7 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Katalog Learning')),
+      appBar: AppBar(title: const Text('Learning Catalog')),
       body: Column(
         children: [
           Material(
@@ -102,13 +102,13 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
                     onChanged: _onSearchChanged,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      labelText: 'Cari course',
-                      hintText: 'Contoh: karier atau keuangan',
+                      labelText: 'Search courses',
+                      hintText: 'Example: career or finance',
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: _searchController.text.isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Hapus pencarian',
+                              tooltip: 'Clear search',
                               onPressed: () {
                                 _searchController.clear();
                                 _reload();
@@ -129,7 +129,7 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: ChoiceChip(
-                                label: const Text('Semua'),
+                                label: const Text('All'),
                                 selected: _category == null,
                                 onSelected: (_) => _setCategory(null),
                               ),
@@ -177,8 +177,8 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
 
                 if (courses.isEmpty) {
                   return const LearningEmptyState(
-                    title: 'Course tidak ditemukan',
-                    message: 'Coba kata pencarian atau kategori yang berbeda.',
+                    title: 'No courses found',
+                    message: 'Try a different search term or category.',
                     icon: Icons.search_off_rounded,
                   );
                 }

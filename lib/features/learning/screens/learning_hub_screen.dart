@@ -142,8 +142,8 @@ class _LearningHomeContent extends StatelessWidget {
                 const SizedBox(height: 24),
                 if (data.continueLearning.isNotEmpty) ...[
                   const LearningSectionTitle(
-                    title: 'Lanjutkan belajar',
-                    subtitle: 'Teruskan dari materi terakhirmu',
+                    title: 'Continue learning',
+                    subtitle: 'Pick up from your last lesson',
                   ),
                   const SizedBox(height: 14),
                   ...data.continueLearning.map(
@@ -159,11 +159,12 @@ class _LearningHomeContent extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
                 LearningSectionTitle(
-                  title: 'Pilih topik',
-                  subtitle: 'Materi dikelola dan diterbitkan oleh admin',
+                  title: 'Choose a topic',
+                  subtitle:
+                      'Content is managed and published by administrators',
                   action: TextButton(
                     onPressed: () => onOpenCatalog(),
-                    child: const Text('Lihat semua'),
+                    child: const Text('View all'),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -195,17 +196,17 @@ class _LearningHomeContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 28),
                 LearningSectionTitle(
-                  title: 'Rekomendasi untukmu',
+                  title: 'Recommended for you',
                   subtitle: data.lifeStage == null
-                      ? 'Course terbaru yang dapat kamu pelajari'
-                      : 'Disesuaikan untuk ${data.lifeStage!.name}',
+                      ? 'The latest courses available to you'
+                      : 'Selected for ${data.lifeStage!.name}',
                 ),
                 const SizedBox(height: 14),
                 if (data.recommendedCourses.isEmpty)
                   const LearningEmptyState(
-                    title: 'Materi segera hadir',
+                    title: 'New lessons are coming soon',
                     message:
-                        'Admin belum menerbitkan materi untuk tahap kehidupanmu.',
+                        'Administrators have not published content for your life stage yet.',
                   )
                 else
                   ...data.recommendedCourses.map(
@@ -267,7 +268,7 @@ class _LearningHero extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           const Text(
-            'Belajar sesuai tahap kehidupanmu',
+            'Learn at every stage of life',
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 23,
@@ -279,8 +280,8 @@ class _LearningHero extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             lifeStage == null
-                ? 'Materi praktis untuk perempuan usia 18 tahun ke atas.'
-                : 'Pilihan materi untuk tahap ${lifeStage!.name}.',
+                ? 'Practical learning for women aged 18 and above.'
+                : 'Learning selected for ${lifeStage!.name}.',
             style: const TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
@@ -312,8 +313,8 @@ class _EducationNotice extends StatelessWidget {
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Materi bersifat edukasi umum dan tidak menggantikan nasihat '
-              'profesional medis, hukum, atau keuangan.',
+              'This content provides general education and does not replace '
+              'professional medical, legal, or financial advice.',
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontSize: 12,
