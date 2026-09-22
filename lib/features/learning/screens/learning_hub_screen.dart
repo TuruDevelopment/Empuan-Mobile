@@ -21,6 +21,7 @@ class LearningHubScreen extends StatefulWidget {
 class _LearningHubScreenState extends State<LearningHubScreen> {
   late final LearningService _service;
   late Future<LearningHomeData> _homeFuture;
+  bool _isUpdatingDob = false;
 
   @override
   void initState() {
@@ -40,6 +41,39 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
       _homeFuture = homeFuture;
     });
     await homeFuture;
+  }
+
+  Future<void> _addDateOfBirth() async {
+    final today = DateTime.now();
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime(today.year - 18, today.month, today.day),
+      firstDate: DateTime(1900),
+      lastDate: today,
+      helpText: 'Select your date of birth',
+      cancelText: 'Cancel',
+      confirmText: 'Save DOB',
+    );
+
+    if (selectedDate == null || !mounted) return;
+
+    setState(() => _isUpdatingDob = true);
+
+    try {
+      await _service.updateDateOfBirth(selectedDate);
+      await _reload();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Date of birth added successfully.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdatingDob = false);
+    }
   }
 
   void _openCatalog({String? category}) {
@@ -85,9 +119,19 @@ class _LearningHubScreenState extends State<LearningHubScreen> {
           }
 
           if (snapshot.hasError) {
+            final error = snapshot.error;
+            final requiresDob =
+                error is LearningApiException && error.requiresDateOfBirth;
+
             return LearningErrorState(
-              message: snapshot.error.toString(),
+              message: requiresDob
+                  ? 'Add your date of birth to access Learning.'
+                  : snapshot.error.toString(),
               onRetry: _reload,
+              onAddDob: requiresDob ? _addDateOfBirth : null,
+              isAddingDob: _isUpdatingDob,
+              icon:
+                  requiresDob ? Icons.cake_outlined : Icons.cloud_off_outlined,
             );
           }
 

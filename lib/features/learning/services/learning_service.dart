@@ -12,6 +12,13 @@ class LearningApiException implements Exception {
   final String message;
   final int? statusCode;
 
+  bool get requiresDateOfBirth {
+    final normalizedMessage = message.toLowerCase();
+    return statusCode == 403 &&
+        (normalizedMessage.contains('date of birth') ||
+            normalizedMessage.contains('dob'));
+  }
+
   @override
   String toString() => message;
 }
@@ -59,6 +66,14 @@ class LearningService {
   Future<LearningEnrollment> enroll(String slug) async {
     final envelope = await _request('POST', ApiConfig.learningEnroll(slug));
     return LearningEnrollment.fromJson(_map(envelope['data']));
+  }
+
+  Future<void> updateDateOfBirth(DateTime dateOfBirth) async {
+    await _request(
+      'PATCH',
+      ApiConfig.userProfile,
+      body: {'dob': _formatDate(dateOfBirth)},
+    );
   }
 
   Future<LearningLesson> getLesson(int id) async {
@@ -138,6 +153,15 @@ class LearningService {
               )
               .timeout(_timeout);
           break;
+        case 'PATCH':
+          response = await _client
+              .patch(
+                uri,
+                headers: headers,
+                body: body == null ? null : jsonEncode(body),
+              )
+              .timeout(_timeout);
+          break;
         case 'PUT':
           response = await _client
               .put(
@@ -195,5 +219,11 @@ class LearningService {
       return value.map((key, item) => MapEntry(key.toString(), item));
     }
     return <String, dynamic>{};
+  }
+
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year.toString().padLeft(4, '0')}-$month-$day';
   }
 }

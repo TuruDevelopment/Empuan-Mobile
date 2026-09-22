@@ -6,6 +6,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('Learning models', () {
+    test('recognizes a missing date of birth access error', () {
+      const missingDob = LearningApiException(
+        'Add your date of birth to your profile to access Learning.',
+        statusCode: 403,
+      );
+      const underage = LearningApiException(
+        'Learning is only available to users aged 18 and above.',
+        statusCode: 403,
+      );
+
+      expect(missingDob.requiresDateOfBirth, isTrue);
+      expect(underage.requiresDateOfBirth, isFalse);
+    });
+
     test('parses a course card without hardcoded content assumptions', () {
       final course = LearningCourse.fromJson({
         'slug': 'personal-branding',

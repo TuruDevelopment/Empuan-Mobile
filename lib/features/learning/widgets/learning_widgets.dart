@@ -151,10 +151,16 @@ class LearningErrorState extends StatelessWidget {
     super.key,
     required this.message,
     required this.onRetry,
+    this.onAddDob,
+    this.isAddingDob = false,
+    this.icon = Icons.cloud_off_outlined,
   });
 
   final String message;
   final VoidCallback onRetry;
+  final Future<void> Function()? onAddDob;
+  final bool isAddingDob;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -171,11 +177,7 @@ class LearningErrorState extends StatelessWidget {
                 color: AppColors.accent.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.cloud_off_outlined,
-                color: AppColors.primary,
-                size: 30,
-              ),
+              child: Icon(icon, color: AppColors.primary, size: 30),
             ),
             const SizedBox(height: 16),
             Text(
@@ -189,8 +191,29 @@ class LearningErrorState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+            if (onAddDob != null) ...[
+              FilledButton.icon(
+                onPressed: isAddingDob ? null : () => onAddDob!(),
+                icon: isAddingDob
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.cake_outlined),
+                label: Text(isAddingDob ? 'Saving...' : 'Add DOB'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(160, 48),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
             OutlinedButton.icon(
-              onPressed: onRetry,
+              onPressed: isAddingDob ? null : onRetry,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
               style: OutlinedButton.styleFrom(
