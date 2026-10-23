@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
+import '../auth/form_motion.dart';
 import '../auth/login_screen.dart' show isEmail;
+import 'animated_avatar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -130,63 +132,69 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       },
       child: Scaffold(
         appBar: const EmTopBar(title: 'Personal details'),
-        body: _loading
-            ? const EmLoading()
-            : _loadError != null
-                ? Center(child: EmStateView.error(message: _loadError!, onRetry: _load))
-                : Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                      children: [
-                        Center(child: EmAvatar(name: _name.text, size: 88)),
-                        const SizedBox(height: 24),
-                        EmTextField(
-                          label: 'Full name',
-                          controller: _name,
-                          textCapitalization: TextCapitalization.words,
-                          validator: (v) => (v ?? '').trim().length < 2 ? 'Enter your name' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        EmTextField(
-                          label: 'Username',
-                          controller: _username,
-                          validator: (v) {
-                            final value = (v ?? '').trim();
-                            if (value.length < 3) return 'Use at least 3 characters';
-                            if (!RegExp(r'^[a-zA-Z0-9._]+$').hasMatch(value)) return 'Use letters, numbers, dots or underscores';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        EmTextField(
-                          label: 'Email',
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (v) => isEmail(v) ? null : 'Enter a valid email address',
-                        ),
-                        const SizedBox(height: 16),
-                        EmTextField(
-                          label: 'Date of birth',
-                          controller: _dobText,
-                          readOnly: true,
-                          onTap: _pickDob,
-                          hint: 'Choose a date',
-                          suffixIcon: Icons.calendar_today_outlined,
-                          validator: (_) {
-                            if (_dob == null) return null;
-                            final now = DateTime.now();
-                            return _dob!.isAfter(DateTime(now.year - 18, now.month, now.day)) ? 'You must be 18 or older to use Empuan' : null;
-                          },
-                        ),
-                      ],
+        body: EmStateSwitcher(
+          stateKey: _loading ? 'loading' : (_loadError != null ? 'error' : 'form'),
+          child: _loading
+              ? const EmLoading()
+              : _loadError != null
+                  ? Center(child: EmStateView.error(message: _loadError!, onRetry: _load))
+                  : Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                        children: staggered([
+                          Center(child: AnimatedAvatar(name: _name.text, size: 88)),
+                          const SizedBox(height: 24),
+                          EmTextField(
+                            label: 'Full name',
+                            controller: _name,
+                            textCapitalization: TextCapitalization.words,
+                            validator: (v) => (v ?? '').trim().length < 2 ? 'Enter your name' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          EmTextField(
+                            label: 'Username',
+                            controller: _username,
+                            validator: (v) {
+                              final value = (v ?? '').trim();
+                              if (value.length < 3) return 'Use at least 3 characters';
+                              if (!RegExp(r'^[a-zA-Z0-9._]+$').hasMatch(value)) return 'Use letters, numbers, dots or underscores';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          EmTextField(
+                            label: 'Email',
+                            controller: _email,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (v) => isEmail(v) ? null : 'Enter a valid email address',
+                          ),
+                          const SizedBox(height: 16),
+                          EmTextField(
+                            label: 'Date of birth',
+                            controller: _dobText,
+                            readOnly: true,
+                            onTap: _pickDob,
+                            hint: 'Choose a date',
+                            suffixIcon: Icons.calendar_today_outlined,
+                            validator: (_) {
+                              if (_dob == null) return null;
+                              final now = DateTime.now();
+                              return _dob!.isAfter(DateTime(now.year - 18, now.month, now.day)) ? 'You must be 18 or older to use Empuan' : null;
+                            },
+                          ),
+                        ]),
+                      ),
                     ),
-                  ),
+        ),
         bottomNavigationBar: _loading || _loadError != null
             ? null
             : EmBottomBar(
                 bordered: false,
-                child: EmButton(label: 'Save changes', loading: _saving, onPressed: _changed ? _save : null),
+                child: AnimatedEnabled(
+                  enabled: _changed,
+                  child: EmButton(label: 'Save changes', loading: _saving, onPressed: _changed ? _save : null),
+                ),
               ),
       ),
     );

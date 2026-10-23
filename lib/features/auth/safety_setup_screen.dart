@@ -177,7 +177,7 @@ class _ContactItemState extends State<_ContactItem> with SingleTickerProviderSta
   Widget build(BuildContext context) {
     return SizeTransition(
       sizeFactor: _t,
-      axisAlignment: -1,
+      alignment: Alignment.topCenter,
       child: FadeTransition(
         opacity: _t,
         child: Column(

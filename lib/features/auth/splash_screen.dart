@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: reduced ? Duration.zero : EmMotion.slow,
       pageBuilder: (_, __, ___) => signedIn ? const MainShell() : const WelcomeScreen(),
-      transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: CurvedAnimation(parent: a, curve: EmMotion.enter), child: child),
+      transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a.drive(CurveTween(curve: EmMotion.enter)), child: child),
     ));
   }
 

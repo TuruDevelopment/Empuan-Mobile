@@ -8,9 +8,12 @@ import '../safety/sos_controller.dart';
 import 'places_screen.dart';
 
 class PlaceScreen extends StatelessWidget {
-  const PlaceScreen({super.key, required this.place});
+  const PlaceScreen({super.key, required this.place, this.heroTag});
 
   final Place place;
+
+  /// Hero tag of the photo the user tapped, so it flies into the header.
+  final Object? heroTag;
 
   Future<void> _open(BuildContext context, Uri uri) async {
     try {
@@ -57,7 +60,7 @@ class PlaceScreen extends StatelessWidget {
                 ),
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(background: PlacePhoto(place: place, height: 250, width: double.infinity, radius: 0)),
+            flexibleSpace: FlexibleSpaceBar(background: PlacePhoto(place: place, height: 250, width: double.infinity, radius: 0, heroTag: heroTag)),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -73,7 +76,12 @@ class PlaceScreen extends StatelessWidget {
                       _QuickAction(icon: Icons.call_outlined, label: 'Call', onTap: () => SosController.dial(place.phone!)),
                     _QuickAction(icon: Icons.directions_outlined, label: 'Directions', onTap: () => _open(context, directions)),
                     if (website != null) _QuickAction(icon: Icons.language_rounded, label: 'Website', onTap: () => _open(context, website)),
-                  ].expand((w) => [Expanded(child: w), const SizedBox(width: 8)]).toList()
+                  ]
+                      .indexed
+                      // Start once the route transition is mostly done.
+                      .map((e) => EmFadeSlideIn(index: e.$1, delay: const Duration(milliseconds: 150), child: e.$2))
+                      .expand((w) => [Expanded(child: w), const SizedBox(width: 8)])
+                      .toList()
                     ..removeLast(),
                 ),
                 const SizedBox(height: 18),

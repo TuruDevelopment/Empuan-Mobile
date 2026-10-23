@@ -4,6 +4,7 @@ import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
 import '../auth/forgot_password_screen.dart';
+import '../auth/form_motion.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -64,16 +65,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: const EmTopBar(title: 'Change password'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: [
+        children: staggered([
           EmTextField(label: 'Current password', controller: _current, password: true, autofillHints: const [AutofillHints.password]),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(onPressed: () => pushScreen(context, const ForgotPasswordScreen()), child: const Text('Forgot it?')),
           ),
           EmTextField(label: 'New password', controller: _next, password: true, autofillHints: const [AutofillHints.newPassword]),
-          EmCheckLine(label: 'At least 8 characters', met: _longEnough),
-          EmCheckLine(label: 'Includes a number', met: _hasNumber),
-          EmCheckLine(label: 'Different from your current password', met: _different),
+          AnimatedCheckLine(label: 'At least 8 characters', met: _longEnough),
+          AnimatedCheckLine(label: 'Includes a number', met: _hasNumber),
+          AnimatedCheckLine(label: 'Different from your current password', met: _different),
           const SizedBox(height: 16),
           EmTextField(
             label: 'Confirm new password',
@@ -81,15 +82,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             password: true,
             errorText: _confirm.text.isNotEmpty && !_matches ? 'Passwords don’t match yet' : null,
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
-        ],
+          AnimatedFormMessage(message: _error, padding: const EdgeInsets.only(top: 12)),
+        ]),
       ),
       bottomNavigationBar: EmBottomBar(
         bordered: false,
-        child: EmButton(label: 'Update password', loading: _saving, onPressed: _valid ? _save : null),
+        child: AnimatedEnabled(
+          enabled: _valid,
+          child: EmButton(label: 'Update password', loading: _saving, onPressed: _valid ? _save : null),
+        ),
       ),
     );
   }

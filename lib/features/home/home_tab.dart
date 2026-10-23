@@ -10,14 +10,18 @@ import '../../features/learning/models/learning_models.dart';
 import '../../features/learning/services/learning_service.dart';
 import '../../ui/em_ui.dart';
 import '../ai/ai_chat_screen.dart';
+import '../auth/form_motion.dart';
 import '../daily/daily_quiz_screen.dart';
 import '../learn/article_screen.dart';
 import '../learning/screens/learning_course_detail_screen.dart';
 import '../places/place_screen.dart';
 import '../places/places_screen.dart';
+import '../profile/animated_avatar.dart';
 import '../profile/me_screen.dart';
 import '../safety/contact_sheet.dart';
 import '../safety/sos_controller.dart';
+
+enum _Part { contacts, question, learning, articles, places }
 
 /// Each section loads on its own so one failing endpoint only hides that section.
 class HomeTab extends StatefulWidget {
@@ -35,6 +39,14 @@ class _HomeTabState extends State<HomeTab> {
   List<Article> _articles = const [];
   Map<int, String> _articleCategories = const {};
   List<Place> _places = const [];
+
+  /// Sections still waiting for their first response; they show a skeleton.
+  /// Pull-to-refresh keeps the current content instead.
+  final Set<_Part> _pending = _Part.values.toSet();
+
+  void _settle(_Part part) {
+    if (mounted && _pending.contains(part)) setState(() => _pending.remove(part));
+  }
 
   @override
   void initState() {
@@ -60,6 +72,7 @@ class _HomeTabState extends State<HomeTab> {
     } catch (_) {
       // Unknown: neither "ready" nor "no contacts" is shown.
     }
+    _settle(_Part.contacts);
   }
 
   Future<void> _loadQuestion() async {
@@ -74,6 +87,7 @@ class _HomeTabState extends State<HomeTab> {
         });
       }
     } catch (_) {}
+    _settle(_Part.question);
   }
 
   Future<void> _loadLearning() async {
@@ -81,6 +95,7 @@ class _HomeTabState extends State<HomeTab> {
       final home = await LearningService().getHome();
       if (mounted) setState(() => _learning = home);
     } catch (_) {}
+    _settle(_Part.learning);
   }
 
   Future<void> _loadArticles() async {
@@ -98,6 +113,7 @@ class _HomeTabState extends State<HomeTab> {
         });
       }
     } catch (_) {}
+    _settle(_Part.articles);
   }
 
   Future<void> _loadPlaces() async {
@@ -105,6 +121,7 @@ class _HomeTabState extends State<HomeTab> {
       final places = await PlacesRepository().places();
       if (mounted) setState(() => _places = places.take(2).toList());
     } catch (_) {}
+    _settle(_Part.places);
   }
 
   String _greeting() {
@@ -116,7 +133,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _addContact() async {
-    if (await showContactSheet(context, kind: ContactKind.trusted)) _loadContacts();
+    if (await showContactSheet(context, kind: ContactKind.trusted)) await _loadContacts();
   }
 
   @override
@@ -125,6 +142,8 @@ class _HomeTabState extends State<HomeTab> {
     final continueCourse = _learning?.continueLearning.where((e) => e.completedAt == null).firstOrNull;
     final startCourse = continueCourse == null ? _learning?.recommendedCourses.firstOrNull : null;
 
+    final course = continueCourse?.course ?? startCourse;
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -132,7 +151,7 @@ class _HomeTabState extends State<HomeTab> {
           onRefresh: _refresh,
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-            children: [
+            children: staggered([
               ValueListenableBuilder<UserProfile?>(
                 valueListenable: Session.user,
                 builder: (context, user, _) => Row(
@@ -143,7 +162,21 @@ class _HomeTabState extends State<HomeTab> {
                         children: [
                           Text(DateFormat('EEEE, d MMMM').format(DateTime.now()), style: text.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 2),
-                          Text(user == null ? _greeting() : '${_greeting()}, ${user.firstName}', style: text.headlineMedium),
+                          // Fades to the personal greeting once the profile arrives.
+                          AnimatedSwitcher(
+                            duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+                            switchInCurve: EmMotion.enter,
+                            switchOutCurve: EmMotion.exit,
+                            layoutBuilder: (current, previous) => Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [...previous, if (current != null) current],
+                            ),
+                            child: Text(
+                              user == null ? _greeting() : '${_greeting()}, ${user.firstName}',
+                              key: ValueKey(user?.firstName),
+                              style: text.headlineMedium,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -153,77 +186,222 @@ class _HomeTabState extends State<HomeTab> {
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () => pushScreen(context, const MeScreen()),
-                        child: EmAvatar(name: user?.name ?? '', size: 44),
+                        child: AnimatedAvatar(name: user?.name ?? '', size: 44),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              if (_contacts != null) ...[
-                _contacts!.isEmpty ? _NoContactsCard(onAdd: _addContact) : _SosReadyCard(contacts: _contacts!),
-                const SizedBox(height: 14),
-              ],
-              _AskAiCard(onTap: () => openEmpuanAi(context)),
-              const SizedBox(height: 14),
-              if (_question != null) ...[
-                _QuestionCard(question: _question!, answered: _answeredToday, onOpen: () async {
-                  await pushScreen(context, const DailyQuizScreen());
-                  _loadQuestion();
-                }),
-                const SizedBox(height: 14),
-              ],
-              if (continueCourse != null || startCourse != null) ...[
-                const SizedBox(height: 8),
-                EmSectionHeader(
-                  continueCourse != null ? 'Continue learning' : 'Start learning',
-                  actionLabel: 'All courses',
-                  onAction: () => ShellScope.maybeOf(context)?.goTo(AppTab.learn),
+              _Section(
+                state: _pending.contains(_Part.contacts)
+                    ? _SectionState.loading
+                    : _contacts == null
+                        ? _SectionState.hidden
+                        : _contacts!.isEmpty
+                            ? 'no-contacts'
+                            : 'sos-ready',
+                skeleton: const _CardSkeleton(height: 72),
+                builder: () => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _contacts!.isEmpty ? _NoContactsCard(onAdd: _addContact) : _SosReadyCard(contacts: _contacts!),
                 ),
-                const SizedBox(height: 8),
-                _CourseCard(
-                  course: continueCourse?.course ?? startCourse!,
-                  summary: continueCourse?.summary,
-                  onTap: () async {
-                    await pushScreen(context, LearningCourseDetailScreen(slug: (continueCourse?.course ?? startCourse!).slug, service: LearningService()));
-                    _loadLearning();
-                  },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _AskAiCard(onTap: () => openEmpuanAi(context)),
+              ),
+              _Section(
+                state: _pending.contains(_Part.question)
+                    ? _SectionState.loading
+                    : _question == null
+                        ? _SectionState.hidden
+                        : 'question',
+                skeleton: const _CardSkeleton(height: 136),
+                builder: () => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _QuestionCard(question: _question!, answered: _answeredToday, onOpen: () async {
+                    await pushScreen(context, const DailyQuizScreen());
+                    await _loadQuestion();
+                  }),
                 ),
-                const SizedBox(height: 14),
-              ],
-              if (_articles.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                EmSectionHeader('From Her Voice', actionLabel: 'More articles', onAction: () => ShellScope.maybeOf(context)?.goTo(AppTab.learn)),
-                const SizedBox(height: 8),
-                EmGroup(
-                  children: [
-                    for (final a in _articles)
-                      _ArticleRow(
-                        article: a,
-                        category: _articleCategories[a.categoryId],
-                        onTap: () => pushScreen(context, ArticleScreen(article: a, categoryName: _articleCategories[a.categoryId])),
+              ),
+              _Section(
+                state: _pending.contains(_Part.learning)
+                    ? _SectionState.loading
+                    : course == null
+                        ? _SectionState.hidden
+                        : 'course',
+                skeleton: const _CardSkeleton(height: 100, header: true),
+                builder: () => Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      EmSectionHeader(
+                        continueCourse != null ? 'Continue learning' : 'Start learning',
+                        actionLabel: 'All courses',
+                        onAction: () => ShellScope.maybeOf(context)?.goTo(AppTab.learn),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-              ],
-              if (_places.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                EmSectionHeader('Places for her', actionLabel: 'See all', onAction: () => pushScreen(context, const PlacesScreen())),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < _places.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 12),
-                      Expanded(child: _PlaceTile(place: _places[i])),
+                      const SizedBox(height: 8),
+                      _CourseCard(
+                        course: course!,
+                        summary: continueCourse?.summary,
+                        onTap: () async {
+                          await pushScreen(context, LearningCourseDetailScreen(slug: course.slug, service: LearningService()));
+                          await _loadLearning();
+                        },
+                      ),
                     ],
-                    if (_places.length == 1) const Expanded(child: SizedBox.shrink()),
-                  ],
+                  ),
                 ),
-              ],
-            ],
+              ),
+              _Section(
+                state: _pending.contains(_Part.articles)
+                    ? _SectionState.loading
+                    : _articles.isEmpty
+                        ? _SectionState.hidden
+                        : 'articles',
+                skeleton: const _CardSkeleton(height: 178, header: true),
+                builder: () => Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      EmSectionHeader('From Her Voice', actionLabel: 'More articles', onAction: () => ShellScope.maybeOf(context)?.goTo(AppTab.learn)),
+                      const SizedBox(height: 8),
+                      EmGroup(
+                        children: [
+                          for (final a in _articles)
+                            _ArticleRow(
+                              article: a,
+                              category: _articleCategories[a.categoryId],
+                              onTap: () => pushScreen(context, ArticleScreen(article: a, categoryName: _articleCategories[a.categoryId])),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              _Section(
+                state: _pending.contains(_Part.places)
+                    ? _SectionState.loading
+                    : _places.isEmpty
+                        ? _SectionState.hidden
+                        : 'places',
+                skeleton: const _PlacesSkeleton(),
+                builder: () => Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      EmSectionHeader('Places for her', actionLabel: 'See all', onAction: () => pushScreen(context, const PlacesScreen())),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var i = 0; i < _places.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 12),
+                            Expanded(child: _PlaceTile(place: _places[i])),
+                          ],
+                          if (_places.length == 1) const Expanded(child: SizedBox.shrink()),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ]),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+abstract final class _SectionState {
+  static const loading = 'loading';
+  static const hidden = 'hidden';
+}
+
+/// One home section: a skeleton while its first load is in flight, then a
+/// cross-fade to the content (or a smooth collapse if there's nothing to show).
+class _Section extends StatelessWidget {
+  const _Section({required this.state, required this.skeleton, required this.builder});
+
+  /// [_SectionState.loading], [_SectionState.hidden], or any other key for
+  /// content; a new key cross-fades (e.g. "no contacts" to "SOS ready").
+  final String state;
+  final Widget skeleton;
+  final Widget Function() builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+      curve: EmMotion.enter,
+      alignment: Alignment.topCenter,
+      child: EmStateSwitcher(
+        stateKey: state,
+        child: switch (state) {
+          _SectionState.loading => skeleton,
+          _SectionState.hidden => const SizedBox(width: double.infinity),
+          _ => builder(),
+        },
+      ),
+    );
+  }
+}
+
+class _CardSkeleton extends StatelessWidget {
+  const _CardSkeleton({required this.height, this.header = false});
+
+  final double height;
+
+  /// Also show a section-title placeholder above the card.
+  final bool header;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading',
+      child: Padding(
+        padding: EdgeInsets.only(top: header ? 8 : 0, bottom: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (header) ...[const EmSkeleton(width: 140, height: 18, radius: 8), const SizedBox(height: 14)],
+            EmSkeleton(height: height, radius: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlacesSkeleton extends StatelessWidget {
+  const _PlacesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading',
+      child: const Padding(
+        padding: EdgeInsets.only(top: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            EmSkeleton(width: 140, height: 18, radius: 8),
+            SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(child: EmSkeleton(height: 150, radius: 20)),
+                SizedBox(width: 12),
+                Expanded(child: EmSkeleton(height: 150, radius: 20)),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -363,7 +541,10 @@ class _QuestionCard extends StatelessWidget {
           Row(
             children: [
               const Expanded(child: EmCaption('Today’s question', color: AppColors.primary)),
-              Text(answered ? 'Done' : '1 min', style: text.labelMedium?.copyWith(color: AppColors.primary)),
+              EmAnimatedSwap(
+                valueKey: answered,
+                child: Text(answered ? 'Done' : '1 min', style: text.labelMedium?.copyWith(color: AppColors.primary)),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -488,11 +669,11 @@ class _PlaceTile extends StatelessWidget {
     final status = place.openStatus();
     return EmCard(
       padding: const EdgeInsets.all(10),
-      onTap: () => pushScreen(context, PlaceScreen(place: place)),
+      onTap: () => pushScreen(context, PlaceScreen(place: place, heroTag: 'home-place-photo-${place.id}')),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PlacePhoto(place: place, height: 96, width: double.infinity, radius: 12),
+          PlacePhoto(place: place, height: 96, width: double.infinity, radius: 12, heroTag: 'home-place-photo-${place.id}'),
           const SizedBox(height: 8),
           Text(place.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
           if (status != null) ...[

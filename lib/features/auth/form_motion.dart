@@ -230,15 +230,12 @@ AnimatedSwitcherTransitionBuilder sharedAxisTransition({required Object currentK
   final dir = forward ? 1.0 : -1.0;
   return (child, a) {
     final incoming = child.key == currentKey;
-    final slide = CurvedAnimation(parent: a, curve: EmMotion.enter);
     // The old child clears out quickly so the two never read on top of each other.
-    final fade = CurvedAnimation(parent: a, curve: incoming ? const Interval(0.3, 1) : const Interval(0.6, 1));
+    final fade = CurveTween(curve: incoming ? const Interval(0.3, 1) : const Interval(0.6, 1));
+    final slide = Tween(begin: Offset((incoming ? 0.12 : -0.12) * dir, 0), end: Offset.zero).chain(CurveTween(curve: EmMotion.enter));
     return FadeTransition(
-      opacity: fade,
-      child: SlideTransition(
-        position: Tween(begin: Offset((incoming ? 0.12 : -0.12) * dir, 0), end: Offset.zero).animate(slide),
-        child: child,
-      ),
+      opacity: a.drive(fade),
+      child: SlideTransition(position: a.drive(slide), child: child),
     );
   };
 }

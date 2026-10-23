@@ -4,11 +4,13 @@ import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../data/contacts_repository.dart';
 import '../../ui/em_ui.dart';
+import '../auth/form_motion.dart';
 import '../auth/interests_screen.dart';
 import '../auth/welcome_screen.dart';
 import '../learning/screens/learning_certificates_screen.dart';
 import '../safety/fake_call_screen.dart';
 import '../safety/trusted_contacts_screen.dart';
+import 'animated_avatar.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'legal_screen.dart';
@@ -45,7 +47,7 @@ class _MeScreenState extends State<MeScreen> {
 
   Future<void> _open(Widget screen) async {
     await pushScreen(context, screen);
-    if (mounted) _loadCounts();
+    if (mounted) await _loadCounts();
   }
 
   Future<void> _signOut() async {
@@ -85,10 +87,10 @@ class _MeScreenState extends State<MeScreen> {
         valueListenable: Session.user,
         builder: (context, user, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-          children: [
+          children: staggered([
             Row(
               children: [
-                EmAvatar(name: user?.name ?? '', size: 72),
+                AnimatedAvatar(name: user?.name ?? '', size: 72),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -155,14 +157,17 @@ class _MeScreenState extends State<MeScreen> {
             ),
             const SizedBox(height: 4),
             Text('Empuan 1.0.0', textAlign: TextAlign.center, style: text.bodySmall),
-          ],
+          ]),
         ),
       ),
     );
   }
 
-  Widget _count(String? value) =>
-      value == null ? const SizedBox.shrink() : Text(value, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14));
+  /// Counts load after the screen opens, so they slide in rather than pop.
+  Widget _count(String? value) => EmAnimatedSwap(
+        valueKey: value ?? '',
+        child: value == null ? const SizedBox.shrink() : Text(value, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14)),
+      );
 
   Widget _group(String title, List<Widget> rows) => Padding(
         padding: const EdgeInsets.only(bottom: 20),

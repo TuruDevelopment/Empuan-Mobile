@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/api.dart';
 import '../../data/content_repository.dart';
 import '../../ui/em_ui.dart';
+import '../auth/form_motion.dart';
 import 'place_screen.dart';
 
 class PlacesScreen extends StatefulWidget {
@@ -64,60 +65,91 @@ class _PlacesScreenState extends State<PlacesScreen> {
     final visible = _visible;
     return Scaffold(
       appBar: const EmTopBar(title: 'Places for her'),
-      body: _loading
-          ? const EmLoading()
-          : _error != null
-              ? Center(child: EmStateView.error(message: _error!, onRetry: _load))
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-                    children: [
-                      TextField(
-                        controller: _search,
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: 'Search by name or area',
-                          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
-                          suffixIcon: _search.text.isEmpty
-                              ? null
-                              : IconButton(tooltip: 'Clear search', icon: const Icon(Icons.close_rounded), onPressed: _search.clear),
+      body: EmStateSwitcher(
+        stateKey: _loading ? 'loading' : (_error != null ? 'error' : 'content'),
+        child: _loading
+            ? const EmSkeletonList(thumbnail: 84, padding: EdgeInsets.fromLTRB(20, 4, 20, 32))
+            : _error != null
+                ? Center(child: EmStateView.error(message: _error!, onRetry: _load))
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                      children: [
+                        StaggerItem(
+                          index: 0,
+                          child: TextField(
+                            controller: _search,
+                            textInputAction: TextInputAction.search,
+                            decoration: InputDecoration(
+                              hintText: 'Search by name or area',
+                              prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
+                              suffixIcon: _search.text.isEmpty
+                                  ? null
+                                  : IconButton(tooltip: 'Clear search', icon: const Icon(Icons.close_rounded), onPressed: _search.clear),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      if (_categories.isNotEmpty) ...[
-                        EmChipBar(
-                          labels: ['All', ..._categories.map((c) => c.name)],
-                          selected: _category,
-                          onSelected: (i) => setState(() => _category = i),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      if (visible.isEmpty)
-                        EmStateView(
-                          icon: Icons.storefront_outlined,
-                          title: _places.isEmpty ? 'No places yet' : 'No places match',
-                          message: _places.isEmpty ? 'We’re adding places soon.' : 'Try another name, area or category.',
-                        )
-                      else
-                        for (var i = 0; i < visible.length; i++) ...[
-                          if (i == 0) _FeaturedPlace(place: visible[i]) else _PlaceRow(place: visible[i]),
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 14),
+                        if (_categories.isNotEmpty) ...[
+                          StaggerItem(
+                            index: 1,
+                            child: EmChipBar(
+                              labels: ['All', ..._categories.map((c) => c.name)],
+                              selected: _category,
+                              onSelected: (i) => setState(() => _category = i),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                         ],
-                    ],
+                        if (visible.isEmpty)
+                          StaggerItem(
+                            key: ValueKey('empty-$_category-${_places.isEmpty}'),
+                            index: 2,
+                            child: EmStateView(
+                              icon: Icons.storefront_outlined,
+                              title: _places.isEmpty ? 'No places yet' : 'No places match',
+                              message: _places.isEmpty ? 'We’re adding places soon.' : 'Try another name, area or category.',
+                            ),
+                          )
+                        else
+                          for (var i = 0; i < visible.length; i++) _placeItem(visible, i),
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
+  }
+
+  /// Keyed by category so switching category re-staggers the new results,
+  /// while typing in search only adds or drops rows without replaying the
+  /// ones still shown. Rows past the first screen just appear: animating them
+  /// in as they scroll into view would only make the list feel slow.
+  Widget _placeItem(List<Place> visible, int i) {
+    final place = visible[i];
+    final key = ValueKey('place-$_category-${place.id}');
+    final child = Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: i == 0 ? _FeaturedPlace(place: place) : _PlaceRow(place: place),
+    );
+    return i < 6 ? StaggerItem(key: key, index: i + 2, child: child) : KeyedSubtree(key: key, child: child);
   }
 }
 
+/// Hero tag for a place's photo in this list. Each list that opens a place
+/// uses its own prefix so photos don't fly between two lists of places.
+Object _listPhotoTag(Place place) => 'places-list-photo-${place.id}';
+
 class PlacePhoto extends StatelessWidget {
-  const PlacePhoto({super.key, required this.place, required this.height, this.width, this.radius = 14});
+  const PlacePhoto({super.key, required this.place, required this.height, this.width, this.radius = 14, this.heroTag});
 
   final Place place;
   final double height;
   final double? width;
   final double radius;
+
+  /// When set, the photo flies to and from a [PlaceScreen] given the same tag.
+  final Object? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +159,7 @@ class PlacePhoto extends StatelessWidget {
       color: AppColors.blush,
       child: Icon(Icons.storefront_outlined, color: AppColors.secondary, size: height > 120 ? 40 : 26),
     );
-    return ClipRRect(
+    final photo = ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: place.photoUrl == null
           ? placeholder
@@ -140,6 +172,7 @@ class PlacePhoto extends StatelessWidget {
               errorBuilder: (_, __, ___) => placeholder,
             ),
     );
+    return heroTag == null ? photo : Hero(tag: heroTag!, child: photo);
   }
 }
 
@@ -174,11 +207,11 @@ class _FeaturedPlace extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return EmCard(
       padding: EdgeInsets.zero,
-      onTap: () => pushScreen(context, PlaceScreen(place: place)),
+      onTap: () => pushScreen(context, PlaceScreen(place: place, heroTag: _listPhotoTag(place))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PlacePhoto(place: place, height: 150, width: double.infinity, radius: 0),
+          PlacePhoto(place: place, height: 150, width: double.infinity, radius: 0, heroTag: _listPhotoTag(place)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             child: Column(
@@ -213,10 +246,10 @@ class _PlaceRow extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return EmCard(
       padding: const EdgeInsets.all(12),
-      onTap: () => pushScreen(context, PlaceScreen(place: place)),
+      onTap: () => pushScreen(context, PlaceScreen(place: place, heroTag: _listPhotoTag(place))),
       child: Row(
         children: [
-          PlacePhoto(place: place, height: 84, width: 84),
+          PlacePhoto(place: place, height: 84, width: 84, heroTag: _listPhotoTag(place)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
