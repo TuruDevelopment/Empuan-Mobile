@@ -35,6 +35,11 @@ class _ContactFormState extends State<_ContactForm> {
   bool _saving = false;
   String? _error;
 
+  // Bumped when the contact picker fills a field, to flash it briefly so the
+  // user sees what changed.
+  int _nameFilled = 0;
+  int _phoneFilled = 0;
+
   List<String> get _relations => widget.kind == ContactKind.trusted ? _trustedRelations : _callerRelations;
 
   @override
@@ -49,9 +54,15 @@ class _ContactFormState extends State<_ContactForm> {
       final picked = await FlutterNativeContactPicker().selectPhoneNumber();
       if (picked == null) return;
       setState(() {
-        if ((picked.fullName ?? '').isNotEmpty) _name.text = picked.fullName!;
+        if ((picked.fullName ?? '').isNotEmpty) {
+          _name.text = picked.fullName!;
+          _nameFilled++;
+        }
         final number = picked.selectedPhoneNumber ?? (picked.phoneNumbers?.isNotEmpty == true ? picked.phoneNumbers!.first : null);
-        if (number != null) _phone.text = number;
+        if (number != null) {
+          _phone.text = number;
+          _phoneFilled++;
+        }
       });
     } catch (_) {
       if (mounted) setState(() => _error = 'Couldn’t open your contacts. Type the number instead.');
@@ -105,25 +116,31 @@ class _ContactFormState extends State<_ContactForm> {
           const SizedBox(height: 16),
           EmButton(label: 'Choose from phone contacts', icon: Icons.contacts_outlined, variant: EmButtonVariant.tonal, onPressed: _pick),
           const SizedBox(height: 16),
-          EmTextField(
-            label: 'Name',
-            controller: _name,
-            textCapitalization: TextCapitalization.words,
-            textInputAction: TextInputAction.next,
-            validator: (v) => (v ?? '').trim().isEmpty ? 'Enter a name' : null,
+          _FillFlash(
+            trigger: _nameFilled,
+            child: EmTextField(
+              label: 'Name',
+              controller: _name,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v ?? '').trim().isEmpty ? 'Enter a name' : null,
+            ),
           ),
           const SizedBox(height: 14),
-          EmTextField(
-            label: 'Phone number',
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-            helper: widget.kind == ContactKind.trusted ? 'Include the country code if the number is outside Indonesia.' : null,
-            validator: (v) {
-              final digits = (v ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-              if (digits.isEmpty) return 'Enter a phone number';
-              if (digits.length < 8) return 'This number looks too short';
-              return null;
-            },
+          _FillFlash(
+            trigger: _phoneFilled,
+            child: EmTextField(
+              label: 'Phone number',
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              helper: widget.kind == ContactKind.trusted ? 'Include the country code if the number is outside Indonesia.' : null,
+              validator: (v) {
+                final digits = (v ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+                if (digits.isEmpty) return 'Enter a phone number';
+                if (digits.length < 8) return 'This number looks too short';
+                return null;
+              },
+            ),
           ),
           const SizedBox(height: 14),
           Text(widget.kind == ContactKind.trusted ? 'Relationship' : 'Shows as', style: Theme.of(context).textTheme.labelMedium),
@@ -135,14 +152,81 @@ class _ContactFormState extends State<_ContactForm> {
               for (final r in _relations) EmChip(label: r, selected: r == _relation, onTap: () => setState(() => _relation = r)),
             ],
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
+          AnimatedSize(
+            duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+            curve: EmMotion.enter,
+            alignment: Alignment.topCenter,
+            child: _error == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    // Keyed on the text so a different error slides in again.
+                    child: EmFadeSlideIn(
+                      key: ValueKey(_error),
+                      offset: const Offset(0, -8),
+                      duration: EmMotion.medium,
+                      child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+          ),
           const SizedBox(height: 20),
           EmButton(label: 'Save', loading: _saving, onPressed: _save),
         ],
       ),
+    );
+  }
+}
+
+/// Briefly tints the area behind a field each time [trigger] changes.
+class _FillFlash extends StatefulWidget {
+  const _FillFlash({required this.trigger, required this.child});
+
+  final int trigger;
+  final Widget child;
+
+  @override
+  State<_FillFlash> createState() => _FillFlashState();
+}
+
+class _FillFlashState extends State<_FillFlash> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+  late final Animation<double> _glow = TweenSequence([
+    TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: EmMotion.enter)), weight: 20),
+    TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: EmMotion.exit)), weight: 45),
+  ]).animate(_c);
+
+  @override
+  void didUpdateWidget(_FillFlash old) {
+    super.didUpdateWidget(old);
+    if (old.trigger != widget.trigger && !EmMotion.reduced(context)) _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -8,
+          right: -8,
+          top: -6,
+          bottom: -6,
+          child: IgnorePointer(
+            child: FadeTransition(
+              opacity: _glow,
+              child: DecoratedBox(decoration: BoxDecoration(color: AppColors.blush, borderRadius: BorderRadius.circular(14))),
+            ),
+          ),
+        ),
+        widget.child,
+      ],
     );
   }
 }

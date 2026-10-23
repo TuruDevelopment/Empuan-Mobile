@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
+import 'form_motion.dart';
 import 'safety_setup_screen.dart';
 import 'signup_flow.dart' show OnboardingTopBar;
 
@@ -75,7 +76,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
           : OnboardingTopBar(step: 3, onSkip: _next) as PreferredSizeWidget,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        children: [
+        children: staggered([
           Text('What do you want to learn about?', style: text.headlineMedium),
           const SizedBox(height: 8),
           Text('Choose any that apply. We use this to suggest courses and articles.', style: text.bodySmall?.copyWith(fontSize: 14)),
@@ -85,23 +86,34 @@ class _InterestsScreenState extends State<InterestsScreen> {
               label: option,
               multi: true,
               selected: _picked.contains(option),
+              leading: _CheckMark(selected: _picked.contains(option)),
               onTap: () => setState(() => _picked.contains(option) ? _picked.remove(option) : _picked.add(option)),
             ),
             const SizedBox(height: 8),
           ],
-          EmOption(label: 'Something else', multi: true, selected: _other, onTap: () => setState(() => _other = !_other)),
-          if (_other) ...[
-            const SizedBox(height: 8),
-            EmTextField(
-              label: 'Tell us more',
-              hideLabel: true,
-              controller: _otherText,
-              hint: 'Tell us in a few words',
-              maxLength: 80,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-          ],
-        ],
+          EmOption(
+            label: 'Something else',
+            multi: true,
+            selected: _other,
+            leading: _CheckMark(selected: _other),
+            onTap: () => setState(() => _other = !_other),
+          ),
+          AnimatedReveal(
+            child: !_other
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: EmTextField(
+                      label: 'Tell us more',
+                      hideLabel: true,
+                      controller: _otherText,
+                      hint: 'Tell us in a few words',
+                      maxLength: 80,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ),
+          ),
+        ]),
       ),
       bottomNavigationBar: EmBottomBar(
         bordered: false,
@@ -111,6 +123,38 @@ class _InterestsScreenState extends State<InterestsScreen> {
           onPressed: nothingPicked ? (widget.editing ? null : _next) : _save,
         ),
       ),
+    );
+  }
+}
+
+/// EmOption's checkbox, with the fill easing in and the tick popping on select.
+class _CheckMark extends StatelessWidget {
+  const _CheckMark({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduced = EmMotion.reduced(context);
+    return AnimatedContainer(
+      duration: reduced ? Duration.zero : EmMotion.fast,
+      curve: EmMotion.enter,
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        color: selected ? AppColors.primary : Colors.white,
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: selected ? AppColors.primary : AppColors.line2, width: 2),
+      ),
+      child: selected
+          ? TweenAnimationBuilder<double>(
+              tween: Tween(begin: reduced ? 1 : 0.4, end: 1),
+              duration: EmMotion.slow,
+              curve: EmMotion.pop,
+              builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+              child: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+            )
+          : null,
     );
   }
 }

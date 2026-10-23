@@ -83,38 +83,50 @@ class _SafetyTabState extends State<SafetyTab> {
             children: [
               Text('Safety', style: text.headlineLarge),
               const SizedBox(height: 16),
-              _HowSosWorks(contacts: _contacts, failed: _error != null),
+              EmFadeSlideIn(child: _HowSosWorks(contacts: _contacts, failed: _error != null)),
               const SizedBox(height: 22),
-              EmSectionHeader(
-                'Trusted contacts',
-                actionLabel: _contacts?.isNotEmpty == true ? 'Manage' : null,
-                onAction: () => _open(const TrustedContactsScreen()),
+              EmFadeSlideIn(
+                index: 1,
+                child: EmSectionHeader(
+                  'Trusted contacts',
+                  actionLabel: _contacts?.isNotEmpty == true ? 'Manage' : null,
+                  onAction: () => _open(const TrustedContactsScreen()),
+                ),
               ),
               const SizedBox(height: 8),
-              _contactsSection(),
+              EmFadeSlideIn(
+                index: 2,
+                child: EmStateSwitcher(stateKey: _contactsState, child: _contactsSection()),
+              ),
               const SizedBox(height: 22),
-              const EmSectionHeader('Get out of a situation'),
+              const EmFadeSlideIn(index: 3, child: EmSectionHeader('Get out of a situation')),
               const SizedBox(height: 12),
               IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
-                      child: _ToolCard(
-                        icon: Icons.phone_in_talk_rounded,
-                        title: 'Fake call',
-                        message: 'Your phone rings with a caller you choose',
-                        onTap: () => _open(const FakeCallScreen()),
+                      child: EmFadeSlideIn(
+                        index: 4,
+                        child: _ToolCard(
+                          icon: Icons.phone_in_talk_rounded,
+                          title: 'Fake call',
+                          message: 'Your phone rings with a caller you choose',
+                          onTap: () => _open(const FakeCallScreen()),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _ToolCard(
-                        icon: Icons.campaign_rounded,
-                        tone: EmTileTone.danger,
-                        title: 'Siren',
-                        message: 'Play a loud alarm to draw attention',
-                        onTap: () => _open(const SirenScreen()),
+                      child: EmFadeSlideIn(
+                        index: 5,
+                        child: _ToolCard(
+                          icon: Icons.campaign_rounded,
+                          tone: EmTileTone.danger,
+                          title: 'Siren',
+                          message: 'Play a loud alarm to draw attention',
+                          onTap: () => _open(const SirenScreen()),
+                        ),
                       ),
                     ),
                   ],
@@ -127,12 +139,19 @@ class _SafetyTabState extends State<SafetyTab> {
     );
   }
 
+  String get _contactsState => switch (_contacts) {
+        _ when _error != null => 'error',
+        null => 'loading',
+        final c when c.isEmpty => 'empty',
+        _ => 'list',
+      };
+
   Widget _contactsSection() {
     if (_error != null) {
       return EmCard(child: EmStateView.error(message: _error!, onRetry: _retry));
     }
     final contacts = _contacts;
-    if (contacts == null) return const EmLoading();
+    if (contacts == null) return const ContactsSkeleton();
     if (contacts.isEmpty) {
       return EmCard(
         padding: const EdgeInsets.all(20),
@@ -153,25 +172,33 @@ class _SafetyTabState extends State<SafetyTab> {
         ),
       );
     }
+    final shown = contacts.take(3).toList();
     return EmGroup(
       children: [
-        for (final c in contacts.take(3))
-          EmRow(
-            leading: EmAvatar(name: c.name),
-            title: c.name,
-            subtitle: [c.relation, c.phone].where((s) => s.isNotEmpty).join(' · '),
-            trailing: EmIconButton(
-              icon: Icons.call_rounded,
-              label: 'Call ${c.name}',
-              style: EmIconButtonStyle.tint,
-              onPressed: () => _call(c),
+        for (final (i, c) in shown.indexed)
+          EmFadeSlideIn(
+            key: ValueKey(c.id),
+            index: i,
+            child: EmRow(
+              leading: EmAvatar(name: c.name),
+              title: c.name,
+              subtitle: [c.relation, c.phone].where((s) => s.isNotEmpty).join(' · '),
+              trailing: EmIconButton(
+                icon: Icons.call_rounded,
+                label: 'Call ${c.name}',
+                style: EmIconButtonStyle.tint,
+                onPressed: () => _call(c),
+              ),
             ),
           ),
         if (contacts.length > 3)
-          EmRow(
-            title: 'See all ${contacts.length} contacts',
-            titleColor: AppColors.primary,
-            onTap: () => _open(const TrustedContactsScreen()),
+          EmFadeSlideIn(
+            index: 3,
+            child: EmRow(
+              title: 'See all ${contacts.length} contacts',
+              titleColor: AppColors.primary,
+              onTap: () => _open(const TrustedContactsScreen()),
+            ),
           ),
       ],
     );
@@ -221,23 +248,26 @@ class _HowSosWorks extends StatelessWidget {
                   children: [
                     const Text('How SOS works', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        if (warning) ...[
-                          const Icon(Icons.error_outline_rounded, size: 16, color: Colors.white),
-                          const SizedBox(width: 6),
-                        ],
-                        Flexible(
-                          child: Text(
-                            status,
-                            style: TextStyle(
-                              color: warning ? Colors.white : AppColors.surfaceAlt,
-                              fontSize: 13,
-                              fontWeight: warning ? FontWeight.w700 : FontWeight.w500,
+                    EmAnimatedSwap(
+                      valueKey: status,
+                      child: Row(
+                        children: [
+                          if (warning) ...[
+                            const Icon(Icons.error_outline_rounded, size: 16, color: Colors.white),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                color: warning ? Colors.white : AppColors.surfaceAlt,
+                                fontSize: 13,
+                                fontWeight: warning ? FontWeight.w700 : FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),

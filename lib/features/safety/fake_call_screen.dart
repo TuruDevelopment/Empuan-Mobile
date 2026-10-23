@@ -8,6 +8,7 @@ import '../../data/contacts_repository.dart';
 import '../../ui/em_ui.dart';
 import 'call_screens.dart';
 import 'contact_sheet.dart';
+import 'trusted_contacts_screen.dart' show ContactsSkeleton;
 
 /// Ringtones bundled in assets/, keyed by the AssetSource path.
 const fakeCallRingtones = {'ringtone.mp3': 'Classic', 'ringtone2.mp3': 'Soft'};
@@ -222,10 +223,29 @@ class _FakeCallScreenState extends State<FakeCallScreen> {
               'Your phone rings like a real call, so you have a reason to step away. No one is actually called.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
-            if (pending) ...[
-              const SizedBox(height: 18),
-              _WaitingCard(name: _pendingCaller!.name, remaining: _remaining, onCancel: _cancel),
-            ],
+            // Grows in when a timer starts and folds away on cancel; the
+            // switcher keeps the last card on screen while it leaves.
+            AnimatedSwitcher(
+              duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.slow,
+              reverseDuration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+              switchInCurve: EmMotion.enter,
+              switchOutCurve: EmMotion.exit,
+              transitionBuilder: (child, a) => SizeTransition(
+                sizeFactor: a,
+                alignment: Alignment.topCenter,
+                child: FadeTransition(
+                  opacity: a,
+                  child: SlideTransition(position: Tween(begin: const Offset(0, -0.15), end: Offset.zero).animate(a), child: child),
+                ),
+              ),
+              child: pending
+                  ? Padding(
+                      key: const ValueKey('waiting'),
+                      padding: const EdgeInsets.only(top: 18),
+                      child: _WaitingCard(name: _pendingCaller!.name, remaining: _remaining, onCancel: _cancel),
+                    )
+                  : const SizedBox(key: ValueKey('idle'), width: double.infinity),
+            ),
             const SizedBox(height: 18),
             Row(
               children: [
@@ -234,7 +254,7 @@ class _FakeCallScreenState extends State<FakeCallScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            _callersSection(caller),
+            EmStateSwitcher(stateKey: _callersState, child: _callersSection(caller)),
             const SizedBox(height: 18),
             EmGroup(
               children: [
@@ -286,12 +306,19 @@ class _FakeCallScreenState extends State<FakeCallScreen> {
     );
   }
 
+  String get _callersState => switch (_callers) {
+        _ when _error != null => 'error',
+        null => 'loading',
+        final c when c.isEmpty => 'empty',
+        _ => 'list',
+      };
+
   Widget _callersSection(Contact? selected) {
     if (_error != null) {
       return EmCard(child: EmStateView.error(message: _error!, onRetry: _retry));
     }
     final callers = _callers;
-    if (callers == null) return const EmLoading();
+    if (callers == null) return const ContactsSkeleton();
     if (callers.isEmpty) {
       return EmCard(
         child: EmStateView(
@@ -305,24 +332,28 @@ class _FakeCallScreenState extends State<FakeCallScreen> {
     }
     return EmGroup(
       children: [
-        for (final c in callers)
-          Semantics(
-            selected: c.id == selected?.id,
-            inMutuallyExclusiveGroup: true,
-            child: EmRow(
-              leading: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _RadioMark(selected: c.id == selected?.id),
-                  const SizedBox(width: 12),
-                  EmAvatar(name: c.name),
-                ],
+        for (final (i, c) in callers.indexed)
+          EmFadeSlideIn(
+            key: ValueKey(c.id),
+            index: i,
+            child: Semantics(
+              selected: c.id == selected?.id,
+              inMutuallyExclusiveGroup: true,
+              child: EmRow(
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _RadioMark(selected: c.id == selected?.id),
+                    const SizedBox(width: 12),
+                    EmAvatar(name: c.name),
+                  ],
+                ),
+                title: c.name,
+                subtitle: 'Shows as “${c.name} · ${c.relation.isEmpty ? 'Mobile' : c.relation}”',
+                highlighted: c.id == selected?.id,
+                onTap: () => _select(c),
+                trailing: EmIconButton(icon: Icons.edit_outlined, label: 'Edit ${c.name}', onPressed: () => _editCaller(c)),
               ),
-              title: c.name,
-              subtitle: 'Shows as “${c.name} · ${c.relation.isEmpty ? 'Mobile' : c.relation}”',
-              highlighted: c.id == selected?.id,
-              onTap: () => _select(c),
-              trailing: EmIconButton(icon: Icons.edit_outlined, label: 'Edit ${c.name}', onPressed: () => _editCaller(c)),
             ),
           ),
       ],
@@ -337,7 +368,9 @@ class _RadioMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+      curve: EmMotion.enter,
       width: 22,
       height: 22,
       decoration: BoxDecoration(
@@ -371,7 +404,24 @@ class _WaitingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$name calls in $clock', style: Theme.of(context).textTheme.titleSmall),
+                Semantics(
+                  label: '$name calls in $clock',
+                  excludeSemantics: true,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(child: Text('$name calls in ', style: Theme.of(context).textTheme.titleSmall)),
+                      // Only the time ticks; the name stays put.
+                      EmAnimatedSwap(
+                        valueKey: clock,
+                        child: Text(
+                          clock,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text('Leaving this screen cancels the call.', style: Theme.of(context).textTheme.bodySmall),
               ],

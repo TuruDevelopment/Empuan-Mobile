@@ -4,6 +4,7 @@ import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
 import '../profile/legal_screen.dart';
+import 'form_motion.dart';
 import 'interests_screen.dart';
 import 'login_screen.dart' show isEmail;
 
@@ -27,6 +28,7 @@ class _SignupFlowState extends State<SignupFlow> {
   final _name = TextEditingController();
   final _username = TextEditingController();
   final _dobText = TextEditingController();
+  final _pager = PageController();
   DateTime? _dob;
   bool _agreed = false;
   bool _showAgreeError = false;
@@ -46,6 +48,7 @@ class _SignupFlowState extends State<SignupFlow> {
     for (final c in [_email, _password, _confirm, _name, _username, _dobText]) {
       c.dispose();
     }
+    _pager.dispose();
     super.dispose();
   }
 
@@ -65,11 +68,22 @@ class _SignupFlowState extends State<SignupFlow> {
     ).then((keepGoing) => !keepGoing);
   }
 
+  /// Slides between the two steps: forward comes in from the right, back from the left.
+  void _goTo(int step) {
+    setState(() => _step = step);
+    if (!_pager.hasClients) return;
+    if (EmMotion.reduced(context)) {
+      _pager.jumpToPage(step - 1);
+    } else {
+      _pager.animateToPage(step - 1, duration: EmMotion.slow, curve: EmMotion.enter);
+    }
+  }
+
   void _next() {
     FocusScope.of(context).unfocus();
     final valid = _accountForm.currentState!.validate();
     setState(() => _showAgreeError = !_agreed);
-    if (valid && _agreed) setState(() => _step = 2);
+    if (valid && _agreed) _goTo(2);
   }
 
   Future<void> _pickDob() async {
@@ -138,16 +152,23 @@ class _SignupFlowState extends State<SignupFlow> {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (_step == 2) {
-          setState(() => _step = 1);
+          FocusScope.of(context).unfocus();
+          _goTo(1);
           return;
         }
         if (await _confirmLeave() && context.mounted) Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: OnboardingTopBar(step: _step, closeIcon: _step == 1, onBack: () => Navigator.of(context).maybePop()),
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: _step == 1 ? _accountStep(context) : _profileStep(context),
+        // A pager rather than an AnimatedSwitcher: both forms keep their
+        // GlobalKeys unique even if the user goes back mid-transition.
+        body: PageView(
+          controller: _pager,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _KeepAlive(child: _accountStep(context)),
+            _KeepAlive(child: _profileStep(context)),
+          ],
         ),
         bottomNavigationBar: EmBottomBar(
           bordered: false,
@@ -166,7 +187,7 @@ class _SignupFlowState extends State<SignupFlow> {
       child: ListView(
         key: const ValueKey('account'),
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        children: [
+        children: staggered([
           Text('Create your account', style: text.headlineLarge),
           const SizedBox(height: 8),
           Text('You’ll use this email and password to log in.', style: text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
@@ -188,8 +209,8 @@ class _SignupFlowState extends State<SignupFlow> {
             autofillHints: const [AutofillHints.newPassword],
             validator: (_) => _longEnough && _hasNumber ? null : 'Use at least 8 characters, including a number',
           ),
-          EmCheckLine(label: 'At least 8 characters', met: _longEnough),
-          EmCheckLine(label: 'Includes a number', met: _hasNumber),
+          AnimatedCheckLine(label: 'At least 8 characters', met: _longEnough),
+          AnimatedCheckLine(label: 'Includes a number', met: _hasNumber),
           const SizedBox(height: 16),
           EmTextField(
             label: 'Confirm password',
@@ -198,7 +219,9 @@ class _SignupFlowState extends State<SignupFlow> {
             textInputAction: TextInputAction.done,
             validator: (v) => v == _password.text ? null : 'Passwords don’t match',
           ),
-          if (_confirm.text.isNotEmpty) EmCheckLine(label: _matches ? 'Passwords match' : 'Passwords don’t match yet', met: _matches),
+          AnimatedReveal(
+            child: _confirm.text.isEmpty ? null : AnimatedCheckLine(label: _matches ? 'Passwords match' : 'Passwords don’t match yet', met: _matches),
+          ),
           const SizedBox(height: 20),
           InkWell(
             onTap: () => setState(() {
@@ -247,9 +270,8 @@ class _SignupFlowState extends State<SignupFlow> {
               TextButton(onPressed: () => pushScreen(context, const LegalScreen(doc: LegalDoc.privacy)), child: const Text('Read privacy policy')),
             ],
           ),
-          if (_showAgreeError)
-            const Text('Please agree to continue', style: TextStyle(color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w600)),
-        ],
+          AnimatedFormMessage(message: _showAgreeError ? 'Please agree to continue' : null, fontSize: 12),
+        ]),
       ),
     );
   }
@@ -299,10 +321,7 @@ class _SignupFlowState extends State<SignupFlow> {
             helper: 'Empuan is for adults 18 and over. We also use this to pick courses for your stage of life.',
             validator: _validateDob,
           ),
-          if (_serverError != null) ...[
-            const SizedBox(height: 16),
-            Text(_serverError!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
+          AnimatedFormMessage(message: _serverError, padding: const EdgeInsets.only(top: 16)),
         ],
       ),
     );
@@ -338,15 +357,45 @@ class OnboardingTopBar extends StatelessWidget implements PreferredSizeWidget {
               )
             else
               const SizedBox(width: 44),
-            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: EmStepBar(step: step, total: 4))),
+            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: AnimatedStepBar(step: step, total: 4))),
             if (onSkip != null)
               TextButton(onPressed: onSkip, child: const Text('Skip'))
             else
-              SizedBox(width: 56, child: Center(child: Text('$step of 4', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)))),
+              SizedBox(
+                width: 56,
+                child: Center(
+                  child: EmAnimatedSwap(
+                    valueKey: step,
+                    child: Text('$step of 4', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ),
             const SizedBox(width: 8),
           ],
         ),
       ),
     );
+  }
+}
+
+/// Keeps a sign-up step alive while the other one is showing, so its fields,
+/// errors and entrance animation survive the slide back.
+class _KeepAlive extends StatefulWidget {
+  const _KeepAlive({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

@@ -51,9 +51,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.dispose();
   }
 
+  double _offsetOf(int i) {
+    if (!_pages.hasClients) return 0;
+    final page = _pages.page;
+    return page == null ? 0 : page - i;
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final reduced = EmMotion.reduced(context);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -72,24 +79,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   return LayoutBuilder(
                     builder: (context, c) {
                       final art = (c.maxHeight * 0.48).clamp(160.0, 300.0);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: art,
-                              height: art,
-                              decoration: const BoxDecoration(color: AppColors.blush, shape: BoxShape.circle),
-                              padding: EdgeInsets.all(art * 0.12),
-                              child: Image.asset(s.image, fit: BoxFit.contain, excludeFromSemantics: true),
+                      final illustration = Container(
+                        width: art,
+                        height: art,
+                        decoration: const BoxDecoration(color: AppColors.blush, shape: BoxShape.circle),
+                        padding: EdgeInsets.all(art * 0.12),
+                        child: Image.asset(s.image, fit: BoxFit.contain, excludeFromSemantics: true),
+                      );
+                      final title = Text(s.title, textAlign: TextAlign.center, style: text.headlineLarge);
+                      final body = Text(s.body, textAlign: TextAlign.center, style: text.bodyMedium?.copyWith(color: AppColors.textSecondary));
+                      return AnimatedBuilder(
+                        animation: _pages,
+                        builder: (context, _) {
+                          // How far this slide is from the centre, -1..1, while swiping.
+                          final t = reduced ? 0.0 : _offsetOf(i).clamp(-1.0, 1.0);
+                          // Text fades out quickly so neighbouring slides cross-fade
+                          // rather than sliding over each other.
+                          final textOpacity = (1 - t.abs() * 1.6).clamp(0.0, 1.0);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Illustration lags behind the page (parallax) and shrinks a touch.
+                                Transform.translate(
+                                  offset: Offset(t * c.maxWidth * 0.35, 0),
+                                  child: Transform.scale(scale: 1 - 0.12 * t.abs(), child: illustration),
+                                ),
+                                const SizedBox(height: 28),
+                                Opacity(opacity: textOpacity, child: title),
+                                const SizedBox(height: 12),
+                                Opacity(opacity: textOpacity, child: body),
+                              ],
                             ),
-                            const SizedBox(height: 28),
-                            Text(s.title, textAlign: TextAlign.center, style: text.headlineLarge),
-                            const SizedBox(height: 12),
-                            Text(s.body, textAlign: TextAlign.center, style: text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
-                          ],
-                        ),
+                          );
+                        },
                       );
                     },
                   );
@@ -103,7 +127,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 children: [
                   for (var i = 0; i < _slides.length; i++)
                     AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+                      duration: reduced ? Duration.zero : EmMotion.medium,
+                      curve: EmMotion.enter,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       width: i == _index ? 22 : 8,
                       height: 8,
@@ -119,12 +144,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
               child: Column(
                 children: [
-                  EmButton(label: 'Create account', onPressed: () => pushScreen(context, const SignupFlow())),
+                  EmFadeSlideIn(
+                    delay: const Duration(milliseconds: 120),
+                    child: EmButton(label: 'Create account', onPressed: () => pushScreen(context, const SignupFlow())),
+                  ),
                   const SizedBox(height: 12),
-                  EmButton(
-                    label: 'I already have an account',
-                    variant: EmButtonVariant.secondary,
-                    onPressed: () => pushScreen(context, const LoginScreen()),
+                  EmFadeSlideIn(
+                    index: 1,
+                    delay: const Duration(milliseconds: 120),
+                    child: EmButton(
+                      label: 'I already have an account',
+                      variant: EmButtonVariant.secondary,
+                      onPressed: () => pushScreen(context, const LoginScreen()),
+                    ),
                   ),
                 ],
               ),

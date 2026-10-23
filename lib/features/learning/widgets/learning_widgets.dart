@@ -5,8 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../ui/em_ui.dart';
 import '../models/learning_models.dart';
 
-const learningDisclaimer =
-    'General education only. For legal or money decisions, talk to a professional.';
+const learningDisclaimer = 'General education only. For legal or money decisions, talk to a professional.';
 
 /// Turns lesson or course HTML (or plain text) into readable paragraphs.
 List<String> htmlToParagraphs(String? source) {
@@ -188,7 +187,8 @@ class LearningProgressLine extends StatelessWidget {
         children: [
           Expanded(child: LearningAnimatedProgress(value: total == 0 ? 0 : done / total)),
           const SizedBox(width: 8),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+          Text(label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
         ],
       ),
     );
@@ -261,7 +261,8 @@ class LearningProgressTopBar extends StatelessWidget implements PreferredSizeWid
                       if (caption != null)
                         Text(
                           caption!,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                         ),
                       if (progress != null) ...[const SizedBox(height: 6), LearningAnimatedProgress(value: progress!)],
                     ],
@@ -327,7 +328,8 @@ class LearningSourceRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(source.title.isEmpty ? source.url : source.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(source.title.isEmpty ? source.url : source.title,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 if (source.publisher != null && source.publisher!.isNotEmpty)
                   Text(source.publisher!, style: Theme.of(context).textTheme.bodySmall),
               ],

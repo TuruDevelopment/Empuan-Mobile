@@ -5,6 +5,7 @@ import '../../data/account_repository.dart';
 import '../../services/auth_service.dart';
 import '../../ui/em_ui.dart';
 import 'forgot_password_screen.dart';
+import 'form_motion.dart';
 import 'signup_flow.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            children: [
+            children: staggered([
               Text('Welcome back', style: text.headlineLarge),
               const SizedBox(height: 8),
               Text('Log in with the email you signed up with.', style: text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
@@ -93,10 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text('Forgot password?'),
                 ),
               ),
-              if (_error != null) ...[
-                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 12),
-              ],
+              AnimatedFormMessage(message: _error, padding: const EdgeInsets.only(bottom: 12)),
               const SizedBox(height: 8),
               EmButton(label: 'Log in', loading: _loading, onPressed: _submit),
               const SizedBox(height: 24),
@@ -110,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-            ],
+            ]),
           ),
         ),
       ),

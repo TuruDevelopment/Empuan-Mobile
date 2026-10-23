@@ -38,10 +38,20 @@ class IncomingCallScreen extends StatefulWidget {
   State<IncomingCallScreen> createState() => _IncomingCallScreenState();
 }
 
-class _IncomingCallScreenState extends State<IncomingCallScreen> {
+class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTickerProviderStateMixin {
   final _player = AudioPlayer();
   Timer? _buzz;
   int _tick = 0;
+
+  // Drives both the ripples around the avatar and the Accept nudge, so the
+  // screen reads as one ringing rhythm.
+  late final AnimationController _ring = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
+  late final Animation<double> _nudge = TweenSequence([
+    TweenSequenceItem(tween: Tween(begin: 0.0, end: -10.0).chain(CurveTween(curve: Curves.easeOut)), weight: 12),
+    TweenSequenceItem(tween: Tween(begin: -10.0, end: 0.0).chain(CurveTween(curve: Curves.bounceOut)), weight: 28),
+    TweenSequenceItem(tween: ConstantTween(0.0), weight: 60),
+  ]).animate(_ring);
+  bool _motionStarted = false;
 
   @override
   void initState() {
@@ -66,7 +76,16 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_motionStarted) return;
+    _motionStarted = true;
+    if (!EmMotion.reduced(context)) _ring.repeat();
+  }
+
+  @override
   void dispose() {
+    _ring.dispose();
     _buzz?.cancel();
     _player.stop();
     _player.dispose();
@@ -76,6 +95,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   void _accept() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
+        transitionDuration: EmMotion.reduced(context) ? Duration.zero : EmMotion.slow,
         pageBuilder: (_, __, ___) => InCallScreen(name: widget.name),
         transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
       ),
@@ -90,21 +110,27 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         children: [
           const SizedBox(height: 96),
           ExcludeSemantics(
-            child: Container(
-              width: 104,
-              height: 104,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(color: _callAvatar, shape: BoxShape.circle),
-              child: Text(
-                initialsOf(widget.name).characters.first,
-                style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w600),
+            child: CustomPaint(
+              painter: _RipplePainter(_ring, animate: !EmMotion.reduced(context)),
+              child: EmFadeSlideIn(
+                offset: Offset.zero,
+                child: Container(
+                  width: 104,
+                  height: 104,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(color: _callAvatar, shape: BoxShape.circle),
+                  child: Text(
+                    initialsOf(widget.name).characters.first,
+                    style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 24),
-          _CallTitle(widget.name),
+          EmFadeSlideIn(index: 1, child: _CallTitle(widget.name)),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: _callMuted, fontSize: 17)),
+          EmFadeSlideIn(index: 2, child: Text(label, style: const TextStyle(color: _callMuted, fontSize: 17))),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -117,7 +143,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                   color: _declineRed,
                   onTap: () => Navigator.of(context).pop(),
                 ),
-                _RoundAction(icon: Icons.call_rounded, label: 'Accept', color: _acceptGreen, onTap: _accept),
+                _RoundAction(icon: Icons.call_rounded, label: 'Accept', color: _acceptGreen, onTap: _accept, lift: _nudge),
               ],
             ),
           ),
@@ -126,6 +152,37 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       ),
     );
   }
+}
+
+/// Rings spreading out from the avatar like a ringing phone. Three rings
+/// share one loop, a third of a cycle apart.
+class _RipplePainter extends CustomPainter {
+  _RipplePainter(this.progress, {required this.animate}) : super(repaint: progress);
+
+  final Animation<double> progress;
+  final bool animate;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
+    // Reduced motion: two still rings keep the look without movement.
+    final phases = animate ? [for (var i = 0; i < 3; i++) (progress.value + i / 3) % 1] : const [0.3, 0.65];
+    for (final p in phases) {
+      final t = Curves.easeOut.transform(p);
+      canvas.drawCircle(
+        center,
+        radius + 60 * t,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = Colors.white.withValues(alpha: 0.22 * (1 - p)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RipplePainter old) => old.animate != animate || old.progress != progress;
 }
 
 /// Fake ongoing call with a running timer. The controls only toggle visually.
@@ -172,7 +229,21 @@ class _InCallScreenState extends State<InCallScreen> {
           const SizedBox(height: 80),
           _CallTitle(widget.name),
           const SizedBox(height: 8),
-          Text(_elapsed, style: const TextStyle(color: _callMuted, fontSize: 17, fontFeatures: [FontFeature.tabularFigures()])),
+          Semantics(
+            label: _elapsed,
+            excludeSemantics: true,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // One switcher per character, so only the digits that change roll over.
+                for (final ch in _elapsed.characters)
+                  EmAnimatedSwap(
+                    valueKey: ch,
+                    child: Text(ch, style: const TextStyle(color: _callMuted, fontSize: 17, fontFeatures: [FontFeature.tabularFigures()])),
+                  ),
+              ],
+            ),
+          ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -253,7 +324,14 @@ class _CallTitle extends StatelessWidget {
 }
 
 class _RoundAction extends StatelessWidget {
-  const _RoundAction({required this.icon, required this.label, required this.color, required this.onTap, this.showLabel = true});
+  const _RoundAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.showLabel = true,
+    this.lift,
+  });
 
   final IconData icon;
   final String label;
@@ -261,8 +339,31 @@ class _RoundAction extends StatelessWidget {
   final VoidCallback onTap;
   final bool showLabel;
 
+  /// Vertical offset for the button, used to nudge Accept.
+  final Animation<double>? lift;
+
   @override
   Widget build(BuildContext context) {
+    Widget circle = EmPressable(
+      scale: 0.9,
+      child: Material(
+        color: color,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(width: 72, height: 72, child: Icon(icon, color: Colors.white, size: 32)),
+        ),
+      ),
+    );
+    final lift = this.lift;
+    if (lift != null) {
+      circle = AnimatedBuilder(
+        animation: lift,
+        builder: (_, child) => Transform.translate(offset: Offset(0, lift.value), child: child),
+        child: circle,
+      );
+    }
     return Semantics(
       button: true,
       label: label,
@@ -271,15 +372,7 @@ class _RoundAction extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Material(
-            color: color,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onTap,
-              child: SizedBox(width: 72, height: 72, child: Icon(icon, color: Colors.white, size: 32)),
-            ),
-          ),
+          circle,
           if (showLabel) ...[
             const SizedBox(height: 8),
             Text(label, style: const TextStyle(color: _callMuted, fontSize: 14)),
@@ -300,6 +393,7 @@ class _ToggleAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final duration = EmMotion.reduced(context) ? Duration.zero : EmMotion.medium;
     return Semantics(
       button: true,
       toggled: on,
@@ -309,13 +403,32 @@ class _ToggleAction extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Material(
-            color: on ? Colors.white : _callButton,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onTap,
-              child: SizedBox(width: 72, height: 72, child: Icon(icon, color: on ? _callBackground : Colors.white, size: 28)),
+          EmPressable(
+            scale: 0.92,
+            child: AnimatedContainer(
+              duration: duration,
+              curve: EmMotion.enter,
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: on ? Colors.white : _callButton),
+              child: Material(
+                type: MaterialType.transparency,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onTap,
+                  child: Center(
+                    child: AnimatedSwitcher(
+                      duration: duration,
+                      transitionBuilder: (child, a) => FadeTransition(
+                        opacity: a,
+                        child: ScaleTransition(scale: Tween(begin: 0.7, end: 1.0).animate(a), child: child),
+                      ),
+                      child: Icon(icon, key: ValueKey((icon, on)), color: on ? _callBackground : Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),

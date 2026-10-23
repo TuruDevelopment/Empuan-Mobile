@@ -22,6 +22,7 @@ class LearningCertificatesScreen extends StatefulWidget {
 class _LearningCertificatesScreenState extends State<LearningCertificatesScreen> {
   late final LearningService _service = widget.service ?? LearningService();
   late Future<_CertificatesData> _future = _load();
+  final _entrance = LearningEntrance();
 
   Future<_CertificatesData> _load() async {
     final homeFuture = _service.getHome().then<List<LearningEnrollment>>(
@@ -35,8 +36,14 @@ class _LearningCertificatesScreenState extends State<LearningCertificatesScreen>
 
   Future<void> _reload() async {
     final future = _load();
-    setState(() => _future = future);
-    await future;
+    setState(() {
+      _future = future;
+    });
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
   }
 
   Future<void> _open(Widget screen) async {
@@ -52,74 +59,97 @@ class _LearningCertificatesScreenState extends State<LearningCertificatesScreen>
       body: FutureBuilder<_CertificatesData>(
         future: _future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const EmLoading();
-          if (snapshot.hasError) {
-            return LearningScrollableState(
-              onRefresh: _reload,
-              child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
-            );
-          }
-          final data = snapshot.requireData;
-          if (data.earned.isEmpty && data.inProgress.isEmpty) {
-            return LearningScrollableState(
-              onRefresh: _reload,
-              child: const EmStateView(
-                icon: Icons.workspace_premium_outlined,
-                title: 'No certificates yet',
-                message: 'Finish every lesson and quiz in a course to get its certificate.',
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: _reload,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-              children: [
-                if (data.earned.isEmpty)
-                  Text('No certificates yet.', style: Theme.of(context).textTheme.bodySmall)
-                else
-                  EmGroup(
-                    children: [
-                      for (final certificate in data.earned)
-                        EmRow(
-                          leading: const EmIconTile(Icons.workspace_premium_rounded, tone: EmTileTone.primary),
-                          title: certificate.courseTitle,
-                          subtitle: certificate.issuedAt == null ? null : 'Issued ${formatDate(certificate.issuedAt!.toLocal())}',
-                          onTap: () => _open(
-                            LearningCertificateScreen(
-                              courseSlug: certificate.courseSlug,
-                              service: _service,
-                              certificate: certificate,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                if (data.inProgress.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  const EmCaption('In progress'),
-                  const SizedBox(height: 8),
-                  EmGroup(
-                    children: [
-                      for (final enrollment in data.inProgress)
-                        _InProgressRow(
-                          enrollment: enrollment,
-                          onTap: () => _open(LearningCourseDetailScreen(slug: enrollment.course.slug, service: _service)),
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 20),
-                Text(
-                  'Finish every lesson and quiz in a course to get its certificate.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          );
+          final (key, child) = _state(context, snapshot);
+          return EmStateSwitcher(stateKey: key, child: child);
         },
+      ),
+    );
+  }
+
+  (String, Widget) _state(BuildContext context, AsyncSnapshot<_CertificatesData> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+      return ('loading', const EmSkeletonList(count: 3, thumbnail: 40, padding: EdgeInsets.fromLTRB(20, 8, 20, 20)));
+    }
+    if (snapshot.hasError) {
+      return (
+        'error',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
+        ),
+      );
+    }
+    final data = snapshot.requireData;
+    if (data.earned.isEmpty && data.inProgress.isEmpty) {
+      return (
+        'empty',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: const EmStateView(
+            icon: Icons.workspace_premium_outlined,
+            title: 'No certificates yet',
+            message: 'Finish every lesson and quiz in a course to get its certificate.',
+          ),
+        ),
+      );
+    }
+    final children = <Widget>[
+      if (data.earned.isEmpty)
+        Text('No certificates yet.', style: Theme.of(context).textTheme.bodySmall)
+      else
+        EmGroup(
+          children: [
+            for (final certificate in data.earned)
+              EmRow(
+                leading: const EmIconTile(Icons.workspace_premium_rounded, tone: EmTileTone.primary),
+                title: certificate.courseTitle,
+                subtitle: certificate.issuedAt == null ? null : 'Issued ${formatDate(certificate.issuedAt!.toLocal())}',
+                onTap: () => _open(
+                  LearningCertificateScreen(
+                      courseSlug: certificate.courseSlug, service: _service, certificate: certificate),
+                ),
+              ),
+          ],
+        ),
+      if (data.inProgress.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const EmCaption('In progress'),
+              const SizedBox(height: 8),
+              EmGroup(
+                children: [
+                  for (final enrollment in data.inProgress)
+                    _InProgressRow(
+                      enrollment: enrollment,
+                      onTap: () => _open(LearningCourseDetailScreen(slug: enrollment.course.slug, service: _service)),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: Text(
+          'Finish every lesson and quiz in a course to get its certificate.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+    ];
+    return (
+      'content',
+      RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          itemCount: children.length,
+          itemBuilder: (_, i) => _entrance.wrap(i, children[i]),
+        ),
       ),
     );
   }

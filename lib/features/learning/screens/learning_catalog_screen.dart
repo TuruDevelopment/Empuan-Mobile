@@ -28,6 +28,7 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
   late String? _category = widget.initialCategory;
   late Future<LearningCoursePage> _coursesFuture = _loadCourses();
   List<LearningCategory> _categories = const [];
+  LearningEntrance _entrance = LearningEntrance();
 
   @override
   void initState() {
@@ -51,30 +52,41 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
     }
   }
 
-  Future<LearningCoursePage> _loadCourses() => _service.getCourses(category: _category, search: _search.text, perPage: 50);
+  Future<LearningCoursePage> _loadCourses() =>
+      _service.getCourses(category: _category, search: _search.text, perPage: 50);
 
-  Future<void> _reload() async {
+  Future<void> _reload({bool newResults = false}) async {
     final future = _loadCourses();
-    setState(() => _coursesFuture = future);
-    await future;
+    setState(() {
+      _coursesFuture = future;
+      if (newResults) _entrance = LearningEntrance();
+    });
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
   }
+
+  void _runSearch() => _reload(newResults: true);
 
   void _onSearchChanged(String _) {
     setState(() {});
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _reload);
+    _debounce = Timer(const Duration(milliseconds: 400), _runSearch);
   }
 
   void _clearSearch() {
     _search.clear();
     _debounce?.cancel();
-    _reload();
+    _runSearch();
   }
 
   void _setCategory(String? code) {
     setState(() {
       _category = code;
       _coursesFuture = _loadCourses();
+      _entrance = LearningEntrance();
     });
   }
 
@@ -109,7 +121,7 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
                       controller: _search,
                       autofocus: widget.autofocus,
                       onChanged: _onSearchChanged,
-                      onSubmitted: (_) => _reload(),
+                      onSubmitted: (_) => _runSearch(),
                       textInputAction: TextInputAction.search,
                       style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
                       decoration: InputDecoration(
@@ -142,53 +154,71 @@ class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
               child: FutureBuilder<LearningCoursePage>(
                 future: _coursesFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) return const EmLoading();
-                  if (snapshot.hasError) {
-                    return LearningScrollableState(
-                      onRefresh: _reload,
-                      child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
-                    );
-                  }
-                  final page = snapshot.requireData;
-                  final courses = page.courses;
-                  if (courses.isEmpty) {
-                    return LearningScrollableState(
-                      onRefresh: _reload,
-                      child: EmStateView(
-                        icon: Icons.search_off_rounded,
-                        title: 'No courses found',
-                        message: _search.text.trim().isEmpty
-                            ? 'There are no courses in this topic yet.'
-                            : 'Nothing matches “${_search.text.trim()}”. Try another word or topic.',
-                      ),
-                    );
-                  }
-                  final count = page.total > courses.length ? page.total : courses.length;
-                  return RefreshIndicator(
-                    onRefresh: _reload,
-                    child: ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-                      itemCount: courses.length + 1,
-                      separatorBuilder: (_, i) => SizedBox(height: i == 0 ? 10 : 12),
-                      itemBuilder: (context, i) {
-                        if (i == 0) {
-                          return Text(
-                            '$count ${count == 1 ? 'course' : 'courses'}',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                          );
-                        }
-                        final course = courses[i - 1];
-                        return LearningCourseRow(course: course, onTap: () => _openCourse(course));
-                      },
-                    ),
-                  );
+                  final (key, child) = _state(snapshot);
+                  return EmStateSwitcher(stateKey: key, child: child);
                 },
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  (String, Widget) _state(AsyncSnapshot<LearningCoursePage> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+      return ('loading', const Padding(padding: EdgeInsets.only(top: 16), child: LearningCourseSkeleton()));
+    }
+    if (snapshot.hasError) {
+      return (
+        'error',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
+        )
+      );
+    }
+    final page = snapshot.requireData;
+    final courses = page.courses;
+    if (courses.isEmpty) {
+      return (
+        'empty',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: EmStateView(
+            icon: Icons.search_off_rounded,
+            title: 'No courses found',
+            message: _search.text.trim().isEmpty
+                ? 'There are no courses in this topic yet.'
+                : 'Nothing matches “${_search.text.trim()}”. Try another word or topic.',
+          ),
+        )
+      );
+    }
+    final count = page.total > courses.length ? page.total : courses.length;
+    return (
+      'results',
+      RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          itemCount: courses.length + 1,
+          separatorBuilder: (_, i) => SizedBox(height: i == 0 ? 10 : 12),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return EmAnimatedSwap(
+                  valueKey: count,
+                  child: Text(
+                    '$count ${count == 1 ? 'course' : 'courses'}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  ));
+            }
+            final course = courses[i - 1];
+            return _entrance.wrap(i, LearningCourseRow(course: course, onTap: () => _openCourse(course)));
+          },
+        ),
+      )
     );
   }
 }

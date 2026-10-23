@@ -99,9 +99,7 @@ class LearningLessonSummary {
       durationSeconds: _asInt(json['duration_seconds']),
       isPreview: json['is_preview'] == true,
       hasQuiz: json['has_quiz'] == true,
-      progress: json['progress'] is Map
-          ? LearningProgress.fromJson(_asMap(json['progress']))
-          : null,
+      progress: json['progress'] is Map ? LearningProgress.fromJson(_asMap(json['progress'])) : null,
     );
   }
 }
@@ -137,9 +135,7 @@ class LearningQuizQuestion {
     return LearningQuizQuestion(
       id: _asInt(json['id']),
       prompt: json['prompt']?.toString() ?? '',
-      options: _asList(json['options'])
-          .map((item) => LearningQuizOption.fromJson(_asMap(item)))
-          .toList(),
+      options: _asList(json['options']).map((item) => LearningQuizOption.fromJson(_asMap(item))).toList(),
       points: _asInt(json['points'], fallback: 1),
     );
   }
@@ -166,8 +162,7 @@ class LearningQuiz {
   final int attemptsUsed;
   final List<LearningQuizQuestion> questions;
 
-  bool get canAttempt =>
-      maxAttempts == null || attemptsUsed < (maxAttempts ?? 0);
+  bool get canAttempt => maxAttempts == null || attemptsUsed < (maxAttempts ?? 0);
 
   factory LearningQuiz.fromJson(Map<String, dynamic> json) {
     return LearningQuiz(
@@ -176,12 +171,9 @@ class LearningQuiz {
       title: json['title']?.toString() ?? '',
       instructions: json['instructions']?.toString(),
       passingScore: _asInt(json['passing_score'], fallback: 70),
-      maxAttempts:
-          json['max_attempts'] == null ? null : _asInt(json['max_attempts']),
+      maxAttempts: json['max_attempts'] == null ? null : _asInt(json['max_attempts']),
       attemptsUsed: _asInt(json['attempts_used']),
-      questions: _asList(json['questions'])
-          .map((item) => LearningQuizQuestion.fromJson(_asMap(item)))
-          .toList(),
+      questions: _asList(json['questions']).map((item) => LearningQuizQuestion.fromJson(_asMap(item))).toList(),
     );
   }
 }
@@ -241,9 +233,7 @@ class LearningQuizAttempt {
       passed: json['passed'] == true,
       earnedPoints: _asInt(json['earned_points']),
       totalPoints: _asInt(json['total_points']),
-      result: _asList(json['result'])
-          .map((item) => LearningQuizResult.fromJson(_asMap(item)))
-          .toList(),
+      result: _asList(json['result']).map((item) => LearningQuizResult.fromJson(_asMap(item))).toList(),
       submittedAt: _asDateTime(json['submitted_at']),
     );
   }
@@ -279,13 +269,9 @@ class LearningCertificate {
       certificateNumber: json['certificate_number']?.toString() ?? '',
       label: json['label']?.toString() ?? 'Certificate of Completion',
       recipientName: json['recipient_name']?.toString() ?? '',
-      courseTitle: json['course_title']?.toString() ??
-          course['title']?.toString() ??
-          '',
+      courseTitle: json['course_title']?.toString() ?? course['title']?.toString() ?? '',
       courseVersion: _asInt(json['course_version']),
-      courseSlug: json['course_slug']?.toString() ??
-          course['slug']?.toString() ??
-          '',
+      courseSlug: json['course_slug']?.toString() ?? course['slug']?.toString() ?? '',
       issuedAt: _asDateTime(json['issued_at']),
     );
   }
@@ -309,9 +295,7 @@ class LearningSection {
       id: _asInt(json['id']),
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString(),
-      lessons: _asList(json['lessons'])
-          .map((item) => LearningLessonSummary.fromJson(_asMap(item)))
-          .toList(),
+      lessons: _asList(json['lessons']).map((item) => LearningLessonSummary.fromJson(_asMap(item))).toList(),
     );
   }
 }
@@ -431,8 +415,7 @@ class LearningCourse {
   /// Count sent by list endpoints, which leave out the sections.
   final int? lessonsCount;
 
-  Iterable<LearningLessonSummary> get lessons =>
-      sections.expand((section) => section.lessons);
+  Iterable<LearningLessonSummary> get lessons => sections.expand((section) => section.lessons);
 
   int get lessonCount {
     final listed = lessons.length;
@@ -440,8 +423,7 @@ class LearningCourse {
   }
 
   factory LearningCourse.fromJson(Map<String, dynamic> json) {
-    final enrollmentJson =
-        json['enrollment'] is Map ? _asMap(json['enrollment']) : null;
+    final enrollmentJson = json['enrollment'] is Map ? _asMap(json['enrollment']) : null;
 
     return LearningCourse(
       slug: json['slug']?.toString() ?? '',
@@ -453,31 +435,19 @@ class LearningCourse {
       minimumAge: _asInt(json['minimum_age'], fallback: 18),
       certificateEnabled: json['certificate_enabled'] == true,
       isEnrolled: json['is_enrolled'] == true || enrollmentJson != null,
-      category: json['category'] is Map
-          ? LearningCategory.fromJson(_asMap(json['category']))
-          : null,
-      lifeStages: _asList(json['life_stages'])
-          .map((item) => LearningLifeStage.fromJson(_asMap(item)))
-          .toList(),
+      category: json['category'] is Map ? LearningCategory.fromJson(_asMap(json['category'])) : null,
+      lifeStages: _asList(json['life_stages']).map((item) => LearningLifeStage.fromJson(_asMap(item))).toList(),
       description: json['description']?.toString(),
-      learningOutcomes: _asList(json['learning_outcomes'])
-          .map((item) => item.toString())
-          .toList(),
+      learningOutcomes: _asList(json['learning_outcomes']).map((item) => item.toString()).toList(),
       certificateLabel: json['certificate_label']?.toString(),
-      sections: _asList(json['sections'])
-          .map((item) => LearningSection.fromJson(_asMap(item)))
-          .toList(),
-      sources: _asList(json['sources'])
-          .map((item) => LearningSource.fromJson(_asMap(item)))
-          .toList(),
+      sections: _asList(json['sections']).map((item) => LearningSection.fromJson(_asMap(item))).toList(),
+      sources: _asList(json['sources']).map((item) => LearningSource.fromJson(_asMap(item))).toList(),
       enrollment: enrollmentJson?['summary'] is Map
           ? LearningProgressSummary.fromJson(
               _asMap(enrollmentJson?['summary']),
             )
           : null,
-      lessonsCount: json['lessons_count'] == null
-          ? null
-          : _asInt(json['lessons_count']),
+      lessonsCount: json['lessons_count'] == null ? null : _asInt(json['lessons_count']),
     );
   }
 }
@@ -538,12 +508,8 @@ class LearningLesson {
       courseSlug: course['slug']?.toString() ?? '',
       courseTitle: course['title']?.toString() ?? '',
       sectionTitle: section['title']?.toString() ?? '',
-      sources: _asList(json['sources'])
-          .map((item) => LearningSource.fromJson(_asMap(item)))
-          .toList(),
-      progress: json['progress'] is Map
-          ? LearningProgress.fromJson(_asMap(json['progress']))
-          : null,
+      sources: _asList(json['sources']).map((item) => LearningSource.fromJson(_asMap(item))).toList(),
+      progress: json['progress'] is Map ? LearningProgress.fromJson(_asMap(json['progress'])) : null,
     );
   }
 }
@@ -563,18 +529,12 @@ class LearningHomeData {
 
   factory LearningHomeData.fromJson(Map<String, dynamic> json) {
     return LearningHomeData(
-      lifeStage: json['life_stage'] is Map
-          ? LearningLifeStage.fromJson(_asMap(json['life_stage']))
-          : null,
-      categories: _asList(json['categories'])
-          .map((item) => LearningCategory.fromJson(_asMap(item)))
-          .toList(),
-      recommendedCourses: _asList(json['recommended_courses'])
-          .map((item) => LearningCourse.fromJson(_asMap(item)))
-          .toList(),
-      continueLearning: _asList(json['continue_learning'])
-          .map((item) => LearningEnrollment.fromJson(_asMap(item)))
-          .toList(),
+      lifeStage: json['life_stage'] is Map ? LearningLifeStage.fromJson(_asMap(json['life_stage'])) : null,
+      categories: _asList(json['categories']).map((item) => LearningCategory.fromJson(_asMap(item))).toList(),
+      recommendedCourses:
+          _asList(json['recommended_courses']).map((item) => LearningCourse.fromJson(_asMap(item))).toList(),
+      continueLearning:
+          _asList(json['continue_learning']).map((item) => LearningEnrollment.fromJson(_asMap(item))).toList(),
     );
   }
 }
@@ -596,9 +556,7 @@ class LearningCoursePage {
     final meta = _asMap(json['meta']);
 
     return LearningCoursePage(
-      courses: _asList(json['data'])
-          .map((item) => LearningCourse.fromJson(_asMap(item)))
-          .toList(),
+      courses: _asList(json['data']).map((item) => LearningCourse.fromJson(_asMap(item))).toList(),
       currentPage: _asInt(meta['current_page'], fallback: 1),
       lastPage: _asInt(meta['last_page'], fallback: 1),
       total: _asInt(meta['total']),

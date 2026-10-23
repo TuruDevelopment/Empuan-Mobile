@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
+import 'form_motion.dart';
 import 'login_screen.dart' show isEmail;
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -72,7 +73,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          children: [
+          children: staggered([
             Text('Reset your password', style: text.headlineLarge),
             const SizedBox(height: 8),
             Text('Enter your account email. We’ll send you a link to set a new password.',
@@ -85,39 +86,43 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               autofillHints: const [AutofillHints.email],
               validator: (v) => isEmail(v) ? null : 'Enter a valid email address',
             ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13, fontWeight: FontWeight.w600)),
-            ],
+            AnimatedFormMessage(message: _error, padding: const EdgeInsets.only(top: 12)),
             const SizedBox(height: 24),
             EmButton(
               label: _cooldown > 0 ? 'Send again in $wait' : (_sentTo == null ? 'Send reset link' : 'Send again'),
               loading: _sending,
               onPressed: _cooldown > 0 ? null : _send,
             ),
-            if (_sentTo != null) ...[
-              const SizedBox(height: 20),
-              EmCard(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const EmIconTile(Icons.mail_outline_rounded),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Check your inbox', style: text.titleMedium),
-                          const SizedBox(height: 4),
-                          Text('Sent to $_sentTo. Didn’t get it? Check your spam folder.', style: text.bodySmall),
-                        ],
+            // Slides up into place once the link has been sent.
+            AnimatedReveal(
+              switchKey: _sentTo,
+              offset: const Offset(0, 0.15),
+              child: _sentTo == null
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: EmCard(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const EmIconTile(Icons.mail_outline_rounded),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Check your inbox', style: text.titleMedium),
+                                  const SizedBox(height: 4),
+                                  Text('Sent to $_sentTo. Didn’t get it? Check your spam folder.', style: text.bodySmall),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ],
+            ),
+          ]),
         ),
       ),
     );

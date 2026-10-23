@@ -1,6 +1,7 @@
 import 'package:Empuan/features/learning/models/learning_models.dart';
 import 'package:Empuan/features/learning/services/learning_progress_sync_service.dart';
 import 'package:Empuan/features/learning/services/learning_service.dart';
+import 'package:Empuan/features/learning/widgets/learning_widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,6 +71,35 @@ void main() {
       expect(quiz.questions.single.options.length, 2);
       expect(quiz.questions.single.options.last.key, 'B');
       expect(quiz.canAttempt, isTrue);
+    });
+
+    test('uses the listed lesson count when sections are left out', () {
+      final course = LearningCourse.fromJson({
+        'slug': 'salary',
+        'title': 'Negotiating your salary',
+        'lessons_count': 4,
+        'estimated_minutes': 30,
+        'certificate_enabled': true,
+      });
+
+      expect(course.lessonCount, 4);
+      expect(courseMeta(course), '4 lessons · 30 min · Certificate');
+    });
+  });
+
+  group('Learning text helpers', () {
+    test('turns HTML into paragraphs and keeps plain text paragraphs', () {
+      expect(
+        htmlToParagraphs('<p>First &amp; best.</p><p>Second<br>line</p><ul><li>One</li></ul>'),
+        ['First & best.', 'Second', 'line', '• One'],
+      );
+      expect(htmlToParagraphs('One.\n\nTwo.'), ['One.', 'Two.']);
+      expect(htmlToParagraphs(null), isEmpty);
+    });
+
+    test('reads life stage names inside a sentence', () {
+      expect(inSentence('Ages 25–34'), 'ages 25–34');
+      expect(inSentence('UK students'), 'UK students');
     });
   });
 

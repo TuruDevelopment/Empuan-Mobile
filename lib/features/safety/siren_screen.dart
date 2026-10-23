@@ -14,7 +14,7 @@ class SirenScreen extends StatefulWidget {
 
 class _SirenScreenState extends State<SirenScreen> with SingleTickerProviderStateMixin {
   final _player = AudioPlayer();
-  late final _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+  late final _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
   bool _playing = false;
 
   @override
@@ -38,12 +38,11 @@ class _SirenScreenState extends State<SirenScreen> with SingleTickerProviderStat
   }
 
   void _syncPulse() {
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
-    if (_playing && !reduceMotion) {
-      if (!_pulse.isAnimating) _pulse.repeat(reverse: true);
+    if (_playing && !EmMotion.reduced(context)) {
+      if (!_pulse.isAnimating) _pulse.repeat();
     } else {
+      // Freeze rather than reset, so the rings fade out from where they are.
       _pulse.stop();
-      _pulse.value = 0;
     }
   }
 
@@ -148,70 +147,113 @@ class _SirenButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduced = EmMotion.reduced(context);
+    final swap = reduced ? Duration.zero : EmMotion.medium;
     final button = Semantics(
       button: true,
       label: playing ? 'Stop siren' : 'Play siren',
       onTap: onTap,
       excludeSemantics: true,
-      child: Material(
-        color: Colors.white,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: SizedBox(
-            width: 148,
-            height: 148,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(playing ? Icons.stop_rounded : Icons.play_arrow_rounded, color: AppColors.danger, size: 40),
-                const SizedBox(height: 6),
-                Text(
-                  playing ? 'Stop' : 'Play',
-                  style: const TextStyle(color: AppColors.danger, fontSize: 22, fontWeight: FontWeight.w800),
-                ),
-              ],
+      child: EmPressable(
+        scale: 0.95,
+        child: Material(
+          color: Colors.white,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: SizedBox(
+              width: 148,
+              height: 148,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedSwitcher(
+                    duration: swap,
+                    switchInCurve: EmMotion.enter,
+                    switchOutCurve: EmMotion.exit,
+                    transitionBuilder: (child, a) => FadeTransition(
+                      opacity: a,
+                      child: RotationTransition(
+                        turns: Tween(begin: -0.125, end: 0.0).animate(a),
+                        child: ScaleTransition(scale: a, child: child),
+                      ),
+                    ),
+                    child: Icon(
+                      playing ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                      key: ValueKey(playing),
+                      color: AppColors.danger,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  EmAnimatedSwap(
+                    valueKey: playing,
+                    child: Text(
+                      playing ? 'Stop' : 'Play',
+                      style: const TextStyle(color: AppColors.danger, fontSize: 22, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
 
+    // [on] eases between the resting and playing looks so starting and
+    // stopping never snaps.
     return SizedBox(
       width: 260,
       height: 260,
-      child: AnimatedBuilder(
-        animation: pulse,
-        builder: (context, child) {
-          final grow = playing ? pulse.value : 0.0;
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              _Ring(size: 236 + 24 * grow, alpha: playing ? 0.18 : 0.08),
-              _Ring(size: 192 + 8 * grow, alpha: playing ? 0.32 : 0.14),
-              child!,
-            ],
-          );
-        },
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: playing ? 1 : 0),
+        duration: reduced ? Duration.zero : EmMotion.slow,
+        curve: EmMotion.enter,
         child: button,
+        builder: (context, on, child) => CustomPaint(
+          painter: _SirenRingsPainter(pulse, on: on, ripple: !reduced),
+          child: Center(child: child),
+        ),
       ),
     );
   }
 }
 
-class _Ring extends StatelessWidget {
-  const _Ring({required this.size, required this.alpha});
+/// Two soft halos behind the button, plus rings that spread outward from it
+/// while the siren plays.
+class _SirenRingsPainter extends CustomPainter {
+  _SirenRingsPainter(this.pulse, {required this.on, required this.ripple}) : super(repaint: pulse);
 
-  final double size;
-  final double alpha;
+  final Animation<double> pulse;
+  final double on;
+  final bool ripple;
+
+  static const _button = 74.0;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: AppColors.error.withValues(alpha: alpha), shape: BoxShape.circle),
-    );
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final fill = Paint();
+    fill.color = AppColors.error.withValues(alpha: 0.08 + 0.10 * on);
+    canvas.drawCircle(center, 118, fill);
+    fill.color = AppColors.error.withValues(alpha: 0.14 + 0.18 * on);
+    canvas.drawCircle(center, 96, fill);
+
+    if (!ripple || on == 0) return;
+    final edge = size.shortestSide / 2;
+    for (var i = 0; i < 3; i++) {
+      final p = (pulse.value + i / 3) % 1;
+      final t = Curves.easeOut.transform(p);
+      canvas.drawCircle(
+        center,
+        _button + (edge - _button) * t,
+        Paint()..color = AppColors.error.withValues(alpha: 0.28 * (1 - p) * on),
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(_SirenRingsPainter old) => old.on != on || old.ripple != ripple || old.pulse != pulse;
 }

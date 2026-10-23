@@ -36,6 +36,7 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
   late bool _canTrack = widget.canTrackProgress;
   bool _saving = false;
   bool _enrolling = false;
+  final _entrance = LearningEntrance();
 
   @override
   void initState() {
@@ -59,8 +60,14 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
 
   Future<void> _reload() async {
     final future = _loadLesson();
-    setState(() => _lessonFuture = future);
-    await future;
+    setState(() {
+      _lessonFuture = future;
+    });
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
   }
 
   List<LearningLessonSummary> get _lessons => _course?.lessons.toList() ?? const [];
@@ -140,20 +147,26 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
     return FutureBuilder<LearningLesson>(
       future: _lessonFuture,
       builder: (context, snapshot) {
-        final lesson = snapshot.connectionState == ConnectionState.waiting ? null : snapshot.data;
+        final loading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+        final lesson = loading ? null : snapshot.data;
         final done = lesson?.progress?.isCompleted == true;
 
         Widget body;
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          body = const EmLoading();
+        String key;
+        if (loading) {
+          key = 'loading';
+          body = const _LessonSkeleton();
         } else if (snapshot.hasError) {
+          key = 'error';
           body = LearningScrollableState(
             onRefresh: _reload,
             child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
           );
         } else {
+          key = 'content';
           body = _LessonContent(
             lesson: lesson!,
+            entrance: _entrance,
             canTrackProgress: _canTrack,
             service: _service,
             onQuizClosed: _reload,
@@ -168,7 +181,7 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
             caption: index >= 0 ? 'Lesson ${index + 1} of $total' : 'Lesson',
             progress: index >= 0 && total > 0 ? (index + 1) / total : null,
           ),
-          body: body,
+          body: EmStateSwitcher(stateKey: key, child: body),
           bottomNavigationBar: lesson == null
               ? null
               : EmBottomBar(
@@ -185,7 +198,9 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
                       Expanded(
                         child: _canTrack
                             ? EmButton(
-                                label: done ? (_neighbour(1) == null ? 'Back to course' : 'Next lesson') : 'Mark done and continue',
+                                label: done
+                                    ? (_neighbour(1) == null ? 'Back to course' : 'Next lesson')
+                                    : 'Mark done and continue',
                                 loading: _saving,
                                 onPressed: () => _markDoneAndContinue(done),
                               )
@@ -207,12 +222,14 @@ class _LearningLessonScreenState extends State<LearningLessonScreen> {
 class _LessonContent extends StatelessWidget {
   const _LessonContent({
     required this.lesson,
+    required this.entrance,
     required this.canTrackProgress,
     required this.service,
     required this.onQuizClosed,
   });
 
   final LearningLesson lesson;
+  final LearningEntrance entrance;
   final bool canTrackProgress;
   final LearningService service;
   final Future<void> Function() onQuizClosed;
@@ -224,59 +241,61 @@ class _LessonContent extends StatelessWidget {
     final hasMedia = media != null && media.isNotEmpty;
     final paragraphs = htmlToParagraphs(lesson.body);
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      children: [
-        if (hasMedia && lesson.type == 'video') ...[_VideoLesson(url: media), const SizedBox(height: 18)],
-        if (hasMedia && lesson.type == 'infographic') ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Image.network(
-              media,
-              fit: BoxFit.contain,
-              semanticLabel: 'Infographic: ${lesson.title}',
-              errorBuilder: (_, __, ___) => const _MediaError(),
-            ),
+    final children = <Widget>[
+      if (hasMedia && lesson.type == 'video') ...[_VideoLesson(url: media), const SizedBox(height: 18)],
+      if (hasMedia && lesson.type == 'infographic') ...[
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Image.network(
+            media,
+            fit: BoxFit.contain,
+            semanticLabel: 'Infographic: ${lesson.title}',
+            errorBuilder: (_, __, ___) => const _MediaError(),
           ),
-          const SizedBox(height: 18),
-        ],
-        if (lesson.sectionTitle.isNotEmpty) ...[EmCaption(lesson.sectionTitle), const SizedBox(height: 6)],
-        Text(lesson.title, style: text.headlineMedium),
-        if (lesson.summary != null && lesson.summary!.trim().isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Text(lesson.summary!, style: text.bodyLarge?.copyWith(color: AppColors.textSecondary)),
-        ],
-        if (!canTrackProgress) ...[
-          const SizedBox(height: 14),
-          const EmNote(
-            icon: Icons.visibility_outlined,
-            child: Text('This is a free preview. Enroll to save your progress and take the quiz.'),
-          ),
-        ],
-        if (paragraphs.isNotEmpty) ...[
-          const SizedBox(height: 18),
-          for (final paragraph in paragraphs)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: SelectableText(paragraph, style: text.bodyLarge),
-            ),
-        ],
-        if (lesson.content != null)
-          for (final entry in lesson.content!.entries) ..._structured(context, entry.key, entry.value),
-        if (lesson.hasQuiz && canTrackProgress) ...[
-          const SizedBox(height: 8),
-          _QuizCard(lesson: lesson, service: service, onClosed: onQuizClosed),
-        ],
-        if (lesson.sources.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text('Sources', style: text.titleMedium),
-          const SizedBox(height: 10),
-          for (final source in lesson.sources)
-            Padding(padding: const EdgeInsets.only(bottom: 8), child: LearningSourceRow(source: source)),
-        ],
-        const SizedBox(height: 16),
-        Text(learningDisclaimer, style: text.bodySmall),
+        ),
+        const SizedBox(height: 18),
       ],
+      if (lesson.sectionTitle.isNotEmpty) ...[EmCaption(lesson.sectionTitle), const SizedBox(height: 6)],
+      Text(lesson.title, style: text.headlineMedium),
+      if (lesson.summary != null && lesson.summary!.trim().isNotEmpty) ...[
+        const SizedBox(height: 10),
+        Text(lesson.summary!, style: text.bodyLarge?.copyWith(color: AppColors.textSecondary)),
+      ],
+      if (!canTrackProgress) ...[
+        const SizedBox(height: 14),
+        const EmNote(
+          icon: Icons.visibility_outlined,
+          child: Text('This is a free preview. Enroll to save your progress and take the quiz.'),
+        ),
+      ],
+      if (paragraphs.isNotEmpty) ...[
+        const SizedBox(height: 18),
+        for (final paragraph in paragraphs)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: SelectableText(paragraph, style: text.bodyLarge),
+          ),
+      ],
+      if (lesson.content != null)
+        for (final entry in lesson.content!.entries) ..._structured(context, entry.key, entry.value),
+      if (lesson.hasQuiz && canTrackProgress) ...[
+        const SizedBox(height: 8),
+        _QuizCard(lesson: lesson, service: service, onClosed: onQuizClosed),
+      ],
+      if (lesson.sources.isNotEmpty) ...[
+        const SizedBox(height: 24),
+        Text('Sources', style: text.titleMedium),
+        const SizedBox(height: 10),
+        for (final source in lesson.sources)
+          Padding(padding: const EdgeInsets.only(bottom: 8), child: LearningSourceRow(source: source)),
+      ],
+      const SizedBox(height: 16),
+      Text(learningDisclaimer, style: text.bodySmall),
+    ];
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      itemCount: children.length,
+      itemBuilder: (_, i) => entrance.wrap(i, children[i]),
     );
   }
 
@@ -320,8 +339,20 @@ class _StructuredItem extends StatelessWidget {
     final title = _pick(value, ['title', 'label', 'name', 'heading']);
     final detail = _pick(value, ['description', 'text', 'body', 'detail']);
     final rest = value.entries
-        .where((e) => !['value', 'figure', 'percent', 'amount', 'title', 'label', 'name', 'heading', 'description', 'text', 'body', 'detail']
-            .contains(e.key))
+        .where((e) => ![
+              'value',
+              'figure',
+              'percent',
+              'amount',
+              'title',
+              'label',
+              'name',
+              'heading',
+              'description',
+              'text',
+              'body',
+              'detail'
+            ].contains(e.key))
         .map((e) => '${humanize(e.key.toString())}: ${e.value}')
         .join('\n');
 
@@ -371,15 +402,15 @@ class _QuizCardState extends State<_QuizCard> {
       builder: (context, snapshot) {
         final quiz = snapshot.data;
         final count = quiz?.questions.length ?? 0;
-        final subtitle = quiz == null
-            ? 'Quiz'
-            : '$count ${count == 1 ? 'question' : 'questions'} · pass with ${quiz.passingScore}%';
+        final subtitle =
+            quiz == null ? 'Quiz' : '$count ${count == 1 ? 'question' : 'questions'} · pass with ${quiz.passingScore}%';
         return EmCard(
           color: AppColors.blush,
           borderColor: AppColors.blush,
           onTap: () async {
             await Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => LearningQuizScreen(lessonId: widget.lesson.id, service: widget.service)),
+              MaterialPageRoute(
+                  builder: (_) => LearningQuizScreen(lessonId: widget.lesson.id, service: widget.service)),
             );
             await widget.onClosed();
           },
@@ -476,7 +507,8 @@ class _VideoLessonState extends State<_VideoLesson> {
                       _controller,
                       allowScrubbing: true,
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-                      colors: const VideoProgressColors(playedColor: Colors.white, bufferedColor: Colors.white38, backgroundColor: Colors.white24),
+                      colors: const VideoProgressColors(
+                          playedColor: Colors.white, bufferedColor: Colors.white38, backgroundColor: Colors.white24),
                     ),
                   ),
               ],
@@ -503,6 +535,34 @@ class _MediaError extends StatelessWidget {
           Icon(Icons.broken_image_outlined, color: AppColors.primary, size: 32),
           SizedBox(height: 8),
           Text('This media couldn’t be loaded.', style: TextStyle(color: AppColors.textSecondary)),
+        ],
+      ),
+    );
+  }
+}
+
+class _LessonSkeleton extends StatelessWidget {
+  const _LessonSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading',
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        children: const [
+          EmSkeleton(height: 196, radius: 18),
+          SizedBox(height: 20),
+          EmSkeleton(height: 12, width: 100),
+          SizedBox(height: 10),
+          EmSkeleton(height: 26),
+          SizedBox(height: 20),
+          EmSkeleton(height: 16),
+          SizedBox(height: 8),
+          EmSkeleton(height: 16),
+          SizedBox(height: 8),
+          EmSkeleton(height: 16, width: 220),
         ],
       ),
     );

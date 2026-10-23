@@ -32,8 +32,14 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
 
   Future<void> _reload() async {
     final future = _service.getCertificate(widget.courseSlug);
-    setState(() => _future = future);
-    await future;
+    setState(() {
+      _future = future;
+    });
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
   }
 
   Future<void> _share(LearningCertificate certificate) async {
@@ -57,39 +63,66 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
       body: FutureBuilder<LearningCertificate>(
         future: _future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const EmLoading();
-          if (snapshot.hasError) {
-            return LearningScrollableState(
+          final loading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+          final Widget child;
+          if (loading) {
+            child = const Padding(
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Align(alignment: Alignment.topCenter, child: EmSkeleton(height: 330, radius: 20)),
+            );
+          } else if (snapshot.hasError) {
+            child = LearningScrollableState(
               onRefresh: _reload,
               child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
             );
+          } else {
+            child = _content(context, snapshot.requireData);
           }
-          final certificate = snapshot.requireData;
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            children: [
-              _CertificateCard(certificate: certificate),
-              const SizedBox(height: 18),
-              EmButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () => _share(certificate)),
-              if (certificate.certificateNumber.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                EmButton(
-                  label: 'Copy certificate number',
-                  icon: Icons.copy_rounded,
-                  variant: EmButtonVariant.text,
-                  onPressed: () => _copy(certificate),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Text(
-                'Confirms completion of an Empuan course. It isn’t a professional qualification.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          );
+          return EmStateSwitcher(stateKey: loading ? 'loading' : (snapshot.hasError ? 'error' : 'content'), child: child);
         },
       ),
+    );
+  }
+
+  Widget _content(BuildContext context, LearningCertificate certificate) {
+    final reduced = EmMotion.reduced(context);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      children: [
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: reduced ? 1 : 0, end: 1),
+          duration: reduced ? Duration.zero : EmMotion.slow,
+          curve: EmMotion.enter,
+          builder: (_, t, child) => Opacity(
+            opacity: t,
+            child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
+          ),
+          child: _CertificateCard(certificate: certificate),
+        ),
+        const SizedBox(height: 18),
+        EmFadeSlideIn(
+          index: 3,
+          child: EmButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () => _share(certificate)),
+        ),
+        if (certificate.certificateNumber.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          EmFadeSlideIn(
+            index: 4,
+            child: EmButton(
+              label: 'Copy certificate number',
+              icon: Icons.copy_rounded,
+              variant: EmButtonVariant.text,
+              onPressed: () => _copy(certificate),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Text(
+          'Confirms completion of an Empuan course. It isn’t a professional qualification.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }

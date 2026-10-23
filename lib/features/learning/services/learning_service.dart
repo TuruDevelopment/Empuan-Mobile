@@ -14,9 +14,7 @@ class LearningApiException implements Exception {
 
   bool get requiresDateOfBirth {
     final normalizedMessage = message.toLowerCase();
-    return statusCode == 403 &&
-        (normalizedMessage.contains('date of birth') ||
-            normalizedMessage.contains('dob'));
+    return statusCode == 403 && (normalizedMessage.contains('date of birth') || normalizedMessage.contains('dob'));
   }
 
   @override
@@ -100,8 +98,7 @@ class LearningService {
   }
 
   Future<LearningQuiz> getQuiz(int lessonId) async {
-    final envelope =
-        await _request('GET', ApiConfig.learningLessonQuiz(lessonId));
+    final envelope = await _request('GET', ApiConfig.learningLessonQuiz(lessonId));
     return LearningQuiz.fromJson(_map(envelope['data']));
   }
 
@@ -136,10 +133,7 @@ class LearningService {
     var data = envelope['data'];
     if (data is Map) data = data['certificates'] ?? data['data'];
     if (data is! List) return const [];
-    return data
-        .whereType<Map>()
-        .map((item) => LearningCertificate.fromJson(_map(item)))
-        .toList();
+    return data.whereType<Map>().map((item) => LearningCertificate.fromJson(_map(item))).toList();
   }
 
   Future<Map<String, dynamic>> _request(
@@ -188,9 +182,7 @@ class LearningService {
           response = await _client.get(uri, headers: headers).timeout(_timeout);
       }
 
-      final decoded = response.body.isEmpty
-          ? <String, dynamic>{}
-          : _map(jsonDecode(response.body));
+      final decoded = response.body.isEmpty ? <String, dynamic>{} : _map(jsonDecode(response.body));
 
       if (response.statusCode == 401) {
         await AuthService.handleSessionExpired();
@@ -202,8 +194,7 @@ class LearningService {
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw LearningApiException(
-          decoded['message']?.toString() ??
-              'Learning could not be loaded. Please try again.',
+          decoded['message']?.toString() ?? 'Learning could not be loaded. Please try again.',
           statusCode: response.statusCode,
         );
       }

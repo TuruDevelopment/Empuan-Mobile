@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../ui/em_ui.dart';
 
-/// Two or more equal tabs on a blush track; the selected one is a white pill.
+/// Equal tabs on a blush track; a white pill slides to the selected one.
 class LearnSegmentedControl extends StatelessWidget {
   const LearnSegmentedControl({super.key, required this.labels, required this.selected, required this.onChanged});
 
@@ -12,39 +12,51 @@ class LearnSegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final count = labels.length;
+    final x = count < 2 ? 0.0 : -1 + 2 * selected / (count - 1);
     return Container(
+      height: 52,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: AppColors.blush, borderRadius: BorderRadius.circular(14)),
-      child: Row(
+      child: Stack(
         children: [
-          for (var i = 0; i < labels.length; i++)
-            Expanded(
-              child: Semantics(
-                selected: i == selected,
-                button: true,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onChanged(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOutCubic,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: i == selected ? AppColors.surface : Colors.transparent,
-                      borderRadius: BorderRadius.circular(11),
-                      boxShadow: i == selected
-                          ? const [BoxShadow(color: Color(0x1F4B0E28), blurRadius: 3, offset: Offset(0, 1))]
-                          : null,
-                    ),
-                    child: Text(
-                      labels[i],
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
-                    ),
-                  ),
+          AnimatedAlign(
+            alignment: Alignment(x, 0),
+            duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+            curve: EmMotion.enter,
+            child: FractionallySizedBox(
+              widthFactor: 1 / count,
+              heightFactor: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(11),
+                  boxShadow: const [BoxShadow(color: Color(0x1F4B0E28), blurRadius: 3, offset: Offset(0, 1))],
                 ),
               ),
             ),
+          ),
+          Row(
+            children: [
+              for (var i = 0; i < count; i++)
+                Expanded(
+                  child: Semantics(
+                    selected: i == selected,
+                    button: true,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(11),
+                      onTap: () => onChanged(i),
+                      child: Center(
+                        child: Text(
+                          labels[i],
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

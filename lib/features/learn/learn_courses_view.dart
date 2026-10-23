@@ -24,6 +24,7 @@ class LearnCoursesView extends StatefulWidget {
 
 class _LearnCoursesViewState extends State<LearnCoursesView> {
   late Future<LearningHomeData> _homeFuture;
+  final _entrance = LearningEntrance();
 
   LearningService get _service => widget.service;
 
@@ -36,7 +37,9 @@ class _LearnCoursesViewState extends State<LearnCoursesView> {
 
   Future<void> _reload() async {
     final future = _service.getHome();
-    setState(() => _homeFuture = future);
+    setState(() {
+      _homeFuture = future;
+    });
     try {
       await future;
     } catch (_) {
@@ -69,37 +72,55 @@ class _LearnCoursesViewState extends State<LearnCoursesView> {
     return FutureBuilder<LearningHomeData>(
       future: _homeFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const EmLoading();
-        final error = snapshot.error;
-        if (error is LearningApiException && error.requiresDateOfBirth) {
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-            children: [_DobGate(service: _service, onSaved: _reload)],
-          );
-        }
-        if (error != null) {
-          final blocked = error is LearningApiException && error.statusCode == 403;
-          return LearningScrollableState(
-            onRefresh: _reload,
-            child: blocked
-                ? EmStateView(
-                    icon: Icons.lock_outline_rounded,
-                    title: 'Courses aren’t available on your account',
-                    message: '$error',
-                  )
-                : EmStateView.error(message: '$error', onRetry: _reload),
-          );
-        }
-        return _HomeContent(
-          data: snapshot.requireData,
-          onRefresh: _reload,
-          onSearch: () => _openCatalog(search: true),
-          onTopic: (code) => _openCatalog(category: code),
-          onAllTopics: () => _openCatalog(),
-          onCourse: _openCourse,
-          onContinue: _continue,
-        );
+        final (key, child) = _state(snapshot);
+        return EmStateSwitcher(stateKey: key, child: child);
       },
+    );
+  }
+
+  (String, Widget) _state(AsyncSnapshot<LearningHomeData> snapshot) {
+    // Keeps the last content on screen during pull-to-refresh.
+    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+      return ('loading', const LearningCourseSkeleton(count: 3, header: true));
+    }
+    final error = snapshot.error;
+    if (error is LearningApiException && error.requiresDateOfBirth) {
+      return (
+        'dob',
+        ListView(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+          children: [EmFadeSlideIn(child: _DobGate(service: _service, onSaved: _reload))],
+        )
+      );
+    }
+    if (error != null) {
+      final blocked = error is LearningApiException && error.statusCode == 403;
+      return (
+        'error',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: blocked
+              ? EmStateView(
+                  icon: Icons.lock_outline_rounded,
+                  title: 'Courses aren’t available on your account',
+                  message: '$error',
+                )
+              : EmStateView.error(message: '$error', onRetry: _reload),
+        )
+      );
+    }
+    return (
+      'content',
+      _HomeContent(
+        data: snapshot.requireData,
+        entrance: _entrance,
+        onRefresh: _reload,
+        onSearch: () => _openCatalog(search: true),
+        onTopic: (code) => _openCatalog(category: code),
+        onAllTopics: () => _openCatalog(),
+        onCourse: _openCourse,
+        onContinue: _continue,
+      )
     );
   }
 }
@@ -107,6 +128,7 @@ class _LearnCoursesViewState extends State<LearnCoursesView> {
 class _HomeContent extends StatelessWidget {
   const _HomeContent({
     required this.data,
+    required this.entrance,
     required this.onRefresh,
     required this.onSearch,
     required this.onTopic,
@@ -116,6 +138,7 @@ class _HomeContent extends StatelessWidget {
   });
 
   final LearningHomeData data;
+  final LearningEntrance entrance;
   final Future<void> Function() onRefresh;
   final VoidCallback onSearch;
   final ValueChanged<String> onTopic;
@@ -127,64 +150,72 @@ class _HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final stage = data.lifeStage;
     final inProgress = data.continueLearning.where((e) => e.summary.progressPercent < 100).toList();
+    final children = <Widget>[
+      _SearchButton(onTap: onSearch),
+      if (inProgress.isNotEmpty) ...[
+        const SizedBox(height: 20),
+        const EmSectionHeader('Continue'),
+        const SizedBox(height: 10),
+        for (final enrollment in inProgress)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _ContinueCard(enrollment: enrollment, onTap: () => onContinue(enrollment)),
+          ),
+      ],
+      if (data.categories.isNotEmpty) ...[
+        const SizedBox(height: 12),
+        EmSectionHeader('Topics', actionLabel: 'All', onAction: onAllTopics),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final category in data.categories)
+              EmChip(label: category.name, selected: false, onTap: () => onTopic(category.code)),
+          ],
+        ),
+      ],
+      const SizedBox(height: 24),
+      EmSectionHeader(stage == null || stage.name.isEmpty ? 'Recommended' : 'Picked for ${inSentence(stage.name)}'),
+      const SizedBox(height: 10),
+      if (data.recommendedCourses.isEmpty)
+        EmCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('No picks for you yet', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              Text('New courses are added regularly. You can still browse everything.',
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 12),
+              EmButton(
+                  label: 'Browse courses',
+                  variant: EmButtonVariant.tonal,
+                  small: true,
+                  expand: false,
+                  onPressed: onAllTopics),
+            ],
+          ),
+        )
+      else
+        for (final course in data.recommendedCourses)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: LearningCourseRow(course: course, onTap: () => onCourse(course)),
+          ),
+      const SizedBox(height: 12),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(learningDisclaimer, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+      ),
+    ];
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: ListView(
+      child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-        children: [
-          _SearchButton(onTap: onSearch),
-          if (inProgress.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            const EmSectionHeader('Continue'),
-            const SizedBox(height: 10),
-            for (final enrollment in inProgress)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _ContinueCard(enrollment: enrollment, onTap: () => onContinue(enrollment)),
-              ),
-          ],
-          if (data.categories.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            EmSectionHeader('Topics', actionLabel: 'All', onAction: onAllTopics),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final category in data.categories)
-                  EmChip(label: category.name, selected: false, onTap: () => onTopic(category.code)),
-              ],
-            ),
-          ],
-          const SizedBox(height: 24),
-          EmSectionHeader(stage == null || stage.name.isEmpty ? 'Recommended' : 'Picked for ${inSentence(stage.name)}'),
-          const SizedBox(height: 10),
-          if (data.recommendedCourses.isEmpty)
-            EmCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('No picks for you yet', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  Text('New courses are added regularly. You can still browse everything.', style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 12),
-                  EmButton(label: 'Browse courses', variant: EmButtonVariant.tonal, small: true, expand: false, onPressed: onAllTopics),
-                ],
-              ),
-            )
-          else
-            for (final course in data.recommendedCourses)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: LearningCourseRow(course: course, onTap: () => onCourse(course)),
-              ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(learningDisclaimer, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-          ),
-        ],
+        itemCount: children.length,
+        itemBuilder: (_, i) => entrance.wrap(i, children[i]),
       ),
     );
   }
