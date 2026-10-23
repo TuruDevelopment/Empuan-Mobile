@@ -107,18 +107,17 @@ class _ReportFormState extends State<_ReportForm> {
               : 'Your report is anonymous. Our team reviews every report.',
         ),
         const SizedBox(height: 12),
-        for (final r in reasons)
-          RadioListTile<String>(
-            value: r,
-            groupValue: _reason,
-            onChanged: (v) => setState(() {
-              _reason = v;
+        for (final r in reasons) ...[
+          EmOption(
+            label: r,
+            selected: _reason == r,
+            onTap: () => setState(() {
+              _reason = r;
               _error = null;
             }),
-            title: Text(r, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
           ),
+          const SizedBox(height: 8),
+        ],
         if (_isAi || _reason == 'Something else') ...[
           const SizedBox(height: 8),
           EmTextField(label: 'Details (optional)', controller: _details, hint: 'What went wrong?', maxLines: 3, maxLength: 300),
