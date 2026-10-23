@@ -7,16 +7,58 @@ import '../config/api_config.dart';
 import '../services/auth_service.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.message, {this.statusCode});
+  const ApiException(this.message, {this.statusCode, this.code, this.retryable = true, this.retryAfter});
+
+  /// Builds the exception for a non-2xx response. Reads Laravel's
+  /// `message`/`errors` and, where the server sends them, `code`, `retryable`
+  /// and `retry_after` (seconds, or the Retry-After header).
+  factory ApiException.fromResponse(int statusCode, dynamic decoded, {Map<String, String> headers = const {}}) {
+    final json = asMap(decoded);
+    final code = asString(json['code']);
+    final seconds = asInt(json['retry_after'] ?? headers['retry-after'], -1);
+    return ApiException(
+      _errorMessage(decoded, statusCode),
+      statusCode: statusCode,
+      code: code.isEmpty ? null : code,
+      retryable: json.containsKey('retryable') ? asBool(json['retryable']) : true,
+      retryAfter: seconds < 0 ? null : Duration(seconds: seconds),
+    );
+  }
 
   final String message;
   final int? statusCode;
 
-  /// The backend has no route for this yet (see BACKEND_CHANGES.md).
-  bool get notAvailable => statusCode == 404 || statusCode == 405 || statusCode == 501;
+  /// Machine-readable reason, e.g. `rate_limited`, when the server sends one.
+  final String? code;
+
+  /// False when sending the same request again won't help, e.g. `blocked`.
+  final bool retryable;
+
+  /// How long to wait before trying again, for `rate_limited`.
+  final Duration? retryAfter;
+
+  /// The backend has no route for this yet (see BACKEND_CHANGES.md). A 404
+  /// that carries a [code] is a real "not found", not a missing route.
+  bool get notAvailable => code == null && (statusCode == 404 || statusCode == 405 || statusCode == 501);
 
   @override
   String toString() => message;
+
+  static String _errorMessage(dynamic decoded, int status) {
+    if (decoded is Map) {
+      final errors = decoded['errors'];
+      if (errors is Map && errors.isNotEmpty) {
+        final first = errors.values.first;
+        if (first is List && first.isNotEmpty) return first.first.toString();
+        if (first != null) return first.toString();
+      }
+      final message = decoded['message'];
+      if (message is String && message.trim().isNotEmpty) return message;
+    }
+    if (status >= 500) return 'Something went wrong on our side. Please try again in a moment.';
+    if (status == 404) return 'This isn’t available yet.';
+    return 'Something went wrong. Please try again.';
+  }
 }
 
 /// Thin JSON client shared by the feature services.
@@ -80,25 +122,9 @@ class Api {
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(_errorMessage(decoded, response.statusCode), statusCode: response.statusCode);
+      throw ApiException.fromResponse(response.statusCode, decoded, headers: response.headers);
     }
     return decoded;
-  }
-
-  static String _errorMessage(dynamic decoded, int status) {
-    if (decoded is Map) {
-      final errors = decoded['errors'];
-      if (errors is Map && errors.isNotEmpty) {
-        final first = errors.values.first;
-        if (first is List && first.isNotEmpty) return first.first.toString();
-        if (first != null) return first.toString();
-      }
-      final message = decoded['message'];
-      if (message is String && message.trim().isNotEmpty) return message;
-    }
-    if (status >= 500) return 'Something went wrong on our side. Please try again in a moment.';
-    if (status == 404) return 'This isn’t available yet.';
-    return 'Something went wrong. Please try again.';
   }
 }
 

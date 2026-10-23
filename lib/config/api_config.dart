@@ -101,6 +101,12 @@ class ApiConfig {
       '/chatbot/history/$sessionId';
   static String chatbotDeleteSession(String sessionId) =>
       '/chatbot/sessions/$sessionId';
+  // Empuan AI v2: streamed answers (Server-Sent Events) and feedback.
+  static const String chatbotStream = '/chatbot/stream';
+  static String chatbotRegenerate(String sessionId) =>
+      '/chatbot/sessions/$sessionId/regenerate';
+  static String chatbotFeedback(int messageId) =>
+      '/chatbot/messages/$messageId/feedback';
 
   // Learning endpoints (18+)
   static const String learningHome = '/learning/home';
