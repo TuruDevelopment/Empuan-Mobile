@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -6,15 +8,21 @@ import '../features/learn/learn_tab.dart';
 import '../features/safety/safety_tab.dart';
 import '../features/safety/sos_flow.dart';
 import '../features/space/space_tab.dart';
+import '../features/tour/app_tour.dart';
+import '../features/tour/intro_prefs.dart';
+import '../features/tour/whats_new_screen.dart';
 import '../ui/em_ui.dart';
 
 enum AppTab { home, learn, safety, space }
 
 /// Lets any screen inside the shell switch tabs, e.g. "See all" on Home.
 class ShellScope extends InheritedWidget {
-  const ShellScope({super.key, required this.goTo, required super.child});
+  const ShellScope({super.key, required this.goTo, this.tourTargets, required super.child});
 
   final void Function(AppTab tab) goTo;
+
+  /// Keys the app tour measures; Home puts two of them on its widgets.
+  final TourTargets? tourTargets;
 
   static ShellScope? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<ShellScope>();
 
@@ -34,53 +42,148 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   late AppTab _tab = widget.initialTab;
   final Set<AppTab> _built = {};
+  final _targets = TourTargets();
   final _sosButton = GlobalKey(debugLabel: 'SOS button');
 
+  /// Non-null while the app tour is up.
+  AppTourController? _tour;
+
   void _goTo(AppTab tab) => setState(() => _tab = tab);
+
+  @override
+  void initState() {
+    super.initState();
+    AppTour.replays.addListener(_startTour);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runIntro());
+  }
+
+  @override
+  void dispose() {
+    AppTour.replays.removeListener(_startTour);
+    _tour?.dispose();
+    super.dispose();
+  }
+
+  /// First visit after signing in: "What's new" for people coming from the
+  /// old app, then the tour for everyone who hasn't finished it.
+  Future<void> _runIntro() async {
+    await _routeSettled();
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    var tour = !await IntroPrefs.tourDone();
+    if (await IntroPrefs.whatsNewDue()) {
+      // Marked first, so it shows once even if the app is closed halfway.
+      await IntroPrefs.markWhatsNewSeen();
+      if (!mounted) return;
+      final choice = await Navigator.of(context).push(WhatsNewScreen.route());
+      if (choice == WhatsNewChoice.skipTour) {
+        await IntroPrefs.markTourDone();
+        tour = false;
+      }
+    }
+    // Something else may have taken over meanwhile, e.g. the update screen.
+    if (tour && mounted && (ModalRoute.of(context)?.isCurrent ?? true)) _startTour();
+  }
+
+  /// The tour measures real widgets, so wait for the shell's own entrance.
+  Future<void> _routeSettled() async {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) return;
+    final settled = Completer<void>();
+    void listener(AnimationStatus status) {
+      if (!status.isAnimating && !settled.isCompleted) settled.complete();
+    }
+
+    animation.addStatusListener(listener);
+    await settled.future;
+    animation.removeStatusListener(listener);
+  }
+
+  void _startTour() {
+    if (!mounted || _tour != null) return;
+    setState(() {
+      _tab = AppTab.home;
+      _tour = AppTourController()..addListener(_onTour);
+    });
+  }
+
+  void _onTour() => setState(() {});
+
+  void _endTour() {
+    final tour = _tour;
+    if (tour == null) return;
+    setState(() => _tour = null);
+    // The overlay unsubscribes as it unmounts this frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => tour.dispose());
+    unawaited(IntroPrefs.markTourDone());
+  }
 
   @override
   Widget build(BuildContext context) {
     _built.add(_tab);
     Widget page(AppTab tab, Widget Function() build) =>
         _built.contains(tab) ? build() : const SizedBox.shrink();
+    final tour = _tour;
 
     return ShellScope(
       goTo: _goTo,
+      tourTargets: _targets,
       child: PopScope(
-        canPop: _tab == AppTab.home,
+        canPop: _tab == AppTab.home && tour == null,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _goTo(AppTab.home);
+          if (didPop) return;
+          // Back during the tour works like Skip tour.
+          if (tour != null) {
+            _endTour();
+          } else {
+            _goTo(AppTab.home);
+          }
         },
-        child: Scaffold(
-          body: Column(
-            children: [
-              const SosActiveBanner(),
-              Expanded(
-                // Tabs keep their state in the IndexedStack; the switch itself
-                // is a short fade-up so the change of place is visible.
-                child: TweenAnimationBuilder<double>(
-                  key: ValueKey(_tab),
-                  tween: Tween(begin: EmMotion.reduced(context) ? 1 : 0, end: 1),
-                  duration: EmMotion.medium,
-                  curve: EmMotion.enter,
-                  builder: (_, t, child) => Opacity(
-                    opacity: t,
-                    child: Transform.translate(offset: Offset(0, 8 * (1 - t)), child: child),
-                  ),
-                  child: IndexedStack(
-                    index: _tab.index,
-                    children: [
-                      page(AppTab.home, () => const HomeTab()),
-                      page(AppTab.learn, () => const LearnTab()),
-                      page(AppTab.safety, () => const SafetyTab()),
-                      page(AppTab.space, () => const SpaceTab()),
-                    ],
-                  ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // While the tour is up, screen readers only reach its card.
+            ExcludeSemantics(
+              excluding: tour != null,
+              child: Scaffold(
+                body: Column(
+                  children: [
+                    const SosActiveBanner(),
+                    Expanded(
+                      // Tabs keep their state in the IndexedStack; the switch itself
+                      // is a short fade-up so the change of place is visible.
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey(_tab),
+                        tween: Tween(begin: EmMotion.reduced(context) ? 1 : 0, end: 1),
+                        duration: EmMotion.medium,
+                        curve: EmMotion.enter,
+                        builder: (_, t, child) => Opacity(
+                          opacity: t,
+                          child: Transform.translate(offset: Offset(0, 8 * (1 - t)), child: child),
+                        ),
+                        child: IndexedStack(
+                          index: _tab.index,
+                          children: [
+                            page(AppTab.home, () => const HomeTab()),
+                            page(AppTab.learn, () => const LearnTab()),
+                            page(AppTab.safety, () => const SafetyTab()),
+                            page(AppTab.space, () => const SpaceTab()),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                bottomNavigationBar: _TabBar(
+                  current: _tab,
+                  onSelect: _goTo,
+                  targets: _targets,
+                  sosButton: _sosButton,
+                  practice: tour?.practice,
                 ),
               ),
-            ],
-          ),
-          bottomNavigationBar: _TabBar(current: _tab, onSelect: _goTo, sosButton: _sosButton),
+            ),
+            if (tour != null) AppTourOverlay(controller: tour, targets: _targets, onClose: _endTour),
+          ],
         ),
       ),
     );
@@ -104,11 +207,13 @@ class ShellSosButton extends StatelessWidget {
 }
 
 class _TabBar extends StatelessWidget {
-  const _TabBar({required this.current, required this.onSelect, required this.sosButton});
+  const _TabBar({required this.current, required this.onSelect, required this.targets, required this.sosButton, this.practice});
 
   final AppTab current;
   final ValueChanged<AppTab> onSelect;
+  final TourTargets targets;
   final GlobalKey sosButton;
+  final VoidCallback? practice;
 
   @override
   Widget build(BuildContext context) {
@@ -125,29 +230,30 @@ class _TabBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _item(AppTab.home, Icons.home_outlined, Icons.home_rounded, 'Home'),
-            _item(AppTab.learn, Icons.menu_book_outlined, Icons.menu_book_rounded, 'Learn'),
+            _item(AppTab.learn, Icons.menu_book_outlined, Icons.menu_book_rounded, 'Learn', key: targets.learn),
             Expanded(
               child: SizedBox(
                 height: 52,
                 child: OverflowBox(
                   maxHeight: 96,
                   alignment: Alignment.bottomCenter,
-                  child: ShellSosButton(key: sosButton),
+                  child: ShellSosButton(key: sosButton, faceKey: targets.sos, practice: practice),
                 ),
               ),
             ),
-            _item(AppTab.safety, Icons.shield_outlined, Icons.shield_rounded, 'Safety'),
-            _item(AppTab.space, Icons.forum_outlined, Icons.forum_rounded, 'Space'),
+            _item(AppTab.safety, Icons.shield_outlined, Icons.shield_rounded, 'Safety', key: targets.safety),
+            _item(AppTab.space, Icons.forum_outlined, Icons.forum_rounded, 'Space', key: targets.space),
           ],
         ),
       ),
     );
   }
 
-  Widget _item(AppTab tab, IconData icon, IconData activeIcon, String label) {
+  Widget _item(AppTab tab, IconData icon, IconData activeIcon, String label, {Key? key}) {
     final selected = tab == current;
     final color = selected ? AppColors.primary : AppColors.textSecondary;
     return Expanded(
+      key: key,
       child: Semantics(
         selected: selected,
         button: true,

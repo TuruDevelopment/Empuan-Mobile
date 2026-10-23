@@ -11,6 +11,7 @@ import '../auth/welcome_screen.dart';
 import '../learning/screens/learning_certificates_screen.dart';
 import '../safety/fake_call_screen.dart';
 import '../safety/trusted_contacts_screen.dart';
+import '../tour/app_tour.dart';
 import 'animated_avatar.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
@@ -68,6 +69,12 @@ class _MeScreenState extends State<MeScreen> {
     if (!mounted) return;
     Navigator.of(context, rootNavigator: true)
         .pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const WelcomeScreen()), (_) => false);
+  }
+
+  /// Back to Home, then the tour starts over the shell.
+  void _replayTour() {
+    Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+    AppTour.replay();
   }
 
   Future<void> _deleteAccount() async {
@@ -144,6 +151,7 @@ class _MeScreenState extends State<MeScreen> {
               EmRow(leading: const EmIconTile(Icons.lock_outline_rounded), title: 'Change password', onTap: () => _open(const ChangePasswordScreen())),
             ]),
             _group('About', [
+              EmRow(leading: const EmIconTile(Icons.explore_outlined), title: 'App tour', onTap: _replayTour),
               EmRow(leading: const EmIconTile(Icons.forum_outlined), title: 'Community guidelines', onTap: () => _open(const LegalScreen(doc: LegalDoc.guidelines))),
               EmRow(leading: const EmIconTile(Icons.description_outlined), title: 'Terms of Service', onTap: () => _open(const LegalScreen(doc: LegalDoc.terms))),
               EmRow(leading: const EmIconTile(Icons.privacy_tip_outlined), title: 'Privacy Policy', onTap: () => _open(const LegalScreen(doc: LegalDoc.privacy))),

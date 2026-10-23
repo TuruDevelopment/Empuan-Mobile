@@ -4,6 +4,7 @@ import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../ui/em_ui.dart';
 import '../profile/legal_screen.dart';
+import '../tour/intro_prefs.dart';
 import 'form_motion.dart';
 import 'interests_screen.dart';
 import 'login_screen.dart' show isEmail;
@@ -123,6 +124,9 @@ class _SignupFlowState extends State<SignupFlow> {
         password: _password.text,
         dob: _dob!,
       );
+      // A new account gets the tour but not "What's new", even on a phone
+      // that was signed in to the old app before.
+      await IntroPrefs.markWhatsNewSeen();
       try {
         await AccountRepository().fetchMe();
       } catch (_) {

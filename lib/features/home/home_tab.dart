@@ -143,6 +143,7 @@ class _HomeTabState extends State<HomeTab> {
     final startCourse = continueCourse == null ? _learning?.recommendedCourses.firstOrNull : null;
 
     final course = continueCourse?.course ?? startCourse;
+    final tourTargets = ShellScope.maybeOf(context)?.tourTargets;
 
     return Scaffold(
       body: SafeArea(
@@ -181,6 +182,7 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                     ),
                     Semantics(
+                      key: tourTargets?.avatar,
                       button: true,
                       label: 'Your profile',
                       child: InkWell(
@@ -209,7 +211,7 @@ class _HomeTabState extends State<HomeTab> {
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 14),
-                child: _AskAiCard(onTap: () => openEmpuanAi(context)),
+                child: _AskAiCard(key: tourTargets?.askAi, onTap: () => openEmpuanAi(context)),
               ),
               _Section(
                 state: _pending.contains(_Part.question)
@@ -476,7 +478,7 @@ class _NoContactsCard extends StatelessWidget {
 }
 
 class _AskAiCard extends StatelessWidget {
-  const _AskAiCard({required this.onTap});
+  const _AskAiCard({super.key, required this.onTap});
 
   final VoidCallback onTap;
 
