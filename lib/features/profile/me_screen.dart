@@ -130,7 +130,7 @@ class _MeScreenState extends State<MeScreen> {
                 leading: const EmIconTile(Icons.favorite_border_rounded),
                 title: 'Your interests',
                 subtitle: 'Used to suggest courses and articles',
-                onTap: () => _open(const InterestsScreen(editing: true)),
+                onTap: () => _open(InterestsScreen(editing: true, initial: Session.user.value?.interests ?? const [])),
               ),
               EmRow(
                 leading: const EmIconTile(Icons.workspace_premium_outlined),

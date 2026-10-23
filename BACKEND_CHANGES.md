@@ -1,6 +1,8 @@
 # Backend changes needed for the redesign
 
-The redesigned app (branch `redesign-play-compliance`) calls a few endpoints that don't exist yet. Until they do, the app shows a clear message instead of failing silently. Everything else uses the existing API unchanged.
+The redesigned app (branch `redesign-play-compliance`) calls a few endpoints that the current production API doesn't have. Until they are deployed, the app shows a clear message instead of failing silently. Everything else uses the existing API unchanged.
+
+**Status:** all endpoints below are implemented in `TuruDevelopment/Empuan-Back` on branch `redesign-play-compliance` (based on `dev`), with feature tests in `tests/Feature/PlayCompliance` and docs in `docs/PLAY-COMPLIANCE-API.md`. That branch also adds a web deletion page at `https://empuanapp.id/delete-account` for the Play Console Data safety form. To deploy: `php artisan migrate --force`, `php artisan db:seed --class=ModerationPermissionSeeder --force`, `php artisan permission:cache-reset`, and set `MAIL_*` and `APP_URL` so password reset emails work.
 
 All endpoints are under `https://empuanapp.id/api` and use the same `Authorization: Bearer <token>` header unless marked public. Error responses should keep the current Laravel shape (`message`, optional `errors` map) because the app shows the first error message to the user.
 

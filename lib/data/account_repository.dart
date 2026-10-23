@@ -12,6 +12,7 @@ class UserProfile {
     required this.username,
     required this.email,
     this.dob,
+    this.interests = const [],
   });
 
   final int id;
@@ -19,6 +20,9 @@ class UserProfile {
   final String username;
   final String email;
   final DateTime? dob;
+
+  /// Picked topics plus the free-text "something else", as InterestsScreen expects.
+  final List<String> interests;
 
   String get firstName => name.trim().split(RegExp(r'\s+')).first;
 
@@ -28,7 +32,14 @@ class UserProfile {
         username: asString(json['username']),
         email: asString(json['email']),
         dob: parseDate(json['dob']),
+        interests: [
+          if (json['interests'] is List) ...(json['interests'] as List).map((e) => '$e').where((e) => e.isNotEmpty),
+          if (asString(json['interests_other']).trim().isNotEmpty) asString(json['interests_other']).trim(),
+        ],
       );
+
+  UserProfile withInterests(List<String> value) =>
+      UserProfile(id: id, name: name, username: username, email: email, dob: dob, interests: value);
 }
 
 /// Holds the signed-in user so screens can show their name without refetching.
@@ -110,11 +121,13 @@ class AccountRepository {
     Session.user.value = null;
   }
 
-  Future<void> saveInterests(List<String> interests, {String? other}) {
-    return _api.post(ApiConfig.onboardingInterests, body: {
+  Future<void> saveInterests(List<String> interests, {String? other}) async {
+    final extra = other?.trim() ?? '';
+    await _api.post(ApiConfig.onboardingInterests, body: {
       'interests': interests,
-      if (other != null && other.trim().isNotEmpty) 'other': other.trim(),
+      if (extra.isNotEmpty) 'other': extra,
     });
+    Session.user.value = Session.user.value?.withInterests([...interests, if (extra.isNotEmpty) extra]);
   }
 
   Future<void> logout() async {
