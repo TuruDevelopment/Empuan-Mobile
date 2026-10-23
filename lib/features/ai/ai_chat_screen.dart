@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../components/chat_markdown_message.dart';
+import '../../components/send_button.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart' show ReportTarget;
 import '../../models/chat_message.dart';
@@ -19,7 +21,10 @@ Future<void> openEmpuanAi(BuildContext context, {String? sessionId, String? prom
 }
 
 class AiChatScreen extends StatefulWidget {
-  const AiChatScreen({super.key, this.sessionId, this.initialPrompt});
+  const AiChatScreen({super.key, this.sessionId, this.initialPrompt, this.service});
+
+  @visibleForTesting
+  final ChatbotService? service;
 
   final String? sessionId;
   final String? initialPrompt;
@@ -31,7 +36,7 @@ class AiChatScreen extends StatefulWidget {
 class _AiChatScreenState extends State<AiChatScreen> {
   static const _maxLength = 2000;
 
-  final _service = ChatbotService();
+  late final _service = widget.service ?? ChatbotService();
   final _input = TextEditingController();
   final _scroll = ScrollController();
 
@@ -46,6 +51,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   /// Ignores answers that arrive after the user switched to another chat.
   int _generation = 0;
+
+  /// Messages added in this visit that should animate in on their first build.
+  final Set<ChatMessage> _fresh = {};
 
   @override
   void initState() {
@@ -101,7 +109,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     if (_sending || text.trim().isEmpty) return;
     final generation = _generation;
     setState(() {
-      if (!resend) _messages = [..._messages, ChatMessage.user(text)];
+      if (!resend) _messages = [..._messages, _markFresh(ChatMessage.user(text))];
       _sending = true;
       _sendError = null;
     });
@@ -116,7 +124,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
       }
       final answer = await _service.sendMessage(message: text, sessionId: id);
       if (!mounted || generation != _generation) return;
-      setState(() => _messages = [..._messages, ChatMessage.assistant(answer)]);
+      setState(() => _messages = [..._messages, _markFresh(ChatMessage.assistant(answer))]);
     } on ApiException catch (e) {
       if (!mounted || generation != _generation) return;
       setState(() => _sendError = e.message);
@@ -124,6 +132,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
       if (mounted && generation == _generation) setState(() => _sending = false);
       _scrollToEnd();
     }
+  }
+
+  ChatMessage _markFresh(ChatMessage m) {
+    _fresh.add(m);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fresh.remove(m));
+    return m;
   }
 
   void _submit() {
@@ -175,6 +189,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     final result = await Navigator.of(context).push<AiHistoryResult>(
       MaterialPageRoute(
         builder: (_) => AiHistoryScreen(
+          service: widget.service,
           onDeleted: (id) {
             if (id == _sessionId) _newChat();
           },
@@ -192,8 +207,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scroll.hasClients) return;
-      _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      if (!mounted || !_scroll.hasClients) return;
+      if (EmMotion.reduced(context)) {
+        _scroll.jumpTo(0);
+      } else {
+        _scroll.animateTo(0, duration: EmMotion.slow, curve: EmMotion.enter);
+      }
     });
   }
 
@@ -219,16 +238,19 @@ class _AiChatScreenState extends State<AiChatScreen> {
       ),
       body: Column(
         children: [
-          Expanded(child: _body(empty)),
-          if (empty)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(28, 0, 28, 8),
-              child: Text(
-                'AI answers can be wrong. They’re general information, not legal or financial advice.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, height: 16 / 12, color: AppColors.textSecondary),
-              ),
+          Expanded(
+            child: EmStateSwitcher(
+              stateKey: _loadingHistory
+                  ? 'loading'
+                  : _historyError != null
+                      ? 'error'
+                      : empty
+                          ? 'new'
+                          : 'chat-$_generation',
+              child: _body(empty),
             ),
+          ),
+          _disclaimer(empty),
           _InputBar(
             controller: _input,
             hint: empty ? 'Message Empuan AI' : 'Ask a follow-up',
@@ -242,36 +264,107 @@ class _AiChatScreenState extends State<AiChatScreen> {
     );
   }
 
+  Widget _disclaimer(bool visible) {
+    final child = visible
+        ? const Padding(
+            padding: EdgeInsets.fromLTRB(28, 0, 28, 8),
+            child: Text(
+              'AI answers can be wrong. They’re general information, not legal or financial advice.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, height: 16 / 12, color: AppColors.textSecondary),
+            ),
+          )
+        : const SizedBox(width: double.infinity);
+    // AnimatedSize can't run with a zero duration, so skip it entirely.
+    if (EmMotion.reduced(context)) return child;
+    return AnimatedSize(duration: EmMotion.medium, curve: EmMotion.enter, child: child);
+  }
+
   Widget _body(bool empty) {
-    if (_loadingHistory) return const EmLoading();
+    if (_loadingHistory) return const _ChatSkeleton();
     if (_historyError != null) {
       return Center(child: EmStateView.error(message: _historyError!, onRetry: _loadHistory));
     }
     if (empty) return _NewChat(onSuggestion: _send);
 
     final lastAnswer = _messages.lastIndexWhere((m) => !m.isUser);
-    final items = <Widget>[
+    final items = <(Key, Widget)>[
       for (var i = 0; i < _messages.length; i++)
-        _messages[i].isUser
-            ? _UserBubble(text: _messages[i].text)
-            : _AiAnswer(
-                text: _messages[i].text,
-                announce: i == _messages.length - 1,
-                onCopy: () => _copy(_messages[i].text),
-                onRegenerate: i == lastAnswer && i == _messages.length - 1 && !_sending ? _regenerate : null,
-                onReport: () => _report(i),
-              ),
-      if (_sending) const _TypingIndicator(),
-      if (_sendError != null && !_sending) _SendError(message: _sendError!, onRetry: _retry),
+        (
+          ObjectKey(_messages[i]),
+          _animatedIn(
+            _messages[i],
+            _messages[i].isUser
+                ? _UserBubble(text: _messages[i].text)
+                : _AiAnswer(
+                    text: _messages[i].text,
+                    announce: i == _messages.length - 1,
+                    onCopy: () => _copy(_messages[i].text),
+                    onRegenerate: i == lastAnswer && i == _messages.length - 1 && !_sending ? _regenerate : null,
+                    onReport: () => _report(i),
+                  ),
+          ),
+        ),
+      if (_sending)
+        (const ValueKey('typing'), const EmFadeSlideIn(offset: Offset(-24, 0), duration: EmMotion.medium, child: _TypingIndicator())),
+      if (_sendError != null && !_sending)
+        (const ValueKey('error'), EmFadeSlideIn(duration: EmMotion.medium, child: _SendError(message: _sendError!, onRetry: _retry))),
     ];
     // Reversed so the newest message stays pinned above the input bar.
-    return ListView.separated(
+    final reversed = items.reversed.toList();
+    return ListView.builder(
       controller: _scroll,
       reverse: true,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (_, i) => items[items.length - 1 - i],
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      itemCount: reversed.length,
+      findChildIndexCallback: (key) {
+        final i = reversed.indexWhere((e) => e.$1 == key);
+        return i < 0 ? null : i;
+      },
+      itemBuilder: (_, i) => KeyedSubtree(
+        key: reversed[i].$1,
+        child: Padding(padding: const EdgeInsets.only(top: 16), child: reversed[i].$2),
+      ),
+    );
+  }
+
+  /// New messages slide in from their own side; loaded ones just appear.
+  Widget _animatedIn(ChatMessage m, Widget child) {
+    return EmFadeSlideIn(
+      offset: Offset(m.isUser ? 24 : -24, 0),
+      duration: _fresh.contains(m) ? EmMotion.slow : Duration.zero,
+      child: child,
+    );
+  }
+}
+
+/// Placeholder while a past chat loads.
+class _ChatSkeleton extends StatelessWidget {
+  const _ChatSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading chat',
+      child: const Padding(
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(alignment: Alignment.centerRight, child: EmSkeleton(width: 220, height: 44, radius: 18)),
+            SizedBox(height: 20),
+            EmSkeleton(width: 110, height: 14),
+            SizedBox(height: 12),
+            EmSkeleton(height: 14),
+            SizedBox(height: 8),
+            EmSkeleton(height: 14),
+            SizedBox(height: 8),
+            EmSkeleton(height: 14, width: 200),
+            SizedBox(height: 24),
+            Align(alignment: Alignment.centerRight, child: EmSkeleton(width: 180, height: 44, radius: 18)),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -294,26 +387,36 @@ class _NewChat extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       children: [
-        const Align(alignment: Alignment.centerLeft, child: EmIconTile(Icons.auto_awesome_rounded, tone: EmTileTone.primary, size: 48)),
-        const SizedBox(height: 16),
-        Semantics(header: true, child: Text('What’s on your mind?', style: theme.headlineMedium)),
-        const SizedBox(height: 8),
-        Text(
-          'Ask about safety, work, money, relationships or digital skills. Write in English or Bahasa Indonesia.',
-          style: theme.bodySmall,
+        EmFadeSlideIn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const EmIconTile(Icons.auto_awesome_rounded, tone: EmTileTone.primary, size: 48),
+              const SizedBox(height: 16),
+              Semantics(header: true, child: Text('What’s on your mind?', style: theme.headlineMedium)),
+              const SizedBox(height: 8),
+              Text(
+                'Ask about safety, work, money, relationships or digital skills. Write in English or Bahasa Indonesia.',
+                style: theme.bodySmall,
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 20),
-        for (final (icon, text) in _suggestions) ...[
-          EmCard(
-            radius: 16,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            onTap: () => onSuggestion(text),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: AppColors.primary),
-                const SizedBox(width: 12),
-                Expanded(child: Text(text, style: const TextStyle(fontSize: 14, height: 20 / 14, fontWeight: FontWeight.w600))),
-              ],
+        for (final (i, (icon, text)) in _suggestions.indexed) ...[
+          EmFadeSlideIn(
+            index: i + 2,
+            child: EmCard(
+              radius: 16,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              onTap: () => onSuggestion(text),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(text, style: const TextStyle(fontSize: 14, height: 20 / 14, fontWeight: FontWeight.w600))),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -449,21 +552,28 @@ class _TypingIndicatorState extends State<_TypingIndicator> with SingleTickerPro
           children: [
             const _AiLabel(),
             const SizedBox(height: 12),
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (_, __) => Row(
-                children: [
-                  for (var i = 0; i < 3; i++)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.secondary.withValues(alpha: _dotOpacity(i)),
+            SizedBox(
+              height: 18,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (_, __) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < 3; i++)
+                      Transform.translate(
+                        offset: Offset(0, -6 * _bounce(i)),
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(right: 6, bottom: 2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.secondary.withValues(alpha: 0.45 + 0.55 * _bounce(i)),
+                          ),
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -472,10 +582,13 @@ class _TypingIndicatorState extends State<_TypingIndicator> with SingleTickerPro
     );
   }
 
-  double _dotOpacity(int i) {
-    if (!_controller.isAnimating) return 0.7;
-    final phase = (_controller.value * 3 - i) % 3;
-    return phase < 1 ? 1 : 0.35;
+  /// 0 at rest, 1 at the top of the hop. Each dot hops a third of a cycle
+  /// after the previous one.
+  double _bounce(int i) {
+    if (!_controller.isAnimating) return 0.5;
+    final t = (_controller.value - i * 0.18) % 1.0;
+    if (t > 0.5) return 0;
+    return math.sin(t * 2 * math.pi);
   }
 }
 
@@ -567,22 +680,7 @@ class _InputBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          sending
-              ? const SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
-                )
-              : Opacity(
-                  opacity: canSend ? 1 : 0.45,
-                  child: EmIconButton(
-                    icon: Icons.send_rounded,
-                    label: 'Send',
-                    size: 48,
-                    style: EmIconButtonStyle.primary,
-                    onPressed: canSend ? onSend : null,
-                  ),
-                ),
+          SendButton(label: 'Send', size: 48, enabled: canSend, sending: sending, onPressed: onSend),
         ],
       ),
     );

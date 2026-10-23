@@ -78,7 +78,23 @@ class _ComposeScreenState extends State<ComposeScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Center(
-                child: EmButton(label: 'Post', small: true, expand: false, loading: _posting, onPressed: _hasText ? _post : null),
+                child: AnimatedSwitcher(
+                  duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+                  switchInCurve: EmMotion.enter,
+                  switchOutCurve: EmMotion.exit,
+                  transitionBuilder: (child, a) => FadeTransition(
+                    opacity: a,
+                    child: ScaleTransition(scale: Tween(begin: 0.9, end: 1.0).animate(a), child: child),
+                  ),
+                  child: EmButton(
+                    key: ValueKey(_hasText),
+                    label: 'Post',
+                    small: true,
+                    expand: false,
+                    loading: _posting,
+                    onPressed: _hasText ? _post : null,
+                  ),
+                ),
               ),
             ),
           ],
@@ -118,11 +134,8 @@ class _ComposeScreenState extends State<ComposeScreen> {
                     keyboardType: TextInputType.multiline,
                     textCapitalization: TextCapitalization.sentences,
                     style: const TextStyle(fontSize: 18, height: 27 / 18, color: AppColors.textPrimary),
-                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => Text(
-                      '$currentLength / $maxLength',
-                      semanticsLabel: '$currentLength of $maxLength characters',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) =>
+                        _Counter(length: currentLength, max: maxLength!),
                     decoration: const InputDecoration(
                       hintText: 'What would you like to ask or share?',
                       filled: false,
@@ -171,6 +184,33 @@ class _GuidelinesNote extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Character count that warms up as the post nears the limit.
+class _Counter extends StatelessWidget {
+  const _Counter({required this.length, required this.max});
+
+  final int length;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final left = max - length;
+    final (color, weight) = left <= 0
+        ? (AppColors.danger, FontWeight.w700)
+        : left <= 50
+            ? (AppColors.primary, FontWeight.w700)
+            : (AppColors.textSecondary, FontWeight.w400);
+    return AnimatedDefaultTextStyle(
+      duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+      curve: EmMotion.enter,
+      style: TextStyle(fontFamily: AppFonts.body, fontSize: 12, color: color, fontWeight: weight),
+      child: Text(
+        '$length / $max',
+        semanticsLabel: left <= 50 ? '$left characters left' : '$length of $max characters',
       ),
     );
   }

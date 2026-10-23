@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../components/collapse_out.dart';
+import '../../components/send_button.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart';
 import '../../ui/em_ui.dart';
@@ -16,9 +18,12 @@ class PostResult {
 }
 
 class PostScreen extends StatefulWidget {
-  const PostScreen({super.key, required this.post});
+  const PostScreen({super.key, required this.post, this.repository});
 
   final CommunityPost post;
+
+  @visibleForTesting
+  final CommunityRepository? repository;
 
   @override
   State<PostScreen> createState() => _PostScreenState();
@@ -27,7 +32,7 @@ class PostScreen extends StatefulWidget {
 class _PostScreenState extends State<PostScreen> {
   static const _maxLength = 500;
 
-  final _repo = CommunityRepository();
+  late final _repo = widget.repository ?? CommunityRepository();
   final _input = TextEditingController();
 
   late CommunityPost _post = widget.post;
@@ -35,6 +40,11 @@ class _PostScreenState extends State<PostScreen> {
   String? _error;
   bool _liking = false;
   bool _sending = false;
+
+  /// Replies to animate in on their next build: id to stagger index, or -1
+  /// to fade in without a stagger.
+  final Map<int, int> _enter = {};
+  final Set<int> _leaving = {};
 
   @override
   void initState() {
@@ -54,6 +64,13 @@ class _PostScreenState extends State<PostScreen> {
     try {
       final replies = await _repo.replies(_post.id);
       if (!mounted) return;
+      final firstLoad = _replies == null;
+      final known = {for (final r in _replies ?? const <Reply>[]) r.id};
+      var i = 0;
+      for (final r in replies) {
+        if (!known.contains(r.id)) _enter[r.id] = firstLoad ? i++ : -1;
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) => _enter.clear());
       setState(() {
         _replies = replies;
         _post = _post.copyWith(comments: replies.length);
@@ -126,7 +143,18 @@ class _PostScreenState extends State<PostScreen> {
       authorId: reply.authorId,
       onBlocked: (id) {
         if (id == _post.authorId) return _close(id);
-        setState(() => _replies = _replies?.where((r) => r.authorId != id).toList());
+        final ids = {
+          for (final r in _replies ?? const <Reply>[])
+            if (r.authorId == id) r.id
+        };
+        setState(() => _leaving.addAll(ids));
+        afterCollapse(context, () {
+          if (!mounted) return;
+          setState(() {
+            _replies = _replies?.where((r) => !ids.contains(r.id)).toList();
+            _leaving.removeAll(ids);
+          });
+        });
       },
     );
   }
@@ -171,9 +199,15 @@ class _PostScreenState extends State<PostScreen> {
                     const SizedBox(height: 12),
                     Semantics(
                       header: true,
-                      child: Text(
-                        repliesLabel(_replies?.length ?? _post.comments),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: EmAnimatedSwap(
+                          valueKey: _replies?.length ?? _post.comments,
+                          child: Text(
+                            repliesLabel(_replies?.length ?? _post.comments),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                          ),
+                        ),
                       ),
                     ),
                     ..._repliesSection(),
@@ -195,29 +229,55 @@ class _PostScreenState extends State<PostScreen> {
 
   List<Widget> _repliesSection() {
     final replies = _replies;
+    final String state;
+    final Widget child;
     if (replies == null && _error != null) {
-      return [EmStateView.error(message: _error!, onRetry: _loadReplies)];
+      state = 'error';
+      child = EmStateView.error(message: _error!, onRetry: _loadReplies);
+    } else if (replies == null) {
+      state = 'loading';
+      child = const ReplySkeletonList();
+    } else if (replies.isEmpty) {
+      state = 'empty';
+      child = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text('No replies yet. Be the first to reply.', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+      );
+    } else {
+      state = 'content';
+      final me = currentUserId;
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < replies.length; i++) _replyItem(replies[i], first: i == 0, isOwn: me != null && replies[i].authorId == me),
+        ],
+      );
     }
-    if (replies == null) return const [EmLoading()];
-    if (replies.isEmpty) {
-      return [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: Text('No replies yet. Be the first to reply.', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-        ),
-      ];
-    }
-    final me = currentUserId;
     return [
-      for (var i = 0; i < replies.length; i++) ...[
-        if (i > 0) const Divider(),
-        _ReplyTile(
-          reply: replies[i],
-          isOwn: me != null && replies[i].authorId == me,
-          onOptions: () => _replyOptions(replies[i]),
-        ),
-      ],
+      EmStateSwitcher(
+        stateKey: state,
+        child: Align(alignment: Alignment.topLeft, child: child),
+      ),
     ];
+  }
+
+  Widget _replyItem(Reply reply, {required bool first, required bool isOwn}) {
+    final enter = _enter.remove(reply.id);
+    return CollapseOut(
+      key: ValueKey(reply.id),
+      visible: !_leaving.contains(reply.id),
+      child: EmFadeSlideIn(
+        index: enter == null || enter < 0 ? 0 : enter,
+        duration: enter == null ? Duration.zero : EmMotion.slow,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!first) const Divider(),
+            _ReplyTile(reply: reply, isOwn: isOwn, onOptions: () => _replyOptions(reply)),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -313,21 +373,7 @@ class _ReplyBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          sending
-              ? const SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4))),
-                )
-              : Opacity(
-                  opacity: canSend ? 1 : 0.45,
-                  child: EmIconButton(
-                    icon: Icons.send_rounded,
-                    label: 'Send reply',
-                    style: EmIconButtonStyle.primary,
-                    onPressed: canSend ? onSend : null,
-                  ),
-                ),
+          SendButton(label: 'Send reply', enabled: canSend, sending: sending, onPressed: onSend),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../components/collapse_out.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart';
@@ -13,16 +14,26 @@ enum _Filter { recent, mostLiked, mine }
 
 /// Her Space tab: the community feed.
 class SpaceTab extends StatefulWidget {
-  const SpaceTab({super.key});
+  const SpaceTab({super.key, this.repository});
+
+  @visibleForTesting
+  final CommunityRepository? repository;
 
   @override
   State<SpaceTab> createState() => _SpaceTabState();
 }
 
 class _SpaceTabState extends State<SpaceTab> {
-  final _repo = CommunityRepository();
+  late final _repo = widget.repository ?? CommunityRepository();
   final _scroll = ScrollController();
   final Set<int> _liking = {};
+
+  /// Posts that should animate in on their first build: id to stagger index,
+  /// or -1 to fade in without a stagger.
+  final Map<int, int> _enter = {};
+
+  /// Posts animating out before they are removed.
+  final Set<int> _leaving = {};
 
   List<CommunityPost> _posts = [];
   int _page = 0;
@@ -59,6 +70,9 @@ class _SpaceTabState extends State<SpaceTab> {
     try {
       final posts = await _repo.posts(page: 1);
       if (!mounted || generation != _generation) return;
+      final firstLoad = _posts.isEmpty;
+      final known = _posts.map((p) => p.id).toSet();
+      _markEnter(posts.where((p) => !known.contains(p.id)), stagger: firstLoad);
       setState(() {
         _posts = posts;
         _page = 1;
@@ -85,6 +99,7 @@ class _SpaceTabState extends State<SpaceTab> {
       final next = await _repo.posts(page: _page + 1);
       if (!mounted || generation != _generation) return;
       final seen = _posts.map((p) => p.id).toSet();
+      _markEnter(next.where((p) => !seen.contains(p.id)), stagger: false);
       setState(() {
         _posts = [..._posts, ...next.where((p) => !seen.contains(p.id))];
         _page++;
@@ -96,6 +111,16 @@ class _SpaceTabState extends State<SpaceTab> {
     } finally {
       if (mounted && generation == _generation) setState(() => _loadingMore = false);
     }
+  }
+
+  void _markEnter(Iterable<CommunityPost> posts, {required bool stagger}) {
+    var i = 0;
+    for (final p in posts) {
+      _enter[p.id] = stagger ? i++ : -1;
+    }
+    // Only items built in the next frame animate; ones scrolled to later
+    // just appear.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _enter.clear());
   }
 
   void _onScroll() {
@@ -127,7 +152,19 @@ class _SpaceTabState extends State<SpaceTab> {
   }
 
   void _removeAuthor(int authorId) {
-    setState(() => _posts = _posts.where((p) => p.authorId != authorId).toList());
+    final ids = {
+      for (final p in _posts)
+        if (p.authorId == authorId) p.id
+    };
+    if (ids.isEmpty) return;
+    setState(() => _leaving.addAll(ids));
+    afterCollapse(context, () {
+      if (!mounted) return;
+      setState(() {
+        _posts = _posts.where((p) => !ids.contains(p.id)).toList();
+        _leaving.removeAll(ids);
+      });
+    });
   }
 
   Future<void> _like(CommunityPost post) async {
@@ -195,7 +232,9 @@ class _SpaceTabState extends State<SpaceTab> {
                   selected: _filter.index,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   onSelected: (i) {
+                    if (_filter.index == i) return;
                     setState(() => _filter = _Filter.values[i]);
+                    _markEnter(_visible, stagger: true);
                     _fillViewport();
                   },
                 ),
@@ -260,28 +299,64 @@ class _SpaceTabState extends State<SpaceTab> {
   }
 
   List<Widget> _feed() {
-    if (_loading && _posts.isEmpty) {
-      return [const SliverToBoxAdapter(child: EmLoading())];
-    }
-    if (_error != null && _posts.isEmpty) {
-      return [SliverToBoxAdapter(child: EmStateView.error(message: _error!, onRetry: _refresh))];
-    }
     final visible = _visible;
-    if (visible.isEmpty && !_loadingMore && (_moreError != null || !_hasMore || _filter != _Filter.mine)) {
-      return [SliverToBoxAdapter(child: _empty())];
+    final String state;
+    if (_loading && _posts.isEmpty) {
+      state = 'loading';
+    } else if (_error != null && _posts.isEmpty) {
+      state = 'error';
+    } else if (visible.isEmpty && !_loadingMore && (_moreError != null || !_hasMore || _filter != _Filter.mine)) {
+      state = 'empty';
+    } else {
+      state = 'content';
+    }
+    if (state != 'content') {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverToBoxAdapter(
+            child: EmStateSwitcher(
+              stateKey: '$state-${_filter.name}',
+              child: switch (state) {
+                'loading' => const PostSkeletonList(),
+                'error' => EmStateView.error(message: _error!, onRetry: _refresh),
+                _ => _empty(),
+              },
+            ),
+          ),
+        ),
+      ];
     }
     return [
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        sliver: SliverList.separated(
+        sliver: SliverList.builder(
           itemCount: visible.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (_, i) => _PostCard(
-            post: visible[i],
-            onOpen: () => _open(visible[i]),
-            onLike: () => _like(visible[i]),
-            onOptions: () => _options(visible[i]),
-          ),
+          findChildIndexCallback: (key) {
+            final i = visible.indexWhere((p) => ValueKey(p.id) == key);
+            return i < 0 ? null : i;
+          },
+          itemBuilder: (_, i) {
+            final post = visible[i];
+            final enter = _enter.remove(post.id);
+            return CollapseOut(
+              key: ValueKey(post.id),
+              visible: !_leaving.contains(post.id),
+              child: EmFadeSlideIn(
+                index: enter == null || enter < 0 ? 0 : enter,
+                duration: enter == null ? Duration.zero : EmMotion.slow,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _PostCard(
+                    post: post,
+                    onOpen: () => _open(post),
+                    onLike: () => _like(post),
+                    onOptions: () => _options(post),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
       SliverToBoxAdapter(child: _footer()),

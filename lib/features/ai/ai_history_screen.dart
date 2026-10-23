@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../components/collapse_out.dart';
 import '../../data/api.dart';
 import '../../models/chat_message.dart';
 import '../../services/chatbot_service.dart';
@@ -15,7 +16,10 @@ class AiHistoryResult {
 }
 
 class AiHistoryScreen extends StatefulWidget {
-  const AiHistoryScreen({super.key, this.onDeleted});
+  const AiHistoryScreen({super.key, this.onDeleted, this.service});
+
+  @visibleForTesting
+  final ChatbotService? service;
 
   /// Called after a chat is deleted, so the open chat can reset if needed.
   final ValueChanged<String>? onDeleted;
@@ -25,9 +29,13 @@ class AiHistoryScreen extends StatefulWidget {
 }
 
 class _AiHistoryScreenState extends State<AiHistoryScreen> {
-  final _service = ChatbotService();
+  late final _service = widget.service ?? ChatbotService();
   List<ChatSession>? _sessions;
   String? _error;
+
+  /// True for the frame after the first load, so rows stagger in once.
+  bool _stagger = false;
+  final Set<String> _leaving = {};
 
   @override
   void initState() {
@@ -39,7 +47,12 @@ class _AiHistoryScreenState extends State<AiHistoryScreen> {
     setState(() => _error = null);
     try {
       final sessions = await _service.getSessions();
-      if (mounted) setState(() => _sessions = sessions);
+      if (!mounted) return;
+      if (_sessions == null) {
+        _stagger = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _stagger = false);
+      }
+      setState(() => _sessions = sessions);
     } on ApiException catch (e) {
       if (!mounted) return;
       if (_sessions == null) {
@@ -75,9 +88,16 @@ class _AiHistoryScreenState extends State<AiHistoryScreen> {
     try {
       await _service.deleteSession(s.sessionId);
       if (!mounted) return;
-      setState(() => _sessions = _sessions?.where((x) => x.sessionId != s.sessionId).toList());
+      setState(() => _leaving.add(s.sessionId));
       widget.onDeleted?.call(s.sessionId);
       showEmToast(context, 'Chat deleted');
+      await afterCollapse(context, () {
+        if (!mounted) return;
+        setState(() {
+          _sessions = _sessions?.where((x) => x.sessionId != s.sessionId).toList();
+          _leaving.remove(s.sessionId);
+        });
+      });
     } on ApiException catch (e) {
       if (mounted) showEmToast(context, 'Couldn’t delete this chat. ${e.message}');
     }
@@ -88,11 +108,20 @@ class _AiHistoryScreenState extends State<AiHistoryScreen> {
     final sessions = _sessions;
     return Scaffold(
       appBar: const EmTopBar(title: 'Past chats'),
-      body: _error != null && sessions == null
-          ? Center(child: EmStateView.error(message: _error!, onRetry: _load))
-          : sessions == null
-              ? const EmLoading()
-              : RefreshIndicator(onRefresh: _load, child: _list(sessions)),
+      body: EmStateSwitcher(
+        stateKey: _error != null && sessions == null
+            ? 'error'
+            : sessions == null
+                ? 'loading'
+                : sessions.isEmpty
+                    ? 'empty'
+                    : 'list',
+        child: _error != null && sessions == null
+            ? Center(child: EmStateView.error(message: _error!, onRetry: _load))
+            : sessions == null
+                ? const EmSkeletonList(count: 5, thumbnail: 0)
+                : RefreshIndicator(onRefresh: _load, child: _list(sessions)),
+      ),
       bottomNavigationBar: sessions == null || sessions.isEmpty
           ? null
           : EmBottomBar(
@@ -124,25 +153,48 @@ class _AiHistoryScreenState extends State<AiHistoryScreen> {
     final thisWeek = sessions.where((s) => !s.lastMessage.isBefore(weekStart)).toList();
     final earlier = sessions.where((s) => s.lastMessage.isBefore(weekStart)).toList();
 
+    var index = 0;
+    List<Widget> section(String label, List<ChatSession> items) {
+      return [
+        EmFadeSlideIn(
+          index: index++,
+          duration: _stagger ? EmMotion.slow : Duration.zero,
+          child: Padding(padding: const EdgeInsets.only(left: 4, bottom: 8), child: EmCaption(label)),
+        ),
+        Material(
+          color: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppColors.line)),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              for (var i = 0; i < items.length; i++)
+                CollapseOut(
+                  key: ValueKey(items[i].sessionId),
+                  visible: !_leaving.contains(items[i].sessionId),
+                  child: EmFadeSlideIn(
+                    index: index++,
+                    duration: _stagger ? EmMotion.slow : Duration.zero,
+                    child: Column(children: [if (i > 0) const Divider(height: 1), _row(items[i], now)]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+      ];
+    }
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
-        if (thisWeek.isNotEmpty) ..._section('This week', thisWeek, now),
+        if (thisWeek.isNotEmpty) ...section('This week', thisWeek),
         if (earlier.isNotEmpty) ...[
           if (thisWeek.isNotEmpty) const SizedBox(height: 8),
-          ..._section('Earlier', earlier, now),
+          ...section('Earlier', earlier),
         ],
       ],
     );
-  }
-
-  List<Widget> _section(String label, List<ChatSession> items, DateTime now) {
-    return [
-      Padding(padding: const EdgeInsets.only(left: 4, bottom: 8), child: EmCaption(label)),
-      EmGroup(children: [for (final s in items) _row(s, now)]),
-      const SizedBox(height: 4),
-    ];
   }
 
   Widget _row(ChatSession s, DateTime now) {

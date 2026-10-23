@@ -56,9 +56,8 @@ Future<void> showContentOptions(
   final isPost = target == ReportTarget.communityPost;
   final action = await showEmSheet<_ContentAction>(
     context,
-    builder: (ctx) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    builder: (ctx) {
+      final rows = [
         if (!isOwn)
           _OptionRow(
             icon: Icons.outlined_flag_rounded,
@@ -77,8 +76,15 @@ Future<void> showContentOptions(
           label: 'Copy text',
           onTap: () => Navigator.of(ctx).pop(_ContentAction.copy),
         ),
-      ],
-    ),
+      ];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < rows.length; i++)
+            EmFadeSlideIn(index: i, offset: const Offset(0, 8), duration: EmMotion.medium, child: rows[i]),
+        ],
+      );
+    },
   );
   if (action == null || !context.mounted) return;
   switch (action) {
@@ -140,7 +146,7 @@ class LikeButton extends StatelessWidget {
       child: ExcludeSemantics(
         child: _ActionChip(
           onPressed: onPressed,
-          icon: Icon(liked ? Icons.favorite_rounded : Icons.favorite_border_rounded, size: 20, color: color),
+          icon: EmLikeIcon(liked: liked, size: 20),
           label: long ? countLabel : '$count',
           color: color,
         ),
@@ -194,7 +200,10 @@ class _ActionChip extends StatelessWidget {
             children: [
               icon,
               const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+              EmAnimatedSwap(
+                valueKey: label,
+                child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+              ),
             ],
           ),
         ),
@@ -233,6 +242,92 @@ class AuthorLine extends StatelessWidget {
         if (onOptions != null)
           EmIconButton(icon: Icons.more_horiz_rounded, label: optionsLabel, color: AppColors.textSecondary, onPressed: onOptions),
       ],
+    );
+  }
+}
+
+/// Loading placeholder shaped like the feed's post cards.
+class PostSkeletonList extends StatelessWidget {
+  const PostSkeletonList({super.key, this.count = 3});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading posts',
+      child: Column(
+        children: [
+          for (var i = 0; i < count; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: EmCard(
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        EmSkeleton(width: 32, height: 32, radius: 16),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [EmSkeleton(width: 90, height: 12), SizedBox(height: 6), EmSkeleton(width: 50, height: 10)],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 14),
+                    EmSkeleton(height: 14),
+                    SizedBox(height: 8),
+                    EmSkeleton(height: 14, width: 220),
+                    SizedBox(height: 14),
+                    EmSkeleton(height: 12, width: 110),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Loading placeholder shaped like a list of replies.
+class ReplySkeletonList extends StatelessWidget {
+  const ReplySkeletonList({super.key, this.count = 3});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading replies',
+      child: Column(
+        children: [
+          for (var i = 0; i < count; i++)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  EmSkeleton(width: 32, height: 32, radius: 16),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        EmSkeleton(width: 100, height: 12),
+                        SizedBox(height: 8),
+                        EmSkeleton(height: 14),
+                        SizedBox(height: 6),
+                        EmSkeleton(height: 14, width: 160)
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
