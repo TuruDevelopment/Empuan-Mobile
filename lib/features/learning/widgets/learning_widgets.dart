@@ -1,271 +1,157 @@
-import 'package:Empuan/features/learning/models/learning_models.dart';
-import 'package:Empuan/styles/style.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class LearningCourseCard extends StatelessWidget {
-  const LearningCourseCard({
-    super.key,
-    required this.course,
-    required this.onTap,
-    this.progress,
-  });
+import '../../../ui/em_ui.dart';
+import '../models/learning_models.dart';
+
+const learningDisclaimer =
+    'General education only. For legal or money decisions, talk to a professional.';
+
+/// Turns lesson or course HTML (or plain text) into readable paragraphs.
+List<String> htmlToParagraphs(String? source) {
+  if (source == null || source.trim().isEmpty) return const [];
+  final text = source
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '\n• ')
+      .replaceAll(RegExp(r'</(p|div|li|h[1-6]|ul|ol)>', caseSensitive: false), '\n')
+      .replaceAll(RegExp('<[^>]*>'), '')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', '’');
+  return text.split(RegExp(r'\n+')).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+}
+
+String minutesLabel(int seconds) => '${(seconds / 60).ceil().clamp(1, 600)} min';
+
+String lessonTypeLabel(String type) => switch (type) {
+      'video' => 'Video',
+      'article' => 'Article',
+      'infographic' => 'Infographic',
+      'audio' => 'Audio',
+      'text' || 'short' => 'Short lesson',
+      _ => humanize(type),
+    };
+
+String difficultyLabel(String difficulty) => switch (difficulty) {
+      'intermediate' => 'Intermediate',
+      'advanced' => 'Advanced',
+      _ => 'Beginner',
+    };
+
+String humanize(String value) {
+  if (value.isEmpty) return value;
+  final spaced = value.replaceAll('_', ' ');
+  return '${spaced[0].toUpperCase()}${spaced.substring(1)}';
+}
+
+/// "Ages 25–34" becomes "ages 25–34" so it reads inside a sentence.
+String inSentence(String name) {
+  if (name.length < 2 || name[1].toUpperCase() == name[1]) return name;
+  return '${name[0].toLowerCase()}${name.substring(1)}';
+}
+
+LearningLessonSummary? nextLessonOf(LearningCourse course) {
+  for (final lesson in course.lessons) {
+    if (lesson.progress?.isCompleted != true) return lesson;
+  }
+  return null;
+}
+
+int completedLessonsOf(LearningCourse course) {
+  final listed = course.lessons.where((l) => l.progress?.isCompleted == true).length;
+  return listed > 0 ? listed : (course.enrollment?.completedLessons ?? 0);
+}
+
+bool isCourseComplete(LearningCourse course) {
+  if ((course.enrollment?.progressPercent ?? 0) >= 100) return true;
+  final lessons = course.lessons.toList();
+  return course.isEnrolled && lessons.isNotEmpty && lessons.every((l) => l.progress?.isCompleted == true);
+}
+
+/// "4 lessons · 30 min · Certificate"
+String courseMeta(LearningCourse course, {LearningProgressSummary? progress}) {
+  final count = course.lessonCount;
+  final summary = progress ?? course.enrollment;
+  final parts = <String>[
+    if (count > 0) '$count ${count == 1 ? 'lesson' : 'lessons'}',
+    if (course.estimatedMinutes > 0) '${course.estimatedMinutes} min',
+  ];
+  if (summary != null && summary.progressPercent >= 100) {
+    parts.add('Completed');
+  } else if (course.isEnrolled || summary != null) {
+    parts.add('In progress');
+  } else if (course.certificateEnabled) {
+    parts.add('Certificate');
+  }
+  return parts.join(' · ');
+}
+
+/// Network image with a blush placeholder when there is no image or it fails.
+class LearningThumb extends StatelessWidget {
+  const LearningThumb({super.key, this.url, this.width, this.height, this.radius = 14});
+
+  final String? url;
+  final double? width;
+  final double? height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = Container(
+      width: width,
+      height: height,
+      color: AppColors.blush,
+      alignment: Alignment.center,
+      child: const Icon(Icons.menu_book_rounded, color: AppColors.secondary, size: 28),
+    );
+    final link = url;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: link == null || link.isEmpty
+          ? placeholder
+          : Image.network(
+              link,
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              errorBuilder: (_, __, ___) => placeholder,
+            ),
+    );
+  }
+}
+
+/// Course card used on the Learn tab, catalog and search results.
+class LearningCourseRow extends StatelessWidget {
+  const LearningCourseRow({super.key, required this.course, required this.onTap});
 
   final LearningCourse course;
   final VoidCallback onTap;
-  final LearningProgressSummary? progress;
 
   @override
   Widget build(BuildContext context) {
-    final stageLabel =
-        course.lifeStages.map((stage) => stage.name).take(2).join(' • ');
-
-    return Semantics(
-      button: true,
-      label: 'Open course ${course.title}',
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 0,
-        color: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppColors.accent.withValues(alpha: 0.55)),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _CourseThumbnail(url: course.thumbnailUrl),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (course.category != null)
-                          _InfoPill(
-                            icon: Icons.auto_stories_outlined,
-                            label: course.category!.name,
-                          ),
-                        _InfoPill(
-                          icon: Icons.schedule_outlined,
-                          label: '${course.estimatedMinutes} minutes',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      course.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 17,
-                        height: 1.35,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      course.summary,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 14,
-                        height: 1.5,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    if (stageLabel.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.people_alt_outlined,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              stageLabel,
-                              style: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (progress != null) ...[
-                      const SizedBox(height: 14),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value:
-                              (progress!.progressPercent / 100).clamp(0.0, 1.0),
-                          minHeight: 8,
-                          backgroundColor:
-                              AppColors.accent.withValues(alpha: 0.35),
-                          valueColor: const AlwaysStoppedAnimation(
-                            AppColors.primary,
-                          ),
-                          semanticsLabel: 'Course progress',
-                          semanticsValue:
-                              '${progress!.progressPercent.round()} percent',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${progress!.completedLessons} of '
-                        '${progress!.totalLessons} lessons completed',
-                        style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class LearningErrorState extends StatelessWidget {
-  const LearningErrorState({
-    super.key,
-    required this.message,
-    required this.onRetry,
-    this.onAddDob,
-    this.isAddingDob = false,
-    this.icon = Icons.cloud_off_outlined,
-  });
-
-  final String message;
-  final VoidCallback onRetry;
-  final Future<void> Function()? onAddDob;
-  final bool isAddingDob;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primary, size: 30),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Plus Jakarta Sans',
-                fontSize: 15,
-                height: 1.5,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (onAddDob != null) ...[
-              FilledButton.icon(
-                onPressed: isAddingDob ? null : () => onAddDob!(),
-                icon: isAddingDob
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.cake_outlined),
-                label: Text(isAddingDob ? 'Saving...' : 'Add DOB'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(160, 48),
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            OutlinedButton.icon(
-              onPressed: isAddingDob ? null : onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(140, 48),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LearningEmptyState extends StatelessWidget {
-  const LearningEmptyState({
-    super.key,
-    required this.title,
-    required this.message,
-    this.icon = Icons.menu_book_outlined,
-  });
-
-  final String title;
-  final String message;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      child: Column(
+    final meta = courseMeta(course);
+    return EmCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(12),
+      child: Row(
         children: [
-          Icon(icon, color: AppColors.secondary, size: 52),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 14,
-              height: 1.5,
-              color: AppColors.textSecondary,
+          LearningThumb(url: course.thumbnailUrl, width: 88, height: 88),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (course.category != null) ...[EmTag(course.category!.name), const SizedBox(height: 6)],
+                Text(course.title, style: Theme.of(context).textTheme.titleSmall),
+                if (meta.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(meta, style: const TextStyle(fontSize: 12, height: 16 / 12, color: AppColors.textSecondary)),
+                ],
+              ],
             ),
           ),
         ],
@@ -274,134 +160,168 @@ class LearningEmptyState extends StatelessWidget {
   }
 }
 
-class LearningSectionTitle extends StatelessWidget {
-  const LearningSectionTitle({
-    super.key,
-    required this.title,
-    this.subtitle,
-    this.action,
-  });
+/// Lesson count progress bar with "x of y lessons".
+class LearningProgressLine extends StatelessWidget {
+  const LearningProgressLine({super.key, required this.done, required this.total, this.short = false});
 
-  final String title;
-  final String? subtitle;
-  final Widget? action;
+  final int done;
+  final int total;
+  final bool short;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: const TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        if (action != null) action!,
-      ],
-    );
-  }
-}
-
-class _CourseThumbnail extends StatelessWidget {
-  const _CourseThumbnail({this.url});
-
-  final String? url;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 16 / 8.5,
-      child: ColoredBox(
-        color: AppColors.surfaceAlt,
-        child: url == null || url!.isEmpty
-            ? const _ThumbnailFallback()
-            : Image.network(
-                url!,
-                fit: BoxFit.cover,
-                semanticLabel: 'Course cover',
-                errorBuilder: (_, __, ___) => const _ThumbnailFallback(),
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                    ),
-                  );
-                },
-              ),
+    final label = short ? '$done of $total' : '$done of $total lessons';
+    return Semantics(
+      label: '$done of $total lessons done',
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          Expanded(child: EmProgressBar(value: total == 0 ? 0 : done / total)),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        ],
       ),
     );
   }
 }
 
-class _ThumbnailFallback extends StatelessWidget {
-  const _ThumbnailFallback();
+/// Small square showing an icon or letter, used for quiz answer keys.
+class LearningKeyBadge extends StatelessWidget {
+  const LearningKeyBadge(this.label, {super.key, required this.selected});
 
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-      child: const Center(
-        child: Icon(
-          Icons.school_outlined,
-          size: 48,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  const _InfoPill({required this.icon, required this.label});
-
-  final IconData icon;
   final String label;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(999),
+        color: selected ? AppColors.primary : AppColors.blush,
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: selected ? Colors.white : AppColors.primary),
+      ),
+    );
+  }
+}
+
+/// Top bar with a close button, a centred caption and a progress bar.
+class LearningProgressTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const LearningProgressTopBar({
+    super.key,
+    required this.closeLabel,
+    required this.onClose,
+    this.caption,
+    this.progress,
+  });
+
+  final String closeLabel;
+  final VoidCallback onClose;
+  final String? caption;
+  final double? progress;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.background,
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: [
+              const SizedBox(width: 8),
+              EmIconButton(icon: Icons.close_rounded, label: closeLabel, onPressed: onClose),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (caption != null)
+                        Text(
+                          caption!,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                        ),
+                      if (progress != null) ...[const SizedBox(height: 6), EmProgressBar(value: progress!)],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 52),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Scrollable wrapper so state views still support pull-to-refresh.
+class LearningScrollableState extends StatelessWidget {
+  const LearningScrollableState({super.key, required this.child, required this.onRefresh});
+
+  final Widget child;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(child: child),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tappable source link shared by course and lesson screens.
+class LearningSourceRow extends StatelessWidget {
+  const LearningSourceRow({super.key, required this.source});
+
+  final LearningSource source;
+
+  @override
+  Widget build(BuildContext context) {
+    final uri = Uri.tryParse(source.url);
+    final canOpen = uri != null && uri.hasScheme;
+    return EmCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      onTap: canOpen
+          ? () async {
+              final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+              if (!opened && context.mounted) showEmToast(context, 'Couldn’t open this link.');
+            }
+          : null,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: AppColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+          const Icon(Icons.link_rounded, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(source.title.isEmpty ? source.url : source.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                if (source.publisher != null && source.publisher!.isNotEmpty)
+                  Text(source.publisher!, style: Theme.of(context).textTheme.bodySmall),
+              ],
             ),
           ),
+          if (canOpen) const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.quietIcon),
         ],
       ),
     );

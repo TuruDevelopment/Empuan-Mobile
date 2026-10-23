@@ -1,146 +1,203 @@
-import 'package:Empuan/features/learning/models/learning_models.dart';
-import 'package:Empuan/features/learning/screens/learning_quiz_screen.dart';
-import 'package:Empuan/features/learning/services/learning_progress_sync_service.dart';
-import 'package:Empuan/features/learning/services/learning_service.dart';
-import 'package:Empuan/features/learning/widgets/learning_widgets.dart';
-import 'package:Empuan/styles/style.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+
+import '../../../ui/em_ui.dart';
+import '../models/learning_models.dart';
+import '../services/learning_progress_sync_service.dart';
+import '../services/learning_service.dart';
+import '../widgets/learning_widgets.dart';
+import 'learning_quiz_screen.dart';
 
 class LearningLessonScreen extends StatefulWidget {
   const LearningLessonScreen({
     super.key,
     required this.lessonId,
-    required this.service,
     required this.canTrackProgress,
+    this.service,
+    this.course,
   });
 
   final int lessonId;
-  final LearningService service;
+  final LearningService? service;
   final bool canTrackProgress;
+
+  /// Gives the lesson its place in the course. Fetched when not passed.
+  final LearningCourse? course;
 
   @override
   State<LearningLessonScreen> createState() => _LearningLessonScreenState();
 }
 
 class _LearningLessonScreenState extends State<LearningLessonScreen> {
+  late final LearningService _service = widget.service ?? LearningService();
+  late final LearningProgressSyncService _progressSync = LearningProgressSyncService(_service);
   late Future<LearningLesson> _lessonFuture;
+  LearningCourse? _course;
+  late bool _canTrack = widget.canTrackProgress;
   bool _saving = false;
-  bool _completed = false;
-  late final LearningProgressSyncService _progressSync;
+  bool _enrolling = false;
 
   @override
   void initState() {
     super.initState();
-    _progressSync = LearningProgressSyncService(widget.service);
-    _lessonFuture = widget.service.getLesson(widget.lessonId);
+    _course = widget.course;
+    _lessonFuture = _loadLesson();
+  }
+
+  Future<LearningLesson> _loadLesson() async {
+    final lesson = await _service.getLesson(widget.lessonId);
+    if (_course == null && lesson.courseSlug.isNotEmpty) {
+      try {
+        final course = await _service.getCourse(lesson.courseSlug);
+        if (mounted) setState(() => _course = course);
+      } catch (_) {
+        // The lesson still works without its position in the course.
+      }
+    }
+    return lesson;
   }
 
   Future<void> _reload() async {
-    final lessonFuture = widget.service.getLesson(widget.lessonId);
-    setState(() {
-      _lessonFuture = lessonFuture;
-    });
-    await lessonFuture;
+    final future = _loadLesson();
+    setState(() => _lessonFuture = future);
+    await future;
   }
 
-  Future<void> _markCompleted() async {
-    setState(() => _saving = true);
+  List<LearningLessonSummary> get _lessons => _course?.lessons.toList() ?? const [];
 
+  int get _index => _lessons.indexWhere((l) => l.id == widget.lessonId);
+
+  LearningLessonSummary? _neighbour(int offset) {
+    final i = _index;
+    if (i < 0) return null;
+    final j = i + offset;
+    return j >= 0 && j < _lessons.length ? _lessons[j] : null;
+  }
+
+  void _goTo(LearningLessonSummary lesson) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => LearningLessonScreen(
+          lessonId: lesson.id,
+          service: _service,
+          canTrackProgress: _canTrack,
+          course: _course,
+        ),
+      ),
+    );
+  }
+
+  void _continue() {
+    final next = _neighbour(1);
+    final canOpenNext = next != null && (_canTrack || next.isPreview);
+    if (canOpenNext) {
+      _goTo(next);
+    } else {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  Future<void> _markDoneAndContinue(bool alreadyDone) async {
+    if (alreadyDone) {
+      _continue();
+      return;
+    }
+    setState(() => _saving = true);
     try {
       final result = await _progressSync.completeLesson(widget.lessonId);
       if (!mounted) return;
-      setState(() => _completed = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.synced
-                ? 'Lesson marked as complete.'
-                : 'Progress saved and will sync when you are online.',
-          ),
-        ),
-      );
-      if (result.synced) await _reload();
+      if (!result.synced) showEmToast(context, 'Saved on this phone. It will sync when you’re back online.');
+      _continue();
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      if (mounted) showEmToast(context, '$error');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  Future<void> _enroll(LearningLesson lesson) async {
+    setState(() => _enrolling = true);
+    try {
+      await _service.enroll(lesson.courseSlug);
+      final course = await _service.getCourse(lesson.courseSlug);
+      if (!mounted) return;
+      setState(() {
+        _canTrack = true;
+        _course = course;
+      });
+      showEmToast(context, 'You’re enrolled. Your progress will be saved.', icon: Icons.check_rounded);
+    } catch (error) {
+      if (mounted) showEmToast(context, '$error');
+    } finally {
+      if (mounted) setState(() => _enrolling = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final index = _index;
+    final total = _lessons.length;
     return FutureBuilder<LearningLesson>(
       future: _lessonFuture,
       builder: (context, snapshot) {
-        final lesson = snapshot.data;
-        final completed = _completed || lesson?.progress?.isCompleted == true;
+        final lesson = snapshot.connectionState == ConnectionState.waiting ? null : snapshot.data;
+        final done = lesson?.progress?.isCompleted == true;
+
+        Widget body;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          body = const EmLoading();
+        } else if (snapshot.hasError) {
+          body = LearningScrollableState(
+            onRefresh: _reload,
+            child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
+          );
+        } else {
+          body = _LessonContent(
+            lesson: lesson!,
+            canTrackProgress: _canTrack,
+            service: _service,
+            onQuizClosed: _reload,
+          );
+        }
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(title: Text(lesson?.title ?? 'Lesson')),
-          bottomNavigationBar: lesson == null || !widget.canTrackProgress
+          appBar: LearningProgressTopBar(
+            closeLabel: 'Close lesson',
+            onClose: () => Navigator.of(context).maybePop(),
+            caption: index >= 0 ? 'Lesson ${index + 1} of $total' : 'Lesson',
+            progress: index >= 0 && total > 0 ? (index + 1) / total : null,
+          ),
+          body: body,
+          bottomNavigationBar: lesson == null
               ? null
-              : Material(
-                  elevation: 12,
-                  color: AppColors.surface,
-                  child: SafeArea(
-                    top: false,
-                    minimum: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    child: FilledButton.icon(
-                      onPressed: _saving || completed ? null : _markCompleted,
-                      icon: _saving
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+              : EmBottomBar(
+                  child: Row(
+                    children: [
+                      EmIconButton(
+                        icon: Icons.arrow_back_rounded,
+                        label: 'Previous lesson',
+                        style: EmIconButtonStyle.soft,
+                        size: 52,
+                        onPressed: _neighbour(-1) == null ? null : () => _goTo(_neighbour(-1)!),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _canTrack
+                            ? EmButton(
+                                label: done ? (_neighbour(1) == null ? 'Back to course' : 'Next lesson') : 'Mark done and continue',
+                                loading: _saving,
+                                onPressed: () => _markDoneAndContinue(done),
+                              )
+                            : EmButton(
+                                label: 'Enroll to continue',
+                                loading: _enrolling,
+                                onPressed: lesson.courseSlug.isEmpty ? null : () => _enroll(lesson),
                               ),
-                            )
-                          : Icon(
-                              completed
-                                  ? Icons.check_circle_rounded
-                                  : Icons.check_rounded,
-                            ),
-                      label: Text(
-                        completed ? 'Lesson completed' : 'Mark as complete',
                       ),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        backgroundColor: AppColors.primary,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
-          body: Builder(
-            builder: (context) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return LearningErrorState(
-                  message: snapshot.error.toString(),
-                  onRetry: _reload,
-                );
-              }
-
-              return _LessonContent(
-                lesson: snapshot.requireData,
-                canTrackProgress: widget.canTrackProgress,
-                onQuizCompleted: _reload,
-                service: widget.service,
-              );
-            },
-          ),
         );
       },
     );
@@ -151,211 +208,200 @@ class _LessonContent extends StatelessWidget {
   const _LessonContent({
     required this.lesson,
     required this.canTrackProgress,
-    required this.onQuizCompleted,
     required this.service,
+    required this.onQuizClosed,
   });
 
   final LearningLesson lesson;
   final bool canTrackProgress;
-  final Future<void> Function() onQuizCompleted;
   final LearningService service;
+  final Future<void> Function() onQuizClosed;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final media = lesson.mediaUrl;
+    final hasMedia = media != null && media.isNotEmpty;
+    final paragraphs = htmlToParagraphs(lesson.body);
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
-        Text(
-          lesson.sectionTitle,
-          style: const TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          lesson.title,
-          style: const TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 25,
-            height: 1.3,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        if (lesson.summary != null && lesson.summary!.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Text(
-            lesson.summary!,
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 15,
-              height: 1.55,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-        if (lesson.isPreview) ...[
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.visibility_outlined, color: AppColors.primary),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'This is a preview lesson.',
-                    style: TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: 22),
-        if (lesson.type == 'video' &&
-            lesson.mediaUrl != null &&
-            lesson.mediaUrl!.isNotEmpty)
-          _VideoLesson(url: lesson.mediaUrl!)
-        else if (lesson.type == 'infographic' &&
-            lesson.mediaUrl != null &&
-            lesson.mediaUrl!.isNotEmpty)
+        if (hasMedia && lesson.type == 'video') ...[_VideoLesson(url: media), const SizedBox(height: 18)],
+        if (hasMedia && lesson.type == 'infographic') ...[
           ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             child: Image.network(
-              lesson.mediaUrl!,
+              media,
               fit: BoxFit.contain,
               semanticLabel: 'Infographic: ${lesson.title}',
               errorBuilder: (_, __, ___) => const _MediaError(),
             ),
           ),
-        if (lesson.body != null && lesson.body!.trim().isNotEmpty) ...[
-          const SizedBox(height: 24),
-          SelectableText(
-            _plainText(lesson.body!),
-            style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 16,
-              height: 1.7,
-              color: AppColors.textPrimary,
-            ),
+          const SizedBox(height: 18),
+        ],
+        if (lesson.sectionTitle.isNotEmpty) ...[EmCaption(lesson.sectionTitle), const SizedBox(height: 6)],
+        Text(lesson.title, style: text.headlineMedium),
+        if (lesson.summary != null && lesson.summary!.trim().isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Text(lesson.summary!, style: text.bodyLarge?.copyWith(color: AppColors.textSecondary)),
+        ],
+        if (!canTrackProgress) ...[
+          const SizedBox(height: 14),
+          const EmNote(
+            icon: Icons.visibility_outlined,
+            child: Text('This is a free preview. Enroll to save your progress and take the quiz.'),
           ),
         ],
-        if (lesson.content != null && lesson.content!.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          ...lesson.content!.entries.map(
-            (entry) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.6),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _humanize(entry.key),
-                    style: const TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _structuredValue(entry.value),
-                    style: const TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontSize: 14,
-                      height: 1.55,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
+        if (paragraphs.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          for (final paragraph in paragraphs)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: SelectableText(paragraph, style: text.bodyLarge),
             ),
-          ),
         ],
+        if (lesson.content != null)
+          for (final entry in lesson.content!.entries) ..._structured(context, entry.key, entry.value),
         if (lesson.hasQuiz && canTrackProgress) ...[
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () async {
-              final passed = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => LearningQuizScreen(
-                    lessonId: lesson.id,
-                    service: service,
-                  ),
-                ),
-              );
-              if (passed == true) await onQuizCompleted();
-            },
-            icon: const Icon(Icons.quiz_outlined),
-            label: const Text('Take quiz'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-              backgroundColor: AppColors.primary,
-            ),
-          ),
+          const SizedBox(height: 8),
+          _QuizCard(lesson: lesson, service: service, onClosed: onQuizClosed),
         ],
         if (lesson.sources.isNotEmpty) ...[
-          const SizedBox(height: 26),
-          const LearningSectionTitle(title: 'Sources'),
-          const SizedBox(height: 8),
-          ...lesson.sources.map(
-            (source) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              minVerticalPadding: 12,
-              leading: const Icon(
-                Icons.open_in_new_rounded,
-                color: AppColors.primary,
-              ),
-              title: Text(source.title),
-              subtitle:
-                  source.publisher == null ? null : Text(source.publisher!),
-              onTap: source.url.isEmpty
-                  ? null
-                  : () => launchUrl(
-                        Uri.parse(source.url),
-                        mode: LaunchMode.externalApplication,
-                      ),
-            ),
-          ),
+          const SizedBox(height: 24),
+          Text('Sources', style: text.titleMedium),
+          const SizedBox(height: 10),
+          for (final source in lesson.sources)
+            Padding(padding: const EdgeInsets.only(bottom: 8), child: LearningSourceRow(source: source)),
         ],
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceAlt.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(16),
+        const SizedBox(height: 16),
+        Text(learningDisclaimer, style: text.bodySmall),
+      ],
+    );
+  }
+
+  /// Renders the lesson's structured `content` map as headed cards.
+  List<Widget> _structured(BuildContext context, String key, dynamic value) {
+    final text = Theme.of(context).textTheme;
+    final items = value is List ? value : [value];
+    return [
+      const SizedBox(height: 8),
+      Text(humanize(key), style: text.titleMedium),
+      const SizedBox(height: 10),
+      for (final item in items)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: EmCard(padding: const EdgeInsets.all(14), child: _StructuredItem(item)),
+        ),
+      const SizedBox(height: 8),
+    ];
+  }
+}
+
+class _StructuredItem extends StatelessWidget {
+  const _StructuredItem(this.item);
+
+  final dynamic item;
+
+  String? _pick(Map map, List<String> keys) {
+    for (final key in keys) {
+      final value = map[key];
+      if (value != null && value.toString().trim().isNotEmpty) return value.toString();
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final value = item;
+    if (value is! Map) return Text('$value', style: Theme.of(context).textTheme.bodyMedium);
+
+    final figure = _pick(value, ['value', 'figure', 'percent', 'amount']);
+    final title = _pick(value, ['title', 'label', 'name', 'heading']);
+    final detail = _pick(value, ['description', 'text', 'body', 'detail']);
+    final rest = value.entries
+        .where((e) => !['value', 'figure', 'percent', 'amount', 'title', 'label', 'name', 'heading', 'description', 'text', 'body', 'detail']
+            .contains(e.key))
+        .map((e) => '${humanize(e.key.toString())}: ${e.value}')
+        .join('\n');
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (figure != null) ...[
+          SizedBox(
+            width: 56,
+            child: Text(figure, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary)),
           ),
-          child: const Text(
-            'This material provides general education. Consult an appropriate '
-            'professional source for medical, legal, or financial decisions.',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 12,
-              height: 1.5,
-              color: AppColors.textPrimary,
-            ),
+          const SizedBox(width: 8),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title != null) Text(title, style: Theme.of(context).textTheme.titleSmall),
+              if (detail != null) Text(detail, style: Theme.of(context).textTheme.bodySmall),
+              if (rest.isNotEmpty) Text(rest, style: Theme.of(context).textTheme.bodySmall),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _QuizCard extends StatefulWidget {
+  const _QuizCard({required this.lesson, required this.service, required this.onClosed});
+
+  final LearningLesson lesson;
+  final LearningService service;
+  final Future<void> Function() onClosed;
+
+  @override
+  State<_QuizCard> createState() => _QuizCardState();
+}
+
+class _QuizCardState extends State<_QuizCard> {
+  late final Future<LearningQuiz> _quiz = widget.service.getQuiz(widget.lesson.id);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<LearningQuiz>(
+      future: _quiz,
+      builder: (context, snapshot) {
+        final quiz = snapshot.data;
+        final count = quiz?.questions.length ?? 0;
+        final subtitle = quiz == null
+            ? 'Quiz'
+            : '$count ${count == 1 ? 'question' : 'questions'} · pass with ${quiz.passingScore}%';
+        return EmCard(
+          color: AppColors.blush,
+          borderColor: AppColors.blush,
+          onTap: () async {
+            await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => LearningQuizScreen(lessonId: widget.lesson.id, service: widget.service)),
+            );
+            await widget.onClosed();
+          },
+          child: Row(
+            children: [
+              const EmIconTile(Icons.quiz_outlined, tone: EmTileTone.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Check what you learned', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.primaryVariant)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -370,17 +416,10 @@ class _VideoLesson extends StatefulWidget {
 }
 
 class _VideoLessonState extends State<_VideoLesson> {
-  late final VideoPlayerController _controller;
-  late final Future<void> _initializing;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
-    _initializing = _controller.initialize().then((_) {
-      if (mounted) setState(() {});
-    });
-  }
+  late final VideoPlayerController _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+  late final Future<void> _initializing = _controller.initialize().then((_) {
+    if (mounted) setState(() {});
+  });
 
   @override
   void dispose() {
@@ -388,16 +427,13 @@ class _VideoLessonState extends State<_VideoLesson> {
     super.dispose();
   }
 
-  Future<void> _togglePlayback() async {
+  Future<void> _toggle() async {
     if (_controller.value.isPlaying) {
       await _controller.pause();
     } else {
       await _controller.play();
     }
-
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -406,55 +442,43 @@ class _VideoLessonState extends State<_VideoLesson> {
       future: _initializing,
       builder: (context, snapshot) {
         if (snapshot.hasError) return const _MediaError();
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          );
-        }
-
+        final ready = snapshot.connectionState == ConnectionState.done;
+        final ratio = ready && _controller.value.aspectRatio > 0 ? _controller.value.aspectRatio : 16 / 9;
         return ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           child: ColoredBox(
-            color: Colors.black,
-            child: Column(
+            color: AppColors.textPrimary,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio == 0
-                      ? 16 / 9
-                      : _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                ),
-                VideoProgressIndicator(
-                  _controller,
-                  allowScrubbing: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  colors: const VideoProgressColors(
-                    playedColor: AppColors.highlight,
-                    bufferedColor: AppColors.textSecondary,
-                  ),
-                ),
-                Semantics(
-                  button: true,
-                  label: _controller.value.isPlaying
-                      ? 'Pause video'
-                      : 'Play video',
-                  child: IconButton(
-                    onPressed: _togglePlayback,
+                AspectRatio(aspectRatio: ratio, child: ready ? VideoPlayer(_controller) : const SizedBox.shrink()),
+                if (!ready)
+                  const CircularProgressIndicator(color: Colors.white)
+                else
+                  Material(
                     color: Colors.white,
-                    iconSize: 34,
-                    icon: Icon(
-                      _controller.value.isPlaying
-                          ? Icons.pause_circle_filled_rounded
-                          : Icons.play_circle_fill_rounded,
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      tooltip: _controller.value.isPlaying ? 'Pause video' : 'Play video',
+                      iconSize: 32,
+                      constraints: const BoxConstraints.tightFor(width: 64, height: 64),
+                      color: AppColors.primary,
+                      onPressed: _toggle,
+                      icon: Icon(_controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                     ),
                   ),
-                ),
+                if (ready)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: VideoProgressIndicator(
+                      _controller,
+                      allowScrubbing: true,
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                      colors: const VideoProgressColors(playedColor: Colors.white, bufferedColor: Colors.white38, backgroundColor: Colors.white24),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -472,51 +496,15 @@ class _MediaError extends StatelessWidget {
     return Container(
       height: 180,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: AppColors.blush, borderRadius: BorderRadius.circular(18)),
       child: const Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.broken_image_outlined,
-            color: AppColors.primary,
-            size: 36,
-          ),
+          Icon(Icons.broken_image_outlined, color: AppColors.primary, size: 32),
           SizedBox(height: 8),
-          Text('Media could not be loaded'),
+          Text('This media couldn’t be loaded.', style: TextStyle(color: AppColors.textSecondary)),
         ],
       ),
     );
   }
-}
-
-String _plainText(String html) {
-  return html
-      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-      .replaceAll(RegExp(r'</p>|</li>|</h[1-6]>', caseSensitive: false), '\n')
-      .replaceAll(RegExp('<[^>]*>'), '')
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&amp;', '&')
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>')
-      .replaceAll('&quot;', '"')
-      .trim();
-}
-
-String _humanize(String value) {
-  if (value.isEmpty) return value;
-  final spaced = value.replaceAll('_', ' ');
-  return '${spaced[0].toUpperCase()}${spaced.substring(1)}';
-}
-
-String _structuredValue(dynamic value) {
-  if (value is List) return value.map((item) => '• $item').join('\n');
-  if (value is Map) {
-    return value.entries
-        .map((entry) => '${_humanize(entry.key.toString())}: ${entry.value}')
-        .join('\n');
-  }
-  return value?.toString() ?? '';
 }

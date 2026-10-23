@@ -257,6 +257,7 @@ class LearningCertificate {
     required this.recipientName,
     required this.courseTitle,
     required this.courseVersion,
+    this.courseSlug = '',
     this.issuedAt,
   });
 
@@ -266,16 +267,25 @@ class LearningCertificate {
   final String recipientName;
   final String courseTitle;
   final int courseVersion;
+
+  /// Empty when the API leaves it out; the certificate can still be shown.
+  final String courseSlug;
   final DateTime? issuedAt;
 
   factory LearningCertificate.fromJson(Map<String, dynamic> json) {
+    final course = _asMap(json['course']);
     return LearningCertificate(
       publicId: json['public_id']?.toString() ?? '',
       certificateNumber: json['certificate_number']?.toString() ?? '',
       label: json['label']?.toString() ?? 'Certificate of Completion',
       recipientName: json['recipient_name']?.toString() ?? '',
-      courseTitle: json['course_title']?.toString() ?? '',
+      courseTitle: json['course_title']?.toString() ??
+          course['title']?.toString() ??
+          '',
       courseVersion: _asInt(json['course_version']),
+      courseSlug: json['course_slug']?.toString() ??
+          course['slug']?.toString() ??
+          '',
       issuedAt: _asDateTime(json['issued_at']),
     );
   }
@@ -397,6 +407,7 @@ class LearningCourse {
     this.description,
     this.certificateLabel,
     this.enrollment,
+    this.lessonsCount,
   });
 
   final String slug;
@@ -417,8 +428,16 @@ class LearningCourse {
   final List<LearningSource> sources;
   final LearningProgressSummary? enrollment;
 
+  /// Count sent by list endpoints, which leave out the sections.
+  final int? lessonsCount;
+
   Iterable<LearningLessonSummary> get lessons =>
       sections.expand((section) => section.lessons);
+
+  int get lessonCount {
+    final listed = lessons.length;
+    return listed > 0 ? listed : (lessonsCount ?? enrollment?.totalLessons ?? 0);
+  }
 
   factory LearningCourse.fromJson(Map<String, dynamic> json) {
     final enrollmentJson =
@@ -456,6 +475,9 @@ class LearningCourse {
               _asMap(enrollmentJson?['summary']),
             )
           : null,
+      lessonsCount: json['lessons_count'] == null
+          ? null
+          : _asInt(json['lessons_count']),
     );
   }
 }

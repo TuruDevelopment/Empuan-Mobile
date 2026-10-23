@@ -1,148 +1,70 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
-import '../models/chat_message.dart';
 import '../config/api_config.dart';
-import 'api_client.dart';
+import '../data/api.dart';
+import '../models/chat_message.dart';
 
-typedef ChatGetRequest = Future<http.Response> Function(String url);
-
+/// Empuan AI. Every failure is thrown as [ApiException] so screens can show
+/// it as an error, never as an assistant reply.
 class ChatbotService {
-  ChatbotService({ChatGetRequest? getRequest})
-      : _getRequest = getRequest ?? ((url) => ApiClient.get(url));
+  ChatbotService({Api? api}) : _api = api ?? Api();
 
-  final String baseUrl = ApiConfig.baseUrl;
-  final ChatGetRequest _getRequest;
+  final Api _api;
 
-  /// Send message and get AI response with streaming simulation
-  /// Returns a stream that emits partial responses character by character
-  Stream<String> sendMessageStream({
-    required String message,
-    String? sessionId,
-    bool useHistory = true,
-  }) async* {
-    try {
-      final response = await ApiClient.post(
-        '$baseUrl/chatbot/send',
-        body: {
-          'message': message,
-          if (sessionId != null) 'session_id': sessionId,
-          'use_history': useHistory,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['success'] == true && data['data'] != null) {
-          final fullResponse = data['data']['response'] as String;
-
-          String currentText = '';
-          final words = fullResponse.split(' ');
-
-          for (int i = 0; i < words.length; i++) {
-            currentText += words[i];
-            if (i < words.length - 1) {
-              currentText += ' ';
-            }
-
-            yield currentText;
-
-            await Future.delayed(const Duration(milliseconds: 30));
-          }
-
-          yield fullResponse;
-        } else {
-          throw Exception('Invalid response format');
-        }
-      } else {
-        throw Exception('Failed to send message: ${response.statusCode}');
-      }
-    } catch (_) {
-      yield 'Maaf, koneksi ke Empuan AI sedang bermasalah. Silakan coba lagi.';
-    }
+  Future<String> createNewSession() async {
+    final data = asMap(asMap(await _api.post(ApiConfig.chatbotNewSession))['data']);
+    final id = asString(data['session_id']);
+    if (id.isEmpty) throw const ApiException('Couldn’t start a new chat. Please try again.');
+    return id;
   }
 
-  /// Send message and get full AI response (non-streaming version)
-  Future<Map<String, dynamic>> sendMessage({
+  /// Returns the assistant's answer.
+  Future<String> sendMessage({
     required String message,
-    String? sessionId,
+    required String sessionId,
     bool useHistory = true,
   }) async {
-    final response = await ApiClient.post(
-      '$baseUrl/chatbot/send',
-      body: {
-        'message': message,
-        if (sessionId != null) 'session_id': sessionId,
-        'use_history': useHistory,
-      },
-    );
-
-    return jsonDecode(response.body);
-  }
-
-  /// Create new session
-  Future<String> createNewSession() async {
-    final response = await ApiClient.post('$baseUrl/chatbot/sessions/new');
-
-    final data = jsonDecode(response.body);
-    return data['data']['session_id'];
-  }
-
-  /// Get all sessions
-  Future<List<ChatSession>> getSessions() async {
-    final response = await _getRequest('$baseUrl/chatbot/sessions');
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data['data'] as List)
-          .map((json) => ChatSession.fromJson(json))
-          .toList();
+    final json = asMap(await _api.post(ApiConfig.chatbotSend, body: {
+      'message': message,
+      'session_id': sessionId,
+      'use_history': useHistory,
+    }));
+    final answer = asString(asMap(json['data'])['response']).trim();
+    if (json['success'] == false || answer.isEmpty) {
+      throw const ApiException('Empuan AI couldn’t answer this time. Please try again.');
     }
-
-    return [];
+    return answer;
   }
 
-  /// Get chat history
+  /// Most recent first.
+  Future<List<ChatSession>> getSessions() async {
+    final sessions = asMapList(await _api.get(ApiConfig.chatbotSessions))
+        .map(ChatSession.fromJson)
+        .where((s) => s.sessionId.isNotEmpty)
+        .toList()
+      ..sort((a, b) => b.lastMessage.compareTo(a.lastMessage));
+    return sessions;
+  }
+
+  /// The whole conversation in chronological order, across all pages.
   Future<List<ChatMessage>> getHistory(String sessionId) async {
     final history = <ChatMessage>[];
-    var currentPage = 1;
+    var page = 1;
     var lastPage = 1;
-
     do {
-      final response = await _getRequest(
-        '$baseUrl/chatbot/history/$sessionId'
-        '?per_page=100&page=$currentPage',
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load chat history: ${response.statusCode}');
-      }
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final pageItems = data['data']?['history'] as List<dynamic>? ?? [];
-
-      history.addAll(
-        pageItems.map(
-          (json) => ChatMessage.fromJson(json as Map<String, dynamic>),
-        ),
-      );
-
-      final meta = data['meta'] as Map<String, dynamic>?;
-      lastPage = (meta?['last_page'] as num?)?.toInt() ?? 1;
-      currentPage++;
-    } while (currentPage <= lastPage);
-
+      final json = asMap(await _api.get(
+        ApiConfig.chatbotHistory(sessionId),
+        query: {'per_page': '100', 'page': '$page'},
+      ));
+      history.addAll(asMapList(asMap(json['data'])['history']).map(ChatMessage.fromJson));
+      lastPage = asInt(asMap(json['meta'])['last_page'], 1);
+      page++;
+    } while (page <= lastPage);
     return history;
   }
 
-  /// Delete session
-  Future<bool> deleteSession(String sessionId) async {
-    final response =
-        await ApiClient.delete('$baseUrl/chatbot/sessions/$sessionId');
-
-    return response.statusCode == 200;
+  Future<void> deleteSession(String sessionId) async {
+    final json = asMap(await _api.delete(ApiConfig.chatbotDeleteSession(sessionId)));
+    if (json['success'] == false) {
+      throw ApiException(asString(json['message'], 'Couldn’t delete this chat. Please try again.'));
+    }
   }
 }

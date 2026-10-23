@@ -20,11 +20,11 @@ class ChatMarkdownMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = const TextStyle(
-      fontFamily: 'Plus Jakarta Sans',
-      fontSize: 14,
+    const baseStyle = TextStyle(
+      fontFamily: AppFonts.body,
+      fontSize: 15,
       color: AppColors.textPrimary,
-      height: 1.5,
+      height: 22 / 15,
     );
 
     return MarkdownBody(
@@ -152,7 +152,7 @@ class ChatMarkdownMessage extends StatelessWidget {
 
   void _showLinkError(BuildContext context) {
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      const SnackBar(content: Text('Tautan tidak dapat dibuka.')),
+      const SnackBar(content: Text('Couldn’t open this link')),
     );
   }
 }

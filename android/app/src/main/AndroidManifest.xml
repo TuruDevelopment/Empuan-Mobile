@@ -1,12 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Izin untuk mengakses penyimpanan eksternal jika ingin mengakses galeri -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <!-- Izin untuk mengakses kontak -->
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Location is read only in the foreground, when the user sends SOS.
+         Contacts come from the system picker, so READ_CONTACTS isn't needed.
+         Texts and calls go through the SMS app and dialer, so no SMS/CALL permissions. -->
     
     <queries>
         <!-- Query untuk phone dialer -->
@@ -18,7 +16,11 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="tel" />
         </intent>
-        <!-- Query for SMS app (panic button alert) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- Query for SMS app (SOS) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="sms" />

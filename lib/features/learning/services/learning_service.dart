@@ -129,6 +129,19 @@ class LearningService {
     return LearningCertificate.fromJson(_map(envelope['data']));
   }
 
+  /// Earned certificates. Accepts `data` as a list or as an object holding
+  /// `certificates`/`data`, and skips entries that aren't objects.
+  Future<List<LearningCertificate>> getCertificates() async {
+    final envelope = await _request('GET', ApiConfig.learningCertificates);
+    var data = envelope['data'];
+    if (data is Map) data = data['certificates'] ?? data['data'];
+    if (data is! List) return const [];
+    return data
+        .whereType<Map>()
+        .map((item) => LearningCertificate.fromJson(_map(item)))
+        .toList();
+  }
+
   Future<Map<String, dynamic>> _request(
     String method,
     String path, {
