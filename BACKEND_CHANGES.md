@@ -28,7 +28,7 @@ Play also asks for a web page where people can request deletion without the app.
   "details": "optional free text"
 }
 ```
-- For `chatbot_message`, `target_id` is `"<session_id>:<message index>"`.
+- For `chatbot_message`, `target_id` is `"<session_id>:<message id>"`, or `"<session_id>:<message index>"` for answers saved before Empuan AI v2 (no id).
 - Store the reporter, notify moderators (admin panel list is enough), `201` on success.
 
 ### 3. Block a member (Play UGC policy)
@@ -68,5 +68,17 @@ No change, but the app now requires users to be 18 or older and sends `dob` on e
 ## Content
 - **Learning:** please don't publish health or medical courses; the app is published from a personal developer account, which Google Play doesn't allow for health apps.
 - **Daily question:** `GET /questions` is unchanged. The app shows two questions a day, rotating through active questions, and tracks answered days on the device. Health-related questions should be deactivated.
-- **Empuan AI:** unchanged endpoints. The app no longer creates a session until the first message is sent.
+- **Empuan AI:** see "Empuan AI v2" below.
 - **Places (`/untuk-puan`):** unchanged. Suggested categories: Salon & beauty, Fashion, Cafés, Co-working. Avoid "massage".
+
+## Empuan AI v2
+
+The full contract and deploy notes are in `docs/EMPUAN-AI.md` in `TuruDevelopment/Empuan-Back`, branch `redesign-play-compliance`. What the app uses:
+
+- `POST /chatbot/stream` (Server-Sent Events: `meta`, `status`, `delta`, then `done` or `error`). The session id comes from `meta`; the app no longer calls `/chatbot/sessions/new` first.
+- `POST /chatbot/sessions/{id}/regenerate` (same events) for Regenerate.
+- `POST /chatbot/messages/{id}/feedback` for Helpful / Not helpful, with an optional reason.
+- Message objects with `id`, `feedback`, `actions` (course, article, place, sos, fake_call, trusted_contacts, siren, learn, places) and `truncated`, and `title` on sessions.
+- Errors as `{ code, message, retryable, retry_after }`. The app shows when to try again after `rate_limited` and turns Send off until then.
+
+If `/chatbot/stream` returns 404 or 405 without a `code` (an older backend), the app falls back to `POST /chatbot/send`, which still answers the released app with `data.response`.
