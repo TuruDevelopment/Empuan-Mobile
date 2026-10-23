@@ -10,9 +10,12 @@ import '../../ui/em_ui.dart';
 /// What the user picked in [AiHistoryScreen]: a past chat, or a new chat
 /// when [sessionId] is null.
 class AiHistoryResult {
-  const AiHistoryResult(this.sessionId);
+  const AiHistoryResult(this.sessionId, {this.title});
 
   final String? sessionId;
+
+  /// The server title of the picked chat, when it has one.
+  final String? title;
 }
 
 class AiHistoryScreen extends StatefulWidget {
@@ -63,7 +66,7 @@ class _AiHistoryScreenState extends State<AiHistoryScreen> {
     }
   }
 
-  void _open(ChatSession s) => Navigator.of(context).pop(AiHistoryResult(s.sessionId));
+  void _open(ChatSession s) => Navigator.of(context).pop(AiHistoryResult(s.sessionId, title: s.title));
 
   void _newChat() => Navigator.of(context).pop(const AiHistoryResult(null));
 
