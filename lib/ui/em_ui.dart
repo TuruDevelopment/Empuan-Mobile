@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../styles/style.dart';
+import 'em_motion.dart';
 
 export '../styles/style.dart';
+export 'em_motion.dart';
 
 enum EmButtonVariant { primary, secondary, tonal, text, danger, white }
 
@@ -68,7 +70,8 @@ class EmButton extends StatelessWidget {
       ),
       child: child,
     );
-    return expand ? SizedBox(width: double.infinity, height: height, child: button) : SizedBox(height: height, child: button);
+    final sized = expand ? SizedBox(width: double.infinity, height: height, child: button) : SizedBox(height: height, child: button);
+    return EmPressable(enabled: !disabled, child: sized);
   }
 }
 
@@ -199,13 +202,17 @@ class EmCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       side: BorderSide(color: borderColor),
     );
-    return Material(
-      color: color,
-      shape: shape,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(padding: padding, child: child),
+    return EmPressable(
+      enabled: onTap != null,
+      scale: 0.985,
+      child: Material(
+        color: color,
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(padding: padding, child: child),
+        ),
       ),
     );
   }
@@ -382,9 +389,15 @@ class EmChip extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      child: Material(
-        color: selected ? AppColors.primary : AppColors.surface,
-        shape: StadiumBorder(side: BorderSide(color: selected ? AppColors.primary : AppColors.line2)),
+      child: AnimatedContainer(
+        duration: EmMotion.medium,
+        curve: EmMotion.enter,
+        decoration: ShapeDecoration(
+          color: selected ? AppColors.primary : AppColors.surface,
+          shape: StadiumBorder(side: BorderSide(color: selected ? AppColors.primary : AppColors.line2)),
+        ),
+        child: Material(
+        type: MaterialType.transparency,
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: onTap,
@@ -394,14 +407,16 @@ class EmChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Center(
                 widthFactor: 1,
-                child: Text(
-                  label,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textPrimary),
+                child: AnimatedDefaultTextStyle(
+                  duration: EmMotion.medium,
+                  style: TextStyle(fontFamily: AppFonts.body, fontSize: 14, fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textPrimary),
+                  child: Text(label),
                 ),
               ),
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'style.dart';
 
@@ -41,6 +42,12 @@ class AppTheme {
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: AppColors.background,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(backgroundColor: AppColors.background),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       textTheme: textTheme,
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,

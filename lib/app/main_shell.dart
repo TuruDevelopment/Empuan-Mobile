@@ -54,14 +54,26 @@ class _MainShellState extends State<MainShell> {
             children: [
               const SosActiveBanner(),
               Expanded(
-                child: IndexedStack(
-                  index: _tab.index,
-                  children: [
-                    page(AppTab.home, () => const HomeTab()),
-                    page(AppTab.learn, () => const LearnTab()),
-                    page(AppTab.safety, () => const SafetyTab()),
-                    page(AppTab.space, () => const SpaceTab()),
-                  ],
+                // Tabs keep their state in the IndexedStack; the switch itself
+                // is a short fade-up so the change of place is visible.
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey(_tab),
+                  tween: Tween(begin: EmMotion.reduced(context) ? 1 : 0, end: 1),
+                  duration: EmMotion.medium,
+                  curve: EmMotion.enter,
+                  builder: (_, t, child) => Opacity(
+                    opacity: t,
+                    child: Transform.translate(offset: Offset(0, 8 * (1 - t)), child: child),
+                  ),
+                  child: IndexedStack(
+                    index: _tab.index,
+                    children: [
+                      page(AppTab.home, () => const HomeTab()),
+                      page(AppTab.learn, () => const LearnTab()),
+                      page(AppTab.safety, () => const SafetyTab()),
+                      page(AppTab.space, () => const SpaceTab()),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -127,14 +139,20 @@ class _TabBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
+                  duration: EmMotion.medium,
+                  curve: EmMotion.enter,
                   width: 56,
                   height: 30,
                   decoration: BoxDecoration(
                     color: selected ? AppColors.blush : Colors.transparent,
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Icon(selected ? activeIcon : icon, color: color, size: 22),
+                  child: AnimatedScale(
+                    scale: selected ? 1.08 : 1,
+                    duration: EmMotion.medium,
+                    curve: EmMotion.enter,
+                    child: Icon(selected ? activeIcon : icon, color: color, size: 22),
+                  ),
                 ),
                 const SizedBox(height: 2),
                 ExcludeSemantics(
