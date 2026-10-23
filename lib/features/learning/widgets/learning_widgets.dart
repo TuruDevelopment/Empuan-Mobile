@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../ui/em_ui.dart';
@@ -119,6 +120,15 @@ class LearningThumb extends StatelessWidget {
               fit: BoxFit.cover,
               excludeFromSemantics: true,
               errorBuilder: (_, __, ___) => placeholder,
+              frameBuilder: (context, child, frame, sync) {
+                if (sync || EmMotion.reduced(context)) return child;
+                return AnimatedOpacity(
+                  opacity: frame == null ? 0 : 1,
+                  duration: EmMotion.medium,
+                  curve: EmMotion.enter,
+                  child: child,
+                );
+              },
             ),
     );
   }
@@ -176,7 +186,7 @@ class LearningProgressLine extends StatelessWidget {
       excludeSemantics: true,
       child: Row(
         children: [
-          Expanded(child: EmProgressBar(value: total == 0 ? 0 : done / total)),
+          Expanded(child: LearningAnimatedProgress(value: total == 0 ? 0 : done / total)),
           const SizedBox(width: 8),
           Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
         ],
@@ -194,7 +204,9 @@ class LearningKeyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
+      curve: EmMotion.enter,
       width: 28,
       height: 28,
       alignment: Alignment.center,
@@ -251,7 +263,7 @@ class LearningProgressTopBar extends StatelessWidget implements PreferredSizeWid
                           caption!,
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                         ),
-                      if (progress != null) ...[const SizedBox(height: 6), EmProgressBar(value: progress!)],
+                      if (progress != null) ...[const SizedBox(height: 6), LearningAnimatedProgress(value: progress!)],
                     ],
                   ),
                 ),
@@ -322,6 +334,111 @@ class LearningSourceRow extends StatelessWidget {
             ),
           ),
           if (canOpen) const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.quietIcon),
+        ],
+      ),
+    );
+  }
+}
+
+/// Progress bar that grows from empty on first show and eases between values.
+class LearningAnimatedProgress extends StatelessWidget {
+  const LearningAnimatedProgress({super.key, required this.value, this.height = 6});
+
+  final double value;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final target = value.clamp(0.0, 1.0);
+    if (EmMotion.reduced(context)) return EmProgressBar(value: target, height: height);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: target),
+      duration: EmMotion.slow,
+      curve: EmMotion.enter,
+      builder: (_, v, __) => EmProgressBar(value: v, height: height),
+    );
+  }
+}
+
+/// Plays staggered entrance animations only for items built in the first
+/// frame of a list, so scrolling back up doesn't replay them.
+class LearningEntrance {
+  bool _open = true;
+  bool _closing = false;
+
+  Widget wrap(int index, Widget child) {
+    if (!_open) return child;
+    if (!_closing) {
+      _closing = true;
+      SchedulerBinding.instance.addPostFrameCallback((_) => _open = false);
+    }
+    return EmFadeSlideIn(index: index, child: child);
+  }
+}
+
+/// Loading placeholder shaped like a column of [LearningCourseRow] cards.
+class LearningCourseSkeleton extends StatelessWidget {
+  const LearningCourseSkeleton({super.key, this.count = 4, this.header = false});
+
+  final int count;
+
+  /// Adds a search-field shaped block above the cards.
+  final bool header;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Loading',
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        children: [
+          if (header) ...[
+            const EmSkeleton(height: 52, radius: 14),
+            const SizedBox(height: 24),
+            const EmSkeleton(height: 18, width: 140),
+            const SizedBox(height: 12),
+          ],
+          for (var i = 0; i < count; i++) ...[
+            const LearningCardSkeleton(),
+            const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class LearningCardSkeleton extends StatelessWidget {
+  const LearningCardSkeleton({super.key, this.thumb = 88});
+
+  final double thumb;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Row(
+        children: [
+          EmSkeleton(width: thumb, height: thumb, radius: 14),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EmSkeleton(height: 20, width: 64, radius: 10),
+                SizedBox(height: 10),
+                EmSkeleton(height: 16),
+                SizedBox(height: 8),
+                EmSkeleton(height: 12, width: 140),
+              ],
+            ),
+          ),
         ],
       ),
     );

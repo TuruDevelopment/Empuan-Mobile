@@ -21,8 +21,7 @@ class ChatMessage {
 
   factory ChatMessage.user(String text) => ChatMessage(role: ChatRole.user, text: text, timestamp: DateTime.now());
 
-  factory ChatMessage.assistant(String text) =>
-      ChatMessage(role: ChatRole.assistant, text: text, timestamp: DateTime.now());
+  factory ChatMessage.assistant(String text) => ChatMessage(role: ChatRole.assistant, text: text, timestamp: DateTime.now());
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(

@@ -1,196 +1,172 @@
-import 'package:Empuan/features/learning/models/learning_models.dart';
-import 'package:Empuan/features/learning/services/learning_service.dart';
-import 'package:Empuan/features/learning/widgets/learning_widgets.dart';
-import 'package:Empuan/styles/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../ui/em_ui.dart';
+import '../models/learning_models.dart';
+import '../services/learning_service.dart';
+import '../widgets/learning_widgets.dart';
 
 class LearningCertificateScreen extends StatefulWidget {
-  const LearningCertificateScreen({
-    super.key,
-    required this.courseSlug,
-    required this.service,
-  });
+  const LearningCertificateScreen({super.key, required this.courseSlug, this.service, this.certificate});
 
   final String courseSlug;
-  final LearningService service;
+  final LearningService? service;
+
+  /// Shown straight away when the caller already has it, e.g. from the list.
+  final LearningCertificate? certificate;
 
   @override
-  State<LearningCertificateScreen> createState() =>
-      _LearningCertificateScreenState();
+  State<LearningCertificateScreen> createState() => _LearningCertificateScreenState();
 }
 
 class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
-  late Future<LearningCertificate> _certificateFuture;
+  late final LearningService _service = widget.service ?? LearningService();
+  late Future<LearningCertificate> _future = _load();
 
-  @override
-  void initState() {
-    super.initState();
-    _certificateFuture = widget.service.getCertificate(widget.courseSlug);
+  Future<LearningCertificate> _load() {
+    final known = widget.certificate;
+    if (known != null) return Future.value(known);
+    return _service.getCertificate(widget.courseSlug);
   }
 
-  void _reload() {
-    setState(() {
-      _certificateFuture = widget.service.getCertificate(widget.courseSlug);
-    });
+  Future<void> _reload() async {
+    final future = _service.getCertificate(widget.courseSlug);
+    setState(() => _future = future);
+    await future;
+  }
+
+  Future<void> _share(LearningCertificate certificate) async {
+    final lines = [
+      'I completed “${certificate.courseTitle}” on Empuan.',
+      if (certificate.certificateNumber.isNotEmpty) 'Certificate no. ${certificate.certificateNumber}',
+    ];
+    await SharePlus.instance.share(ShareParams(text: lines.join('\n'), subject: 'Empuan certificate'));
+  }
+
+  Future<void> _copy(LearningCertificate certificate) async {
+    await Clipboard.setData(ClipboardData(text: certificate.certificateNumber));
+    if (mounted) showEmToast(context, 'Certificate number copied', icon: Icons.check_rounded);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Certificate')),
+      appBar: const EmTopBar(title: 'Certificate'),
       body: FutureBuilder<LearningCertificate>(
-        future: _certificateFuture,
+        future: _future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            );
-          }
+          if (snapshot.connectionState == ConnectionState.waiting) return const EmLoading();
           if (snapshot.hasError) {
-            return LearningErrorState(
-              message: snapshot.error.toString(),
-              onRetry: _reload,
+            return LearningScrollableState(
+              onRefresh: _reload,
+              child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
             );
           }
-
           final certificate = snapshot.requireData;
           return ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              Container(
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.primary, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.14),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+              _CertificateCard(certificate: certificate),
+              const SizedBox(height: 18),
+              EmButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () => _share(certificate)),
+              if (certificate.certificateNumber.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                EmButton(
+                  label: 'Copy certificate number',
+                  icon: Icons.copy_rounded,
+                  variant: EmButtonVariant.text,
+                  onPressed: () => _copy(certificate),
                 ),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.workspace_premium_rounded,
-                      color: AppColors.primary,
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      certificate.label,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 23,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Awarded to',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      certificate.recipientName,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 25,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'has completed the course',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      certificate.courseTitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 19,
-                        height: 1.4,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      certificate.issuedAt == null
-                          ? ''
-                          : DateFormat('dd MMM yyyy')
-                              .format(certificate.issuedAt!.toLocal()),
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      certificate.certificateNumber,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  await Clipboard.setData(
-                    ClipboardData(text: certificate.certificateNumber),
-                  );
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Certificate number copied.'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.copy_rounded),
-                label: const Text('Copy certificate number'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-              ),
+              ],
               const SizedBox(height: 12),
-              const Text(
-                'This certificate confirms completion of an Empuan educational '
-                'course and is not a professional certification.',
+              Text(
+                'Confirms completion of an Empuan course. It isn’t a professional qualification.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 12,
-                  height: 1.5,
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _CertificateCard extends StatelessWidget {
+  const _CertificateCard({required this.certificate});
+
+  final LearningCertificate certificate;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary, width: 1.5),
+      ),
+      padding: const EdgeInsets.all(6),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: AppColors.accent),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 22, 16, 18),
+        child: Column(
+          children: [
+            const EmWordmark(size: 30),
+            const SizedBox(height: 6),
+            const EmCaption('Certificate of completion', color: AppColors.primary),
+            const SizedBox(height: 20),
+            Text('Awarded to', style: text.bodySmall),
+            const SizedBox(height: 4),
+            Text(certificate.recipientName, textAlign: TextAlign.center, style: text.headlineMedium),
+            const SizedBox(height: 12),
+            Text('for completing', style: text.bodySmall),
+            const SizedBox(height: 4),
+            Text(certificate.courseTitle, textAlign: TextAlign.center, style: text.titleMedium),
+            const SizedBox(height: 18),
+            const Divider(height: 1),
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _Fact(label: 'Issued', value: formatDate(certificate.issuedAt?.toLocal()))),
+                Expanded(
+                  child: _Fact(label: 'Certificate no.', value: certificate.certificateNumber, alignEnd: true),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Fact extends StatelessWidget {
+  const _Fact({required this.label, required this.value, this.alignEnd = false});
+
+  final String label;
+  final String value;
+  final bool alignEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        const SizedBox(height: 2),
+        SelectableText(
+          value.isEmpty ? '–' : value,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ],
     );
   }
 }
