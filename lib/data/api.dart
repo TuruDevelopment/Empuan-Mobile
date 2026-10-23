@@ -4,7 +4,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '../features/update/update_gate.dart';
+import '../services/app_info.dart';
 import '../services/auth_service.dart';
+import 'app_version_repository.dart';
 
 class ApiException implements Exception {
   const ApiException(this.message, {this.statusCode, this.code, this.retryable = true, this.retryAfter});
@@ -63,7 +66,8 @@ class ApiException implements Exception {
 
 /// Thin JSON client shared by the feature services.
 ///
-/// Every call sends the bearer token, signs the user out on 401, and turns
+/// Every call sends the bearer token and the app's version headers, signs the
+/// user out on 401, shows the update screen on 426, and turns
 /// network and server failures into [ApiException] with a message that can be
 /// shown to the user as is.
 class Api {
@@ -88,19 +92,20 @@ class Api {
     Map<String, String>? query,
     Object? body,
     bool authenticated = true,
+    Duration? timeout,
   }) async {
     final uri = Uri.parse(ApiConfig.getUrl(path)).replace(queryParameters: query == null || query.isEmpty ? null : query);
     final request = http.Request(method, uri)
       ..headers.addAll(
         authenticated
             ? AuthService.getAuthHeaders()
-            : const {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            : {...AppInfo.headers, 'Content-Type': 'application/json', 'Accept': 'application/json'},
       );
     if (body != null) request.body = jsonEncode(body);
 
     final http.Response response;
     try {
-      response = await http.Response.fromStream(await _client.send(request).timeout(_timeout));
+      response = await http.Response.fromStream(await _client.send(request).timeout(timeout ?? _timeout));
     } on TimeoutException {
       throw const ApiException('The connection timed out. Check your internet and try again.');
     } catch (_) {
@@ -119,6 +124,10 @@ class Api {
     if (response.statusCode == 401 && authenticated) {
       await AuthService.handleSessionExpired();
       throw const ApiException('Your session has ended. Please log in again.', statusCode: 401);
+    }
+
+    if (response.statusCode == 426) {
+      UpdateGate.require(AppVersionStatus.fromUpgradeRequired(decoded));
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {

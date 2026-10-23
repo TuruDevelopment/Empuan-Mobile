@@ -30,6 +30,10 @@ class ApiConfig {
   // Check if running in production
   static bool get isProduction => _environment == 'production';
 
+  // Public. Tells this build whether it must or can update, see
+  // BACKEND_CHANGES.md ("App version gate").
+  static const String appVersion = '/app/version';
+
   // Auth endpoints
   static const String register = '/register';
   static const String login = '/login';

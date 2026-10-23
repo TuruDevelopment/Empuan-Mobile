@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../data/api.dart';
+import '../data/app_version_repository.dart';
 import '../data/sse.dart';
+import '../features/update/update_gate.dart';
 import '../models/chat_message.dart';
 import 'auth_service.dart';
 
@@ -230,6 +232,7 @@ class ChatbotService {
           yield const ChatErrorEvent(ApiException('Your session has ended. Please log in again.', statusCode: 401, retryable: false));
           return;
         }
+        if (status == 426) UpdateGate.require(AppVersionStatus.fromUpgradeRequired(decoded));
         final error = ApiException.fromResponse(status, decoded, headers: response.headers);
         // An old backend has no streaming route: answer through /send.
         if (fallback != null && error.code == null && (status == 404 || status == 405)) {

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:Empuan/config/api_config.dart';
+import 'package:Empuan/data/app_version_repository.dart';
 import 'package:Empuan/features/learning/models/learning_models.dart';
+import 'package:Empuan/features/update/update_gate.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
@@ -190,6 +192,10 @@ class LearningService {
           'Your session has expired. Please sign in again.',
           statusCode: 401,
         );
+      }
+
+      if (response.statusCode == 426) {
+        UpdateGate.require(AppVersionStatus.fromUpgradeRequired(decoded));
       }
 
       if (response.statusCode < 200 || response.statusCode >= 300) {

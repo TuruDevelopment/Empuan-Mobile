@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'features/auth/splash_screen.dart';
 import 'services/api_client.dart';
+import 'services/app_info.dart';
 import 'services/auth_service.dart';
 import 'styles/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppInfo.load();
   await AuthService.init();
   runApp(const EmpuanApp());
 }

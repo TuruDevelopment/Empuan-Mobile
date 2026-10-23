@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../data/app_version_repository.dart';
 import '../features/auth/welcome_screen.dart';
+import '../features/update/update_gate.dart';
 import 'api_client.dart';
+import 'app_info.dart';
 
 class AuthService {
   static String? token;
@@ -13,9 +16,11 @@ class AuthService {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
-  /// Get authorization headers with Bearer token
+  /// Get authorization headers with Bearer token, plus the app's version
+  /// headers so the server can gate old builds.
   static Map<String, String> getAuthHeaders() {
     return {
+      ...AppInfo.headers,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
@@ -56,6 +61,7 @@ class AuthService {
         ApiConfig.getUrl(ApiConfig.login),
         options: Options(
           headers: {
+            ...AppInfo.headers,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
@@ -80,6 +86,7 @@ class AuthService {
       return false;
     } on DioException catch (e) {
       debugPrint('[AUTH_SERVICE] DioException status=${e.response?.statusCode} type=${e.type}');
+      if (e.response?.statusCode == 426) UpdateGate.require(AppVersionStatus.fromUpgradeRequired(e.response?.data));
       return false;
     } on Exception catch (e) {
       debugPrint('[AUTH_SERVICE] Exception type=${e.runtimeType}');

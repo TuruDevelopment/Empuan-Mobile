@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../data/contacts_repository.dart';
+import '../../services/app_info.dart';
 import '../../ui/em_ui.dart';
 import '../auth/form_motion.dart';
 import '../auth/interests_screen.dart';
@@ -156,7 +157,7 @@ class _MeScreenState extends State<MeScreen> {
               child: const Text('Delete account'),
             ),
             const SizedBox(height: 4),
-            Text('Empuan 1.0.0', textAlign: TextAlign.center, style: text.bodySmall),
+            Text('Empuan ${AppInfo.version}', textAlign: TextAlign.center, style: text.bodySmall),
           ]),
         ),
       ),

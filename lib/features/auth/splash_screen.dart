@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../../app/main_shell.dart';
 import '../../data/account_repository.dart';
 import '../../data/api.dart';
+import '../../data/app_version_repository.dart';
 import '../../services/auth_service.dart';
 import '../../ui/em_ui.dart';
+import '../update/update_gate.dart';
 import 'welcome_screen.dart';
 
-/// Decides where to start: the app if a saved session works, otherwise Welcome.
+/// Decides where to start: the update screen if this build is no longer
+/// supported, then the app if a saved session works, otherwise Welcome.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -50,6 +53,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (reduced) _intro.value = 1;
     // Let the intro finish before leaving so the splash doesn't flash past.
     final intro = reduced ? Future<void>.value() : _playIntro();
+    // Runs alongside the session check. It gives up quickly and any failure
+    // reads as "carry on", so it never blocks startup.
+    final versions = AppVersionRepository();
+    final versionCheck = versions.check();
     var signedIn = AuthService.token?.isNotEmpty ?? false;
     if (signedIn) {
       try {
@@ -60,7 +67,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (e.statusCode == 401 || e.statusCode == 403) signedIn = false;
       }
     }
+    final version = await versionCheck;
     await intro;
+    // A 426 from the session check has already replaced everything.
+    if (!mounted || UpdateGate.showing) return;
+    if (version != null && version.updateRequired) {
+      UpdateGate.require(version);
+      return;
+    }
+    if (version != null && await versions.shouldOffer(version)) {
+      await versions.markOffered(version);
+      if (!mounted) return;
+      await showUpdateAvailableSheet(context, version);
+    }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       transitionDuration: reduced ? Duration.zero : EmMotion.slow,
