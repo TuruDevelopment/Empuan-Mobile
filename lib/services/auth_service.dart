@@ -2,9 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/jwt_decoder.dart';
 import '../config/api_config.dart';
-import '../start_page.dart';
+import '../features/auth/welcome_screen.dart';
 import 'api_client.dart';
 
 class AuthService {
@@ -73,8 +72,6 @@ class AuthService {
 
         await _secureStorage.write(key: _tokenKey, value: token);
 
-        debugToken(token);
-
         debugPrint('[AUTH_SERVICE] Login successful');
         return true;
       }
@@ -90,6 +87,11 @@ class AuthService {
     }
   }
 
+  static Future<void> saveToken(String value) async {
+    token = value;
+    await _secureStorage.write(key: _tokenKey, value: value);
+  }
+
   static Future<void> logout() async {
     debugPrint('[LOGOUT] Clearing session');
     token = null;
@@ -102,16 +104,22 @@ class AuthService {
 
   /// Handle session expiration - logout and navigate to login with notification
   /// This is called when API returns 401/403
+  static bool _expiring = false;
+
   static Future<void> handleSessionExpired() async {
+    // Several requests can fail with 401 at once; only redirect once.
+    if (_expiring || token == null) return;
+    _expiring = true;
     debugPrint('[SESSION_EXPIRED] Auto logout');
 
     await logout();
+    _expiring = false;
 
-    final context = navigatorKey.currentContext;
-    if (context != null) {
-      Navigator.of(context).pushAndRemoveUntil(
+    final navigator = navigatorKey.currentState;
+    if (navigator != null) {
+      navigator.pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => const StartPage(sessionExpired: true),
+          builder: (context) => const WelcomeScreen(sessionExpired: true),
         ),
         (route) => false,
       );
