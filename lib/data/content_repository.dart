@@ -54,6 +54,13 @@ class ArticlesRepository {
     return list;
   }
 
+  /// One article, e.g. when Empuan AI links to it.
+  Future<Article> article(int id) async {
+    final article = Article.fromJson(_single(await _api.get(ApiConfig.suaraPuanById(id))));
+    if (article.id <= 0 || article.title.isEmpty) throw const ApiException('This article isn’t available any more.');
+    return article;
+  }
+
   Future<List<ArticleCategory>> categories() async {
     return asMapList(await _api.get(ApiConfig.kategoriSuaraPuan))
         .map((j) => ArticleCategory(asInt(j['id']), asString(j['nama'] ?? j['name'] ?? j['nama_kategori'], 'Other')))
@@ -178,4 +185,18 @@ class PlacesRepository {
   }
 
   Future<List<Place>> places() async => asMapList(await _api.get(ApiConfig.untukPuan)).map(Place.fromJson).toList();
+
+  /// One place, e.g. when Empuan AI links to it.
+  Future<Place> place(int id) async {
+    final json = _single(await _api.get(ApiConfig.untukPuanById(id)));
+    if (asInt(json['id']) <= 0) throw const ApiException('This place isn’t available any more.');
+    return Place.fromJson(json);
+  }
+}
+
+/// The item of a show endpoint, whether it is wrapped in `data` or not.
+Map<String, dynamic> _single(dynamic json) {
+  final data = json is Map && json['data'] != null ? json['data'] : json;
+  if (data is List) return data.isEmpty ? const {} : asMap(data.first);
+  return asMap(data);
 }

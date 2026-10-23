@@ -9,10 +9,13 @@ import '../widgets/learning_widgets.dart';
 import 'learning_course_detail_screen.dart';
 
 class LearningCatalogScreen extends StatefulWidget {
-  const LearningCatalogScreen({super.key, this.service, this.initialCategory, this.autofocus = false});
+  const LearningCatalogScreen({super.key, this.service, this.initialCategory, this.initialQuery, this.autofocus = false});
 
   final LearningService? service;
   final String? initialCategory;
+
+  /// Search text to start with, e.g. from an Empuan AI suggestion.
+  final String? initialQuery;
 
   /// Opens the keyboard straight away when the user came here to search.
   final bool autofocus;
@@ -23,7 +26,7 @@ class LearningCatalogScreen extends StatefulWidget {
 
 class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
   late final LearningService _service = widget.service ?? LearningService();
-  final _search = TextEditingController();
+  late final _search = TextEditingController(text: widget.initialQuery?.trim() ?? '');
   Timer? _debounce;
   late String? _category = widget.initialCategory;
   late Future<LearningCoursePage> _coursesFuture = _loadCourses();
