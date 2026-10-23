@@ -82,3 +82,14 @@ The full contract and deploy notes are in `docs/EMPUAN-AI.md` in `TuruDevelopmen
 - Errors as `{ code, message, retryable, retry_after }`. The app shows when to try again after `rate_limited` and turns Send off until then.
 
 If `/chatbot/stream` returns 404 or 405 without a `code` (an older backend), the app falls back to `POST /chatbot/send`, which still answers the released app with `data.response`.
+
+## App version gate
+
+The full contract, env settings and rollout plan are in `docs/APP-VERSION.md` in `TuruDevelopment/Empuan-Back`, branch `redesign-play-compliance`. What the app does (from 2.0.0+16):
+
+- Sends `X-App-Platform` (`android`/`ios`), `X-App-Version` and `X-App-Build` on every API request, including login and the Empuan AI stream.
+- Calls `GET /app/version?platform=…&build=…` on startup with a 4-second timeout. `update_required` replaces the app with a blocking update screen; `update_available` shows a dismissible sheet once per `latest_build`. If the call fails (offline, or 404 before the backend is deployed), the app starts normally.
+- Any `426` with `code: update_required` shows the same blocking screen, using its `title`, `message` and `store_url`.
+- The update screen opens Google Play's in-app update on Android (or `store_url`), the App Store link or an App Store search on iOS, and always offers "Emergency? Call 112".
+
+To force an update later, publish the new build and raise `APP_ANDROID_MIN_BUILD` (or `APP_IOS_MIN_BUILD`).
