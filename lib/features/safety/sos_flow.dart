@@ -645,9 +645,18 @@ Future<void> showImSafeSheet(BuildContext context) {
 /// The raised SOS button in the middle of the tab bar. It only fires after a
 /// 3-second press, so a pocket tap can't send an alert.
 class SosHoldButton extends StatefulWidget {
-  const SosHoldButton({super.key, required this.onTriggered});
+  const SosHoldButton({super.key, required this.onTriggered, this.onPractice, this.faceKey});
 
   final VoidCallback onTriggered;
+
+  /// Set during the app tour's practice step. A completed hold then calls
+  /// this instead of [onTriggered]: the ring fills and the phone buzzes, but
+  /// no countdown, message or location request ever starts.
+  final VoidCallback? onPractice;
+
+  /// Put on the round face so the app tour can measure exactly where it is
+  /// drawn.
+  final Key? faceKey;
 
   @override
   State<SosHoldButton> createState() => _SosHoldButtonState();
@@ -661,7 +670,13 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
         if (!EmMotion.reduced(context)) _burst.forward(from: 0);
         _fired = true;
         _hold.reset();
-        widget.onTriggered();
+        if (_practiceHold) {
+          // If the tour moved on mid-hold this does nothing. A practice hold
+          // never falls through to a real alert.
+          widget.onPractice?.call();
+        } else {
+          widget.onTriggered();
+        }
       }
     });
 
@@ -673,6 +688,10 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
   // Set when a hold completes, so lifting the finger afterwards doesn't show
   // the "press and hold" hint.
   bool _fired = false;
+
+  // Fixed when the finger goes down, so practice can't become real (or real
+  // become practice) if the tour starts or ends during a hold.
+  bool _practiceHold = false;
 
   @override
   void dispose() {
@@ -689,6 +708,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
     HapticFeedback.selectionClick();
     _setDown(true);
     _fired = false;
+    _practiceHold = widget.onPractice != null;
     _hold.forward(from: 0);
   }
 
@@ -700,27 +720,29 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final reduced = EmMotion.reduced(context);
-    return Semantics(
-      button: true,
-      label: 'SOS',
-      hint: 'Press and hold for 3 seconds to alert your trusted contacts',
-      onLongPress: widget.onTriggered,
-      child: Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerDown: (_) => _start(),
-        onPointerUp: (_) {
-          if (!_fired && _hold.value < 0.2) {
-            showEmToast(context, 'Press and hold SOS for 3 seconds to send an alert.', icon: Icons.touch_app_outlined);
-          }
-          _cancel();
-        },
-        onPointerCancel: (_) => _cancel(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, -22),
-              child: AnimatedScale(
+    // Raised above the tab bar. The translate wraps the touch area too, so
+    // the whole face responds, not just its lower half.
+    return Transform.translate(
+      offset: const Offset(0, -22),
+      child: Semantics(
+        button: true,
+        label: 'SOS',
+        hint: 'Press and hold for 3 seconds to alert your trusted contacts',
+        onLongPress: widget.onPractice ?? widget.onTriggered,
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (_) => _start(),
+          onPointerUp: (_) {
+            if (!_fired && _hold.value < 0.2) {
+              showEmToast(context, 'Press and hold SOS for 3 seconds to send an alert.', icon: Icons.touch_app_outlined);
+            }
+            _cancel();
+          },
+          onPointerCancel: (_) => _cancel(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedScale(
                 scale: _down && !reduced ? 0.94 : 1,
                 duration: EmMotion.fast,
                 curve: _down ? EmMotion.exit : EmMotion.enter,
@@ -734,6 +756,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
                       child: Transform.scale(
                         scale: pop,
                         child: Container(
+                          key: widget.faceKey,
                           width: 66,
                           height: 66,
                           decoration: BoxDecoration(
@@ -758,8 +781,8 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
                   },
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
