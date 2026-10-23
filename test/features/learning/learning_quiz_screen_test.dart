@@ -44,7 +44,8 @@ void main() {
     expect(find.text('Budgeting basics'), findsWidgets);
     expect(find.text('1 of 2 lessons'), findsOneWidget);
     expect(find.text('Continue: The 50/30/20 split'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Article · 5 min · Done'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('Article · 5 min · Done'), 200,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text('Article · 5 min · Done'), findsOneWidget);
     expect(find.text('Video · 7 min · Quiz'), findsOneWidget);
   });

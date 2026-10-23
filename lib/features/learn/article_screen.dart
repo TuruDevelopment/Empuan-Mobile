@@ -227,9 +227,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
         String key;
         if (loading) {
           key = 'loading';
-          body = const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: EmSkeletonList(count: 2, thumbnail: 32, padding: EdgeInsets.zero));
+          body = const Column(children: [_CommentSkeleton(), _CommentSkeleton()]);
         } else if (snapshot.hasError) {
           key = 'error';
           body = EmStateView.error(message: '${snapshot.error}', onRetry: _reloadComments);
@@ -414,6 +412,34 @@ class _CommentBar extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CommentSkeleton extends StatelessWidget {
+  const _CommentSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(top: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EmSkeleton(width: 32, height: 32, radius: 16),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EmSkeleton(height: 12, width: 120),
+                SizedBox(height: 8),
+                EmSkeleton(height: 14),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

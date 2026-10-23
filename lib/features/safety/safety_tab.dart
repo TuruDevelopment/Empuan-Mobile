@@ -96,7 +96,10 @@ class _SafetyTabState extends State<SafetyTab> {
               const SizedBox(height: 8),
               EmFadeSlideIn(
                 index: 2,
-                child: EmStateSwitcher(stateKey: _contactsState, child: _contactsSection()),
+                child: EmStateSwitcher(
+                  stateKey: _contactsState,
+                  child: SizedBox(width: double.infinity, child: _contactsSection()),
+                ),
               ),
               const SizedBox(height: 22),
               const EmFadeSlideIn(index: 3, child: EmSectionHeader('Get out of a situation')),

@@ -78,7 +78,8 @@ class _LearningCertificateScreenState extends State<LearningCertificateScreen> {
           } else {
             child = _content(context, snapshot.requireData);
           }
-          return EmStateSwitcher(stateKey: loading ? 'loading' : (snapshot.hasError ? 'error' : 'content'), child: child);
+          return EmStateSwitcher(
+              stateKey: loading ? 'loading' : (snapshot.hasError ? 'error' : 'content'), child: child);
         },
       ),
     );

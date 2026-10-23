@@ -195,6 +195,11 @@ class _SosCountdownScreenState extends State<SosCountdownScreen> with TickerProv
                       SizedBox.expand(
                         child: AnimatedSwitcher(
                           duration: swap,
+                          // Expand so the ring keeps filling the 200px box.
+                          layoutBuilder: (current, previous) => Stack(
+                            fit: StackFit.expand,
+                            children: [...previous, if (current != null) current],
+                          ),
                           child: _sending
                               ? const CircularProgressIndicator(
                                   key: ValueKey('sending'),
@@ -654,6 +659,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
       if (status == AnimationStatus.completed) {
         HapticFeedback.heavyImpact();
         if (!EmMotion.reduced(context)) _burst.forward(from: 0);
+        _fired = true;
         _hold.reset();
         widget.onTriggered();
       }
@@ -663,6 +669,10 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
   late final AnimationController _burst = AnimationController(vsync: this, duration: EmMotion.slow);
 
   bool _down = false;
+
+  // Set when a hold completes, so lifting the finger afterwards doesn't show
+  // the "press and hold" hint.
+  bool _fired = false;
 
   @override
   void dispose() {
@@ -678,6 +688,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
   void _start() {
     HapticFeedback.selectionClick();
     _setDown(true);
+    _fired = false;
     _hold.forward(from: 0);
   }
 
@@ -698,7 +709,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
         behavior: HitTestBehavior.opaque,
         onPointerDown: (_) => _start(),
         onPointerUp: (_) {
-          if (_hold.value < 0.2) {
+          if (!_fired && _hold.value < 0.2) {
             showEmToast(context, 'Press and hold SOS for 3 seconds to send an alert.', icon: Icons.touch_app_outlined);
           }
           _cancel();

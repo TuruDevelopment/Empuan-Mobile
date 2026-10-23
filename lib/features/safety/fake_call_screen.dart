@@ -254,7 +254,10 @@ class _FakeCallScreenState extends State<FakeCallScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            EmStateSwitcher(stateKey: _callersState, child: _callersSection(caller)),
+            EmStateSwitcher(
+              stateKey: _callersState,
+              child: SizedBox(width: double.infinity, child: _callersSection(caller)),
+            ),
             const SizedBox(height: 18),
             EmGroup(
               children: [

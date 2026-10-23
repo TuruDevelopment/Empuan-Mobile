@@ -106,7 +106,11 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
   @override
   Widget build(BuildContext context) {
     final contacts = _contacts;
-    final state = _error != null ? 'error' : contacts == null ? 'loading' : 'list';
+    final state = _error != null
+        ? 'error'
+        : contacts == null
+            ? 'loading'
+            : 'list';
     return Scaffold(
       appBar: const EmTopBar(title: 'Trusted contacts'),
       body: EmStateSwitcher(stateKey: state, child: _body()),
@@ -144,12 +148,15 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
           EmStateSwitcher(
             stateKey: contacts.isEmpty,
             child: contacts.isEmpty
-                ? EmStateView(
-                    icon: Icons.person_add_alt_1_rounded,
-                    title: 'No trusted contacts yet',
-                    message: 'Add at least one person so SOS has someone to text.',
-                    actionLabel: 'Add trusted contact',
-                    onAction: _add,
+                ? SizedBox(
+                    width: double.infinity,
+                    child: EmStateView(
+                      icon: Icons.person_add_alt_1_rounded,
+                      title: 'No trusted contacts yet',
+                      message: 'Add at least one person so SOS has someone to text.',
+                      actionLabel: 'Add trusted contact',
+                      onAction: _add,
+                    ),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -170,7 +177,8 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                                     : _removingId == c.id
                                         ? const SizedBox(
                                             width: 88,
-                                            child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4))),
+                                            child: Center(
+                                                child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4))),
                                           )
                                         : Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -191,7 +199,8 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       const SizedBox(height: 16),
                       EmFadeSlideIn(
                         index: math.min(contacts.length + 1, 8),
-                        child: EmButton(label: 'Add trusted contact', icon: Icons.add_rounded, variant: EmButtonVariant.tonal, onPressed: _add),
+                        child: EmButton(
+                            label: 'Add trusted contact', icon: Icons.add_rounded, variant: EmButtonVariant.tonal, onPressed: _add),
                       ),
                     ],
                   ),
