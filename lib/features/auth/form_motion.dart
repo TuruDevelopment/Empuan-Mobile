@@ -51,29 +51,28 @@ class AnimatedReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = EmMotion.reduced(context) ? Duration.zero : EmMotion.medium;
-    return AnimatedSize(
+    final reduced = EmMotion.reduced(context);
+    final duration = reduced ? Duration.zero : EmMotion.medium;
+    final switcher = AnimatedSwitcher(
       duration: duration,
-      curve: EmMotion.enter,
-      alignment: Alignment.topCenter,
-      child: AnimatedSwitcher(
-        duration: duration,
-        switchInCurve: EmMotion.enter,
-        switchOutCurve: EmMotion.exit,
-        layoutBuilder: (current, previous) => Stack(
-          alignment: Alignment.topLeft,
-          fit: StackFit.passthrough,
-          children: [...previous, if (current != null) current],
-        ),
-        transitionBuilder: (child, a) => FadeTransition(
-          opacity: a,
-          child: SlideTransition(position: Tween(begin: offset, end: Offset.zero).animate(a), child: child),
-        ),
-        child: child == null
-            ? const SizedBox(key: ValueKey('em-reveal-empty'), width: double.infinity)
-            : KeyedSubtree(key: ValueKey(switchKey ?? 'em-reveal-shown'), child: child!),
+      switchInCurve: EmMotion.enter,
+      switchOutCurve: EmMotion.exit,
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.topLeft,
+        fit: StackFit.passthrough,
+        children: [...previous, if (current != null) current],
       ),
+      transitionBuilder: (child, a) => FadeTransition(
+        opacity: a,
+        child: SlideTransition(position: Tween(begin: offset, end: Offset.zero).animate(a), child: child),
+      ),
+      child: child == null
+          ? const SizedBox(key: ValueKey('em-reveal-empty'), width: double.infinity)
+          : KeyedSubtree(key: ValueKey(switchKey ?? 'em-reveal-shown'), child: child!),
     );
+    // AnimatedSize can't run with a zero duration, so skip it entirely.
+    if (reduced) return switcher;
+    return AnimatedSize(duration: duration, curve: EmMotion.enter, alignment: Alignment.topCenter, child: switcher);
   }
 }
 

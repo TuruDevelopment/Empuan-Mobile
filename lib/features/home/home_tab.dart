@@ -338,19 +338,17 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSize(
-      duration: EmMotion.reduced(context) ? Duration.zero : EmMotion.medium,
-      curve: EmMotion.enter,
-      alignment: Alignment.topCenter,
-      child: EmStateSwitcher(
-        stateKey: state,
-        child: switch (state) {
-          _SectionState.loading => skeleton,
-          _SectionState.hidden => const SizedBox(width: double.infinity),
-          _ => builder(),
-        },
-      ),
+    final switcher = EmStateSwitcher(
+      stateKey: state,
+      child: switch (state) {
+        _SectionState.loading => skeleton,
+        _SectionState.hidden => const SizedBox(width: double.infinity),
+        _ => builder(),
+      },
     );
+    // AnimatedSize can't run with a zero duration, so reduced motion skips it.
+    if (EmMotion.reduced(context)) return switcher;
+    return AnimatedSize(duration: EmMotion.medium, curve: EmMotion.enter, alignment: Alignment.topCenter, child: switcher);
   }
 }
 
