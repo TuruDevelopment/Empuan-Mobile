@@ -85,7 +85,7 @@ If `/chatbot/stream` returns 404 or 405 without a `code` (an older backend), the
 
 ## App version gate
 
-The full contract, env settings and rollout plan are in `docs/APP-VERSION.md` in `TuruDevelopment/Empuan-Back`, branch `redesign-play-compliance`. What the app does (from 2.0.0+16):
+The full contract, env settings and rollout plan are in `docs/APP-VERSION.md` in `TuruDevelopment/Empuan-Back`, branch `redesign-play-compliance`. What the app does (from 2.0.0+17):
 
 - Sends `X-App-Platform` (`android`/`ios`), `X-App-Version` and `X-App-Build` on every API request, including login and the Empuan AI stream.
 - Calls `GET /app/version?platform=…&build=…` on startup with a 4-second timeout. `update_required` replaces the app with a blocking update screen; `update_available` shows a dismissible sheet once per `latest_build`. If the call fails (offline, or 404 before the backend is deployed), the app starts normally.
