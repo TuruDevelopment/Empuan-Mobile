@@ -1,209 +1,227 @@
 import 'dart:async';
 
-import 'package:Empuan/features/learning/models/learning_models.dart';
-import 'package:Empuan/features/learning/screens/learning_course_detail_screen.dart';
-import 'package:Empuan/features/learning/services/learning_service.dart';
-import 'package:Empuan/features/learning/widgets/learning_widgets.dart';
-import 'package:Empuan/styles/style.dart';
 import 'package:flutter/material.dart';
 
-class LearningCatalogScreen extends StatefulWidget {
-  const LearningCatalogScreen({
-    super.key,
-    required this.service,
-    this.initialCategory,
-  });
+import '../../../ui/em_ui.dart';
+import '../models/learning_models.dart';
+import '../services/learning_service.dart';
+import '../widgets/learning_widgets.dart';
+import 'learning_course_detail_screen.dart';
 
-  final LearningService service;
+class LearningCatalogScreen extends StatefulWidget {
+  const LearningCatalogScreen({super.key, this.service, this.initialCategory, this.initialQuery, this.autofocus = false});
+
+  final LearningService? service;
   final String? initialCategory;
+
+  /// Search text to start with, e.g. from an Empuan AI suggestion.
+  final String? initialQuery;
+
+  /// Opens the keyboard straight away when the user came here to search.
+  final bool autofocus;
 
   @override
   State<LearningCatalogScreen> createState() => _LearningCatalogScreenState();
 }
 
 class _LearningCatalogScreenState extends State<LearningCatalogScreen> {
-  final _searchController = TextEditingController();
+  late final LearningService _service = widget.service ?? LearningService();
+  late final _search = TextEditingController(text: widget.initialQuery?.trim() ?? '');
   Timer? _debounce;
-  String? _category;
-  late Future<LearningCoursePage> _coursesFuture;
-  late Future<LearningHomeData> _homeFuture;
+  late String? _category = widget.initialCategory;
+  late Future<LearningCoursePage> _coursesFuture = _loadCourses();
+  List<LearningCategory> _categories = const [];
+  LearningEntrance _entrance = LearningEntrance();
 
   @override
   void initState() {
     super.initState();
-    _category = widget.initialCategory;
-    _homeFuture = widget.service.getHome();
-    _coursesFuture = _loadCourses();
+    _loadCategories();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _searchController.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  Future<LearningCoursePage> _loadCourses() {
-    return widget.service.getCourses(
-      category: _category,
-      search: _searchController.text,
-      perPage: 50,
-    );
+  Future<void> _loadCategories() async {
+    try {
+      final home = await _service.getHome();
+      if (mounted) setState(() => _categories = home.categories);
+    } catch (_) {
+      // Without categories the search still works; the chip row stays hidden.
+    }
   }
 
-  Future<void> _reload() async {
-    final coursesFuture = _loadCourses();
+  Future<LearningCoursePage> _loadCourses() =>
+      _service.getCourses(category: _category, search: _search.text, perPage: 50);
+
+  Future<void> _reload({bool newResults = false}) async {
+    final future = _loadCourses();
     setState(() {
-      _coursesFuture = coursesFuture;
+      _coursesFuture = future;
+      if (newResults) _entrance = LearningEntrance();
     });
-    await coursesFuture;
+    try {
+      await future;
+    } catch (_) {
+      // The FutureBuilder shows the error.
+    }
   }
+
+  void _runSearch() => _reload(newResults: true);
 
   void _onSearchChanged(String _) {
+    setState(() {});
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), _reload);
+    _debounce = Timer(const Duration(milliseconds: 400), _runSearch);
   }
 
-  void _setCategory(String? category) {
+  void _clearSearch() {
+    _search.clear();
+    _debounce?.cancel();
+    _runSearch();
+  }
+
+  void _setCategory(String? code) {
     setState(() {
-      _category = category;
+      _category = code;
       _coursesFuture = _loadCourses();
+      _entrance = LearningEntrance();
     });
   }
 
-  void _openCourse(LearningCourse course) {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (_) => LearningCourseDetailScreen(
-              slug: course.slug,
-              service: widget.service,
-            ),
-          ),
-        )
-        .then((_) => _reload());
+  Future<void> _openCourse(LearningCourse course) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => LearningCourseDetailScreen(slug: course.slug, service: _service)),
+    );
+    if (mounted) await _reload();
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = _category == null ? 0 : _categories.indexWhere((c) => c.code == _category) + 1;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Learning Catalog')),
-      body: Column(
-        children: [
-          Material(
-            color: AppColors.surface,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 16, 6),
+              child: Row(
                 children: [
-                  TextField(
-                    controller: _searchController,
-                    onChanged: _onSearchChanged,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      labelText: 'Search courses',
-                      hintText: 'Example: career or finance',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: _searchController.text.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Clear search',
-                              onPressed: () {
-                                _searchController.clear();
-                                _reload();
-                              },
-                              icon: const Icon(Icons.close_rounded),
-                            ),
-                    ),
+                  EmIconButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    label: 'Back',
+                    onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                  const SizedBox(height: 12),
-                  FutureBuilder<LearningHomeData>(
-                    future: _homeFuture,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const SizedBox.shrink();
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: const Text('All'),
-                                selected: _category == null,
-                                onSelected: (_) => _setCategory(null),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: TextField(
+                      controller: _search,
+                      autofocus: widget.autofocus,
+                      onChanged: _onSearchChanged,
+                      onSubmitted: (_) => _runSearch(),
+                      textInputAction: TextInputAction.search,
+                      style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Search courses',
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                                onPressed: _clearSearch,
                               ),
-                            ),
-                            ...snapshot.data!.categories.map(
-                              (category) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(category.name),
-                                  selected: _category == category.code,
-                                  onSelected: (_) =>
-                                      _setCategory(category.code),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: FutureBuilder<LearningCoursePage>(
-              future: _coursesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return LearningErrorState(
-                    message: snapshot.error.toString(),
-                    onRetry: _reload,
-                  );
-                }
-
-                final courses = snapshot.requireData.courses;
-
-                if (courses.isEmpty) {
-                  return const LearningEmptyState(
-                    title: 'No courses found',
-                    message: 'Try a different search term or category.',
-                    icon: Icons.search_off_rounded,
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: _reload,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: courses.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final course = courses[index];
-                      return LearningCourseCard(
-                        course: course,
-                        onTap: () => _openCourse(course),
-                      );
-                    },
-                  ),
-                );
-              },
+            if (_categories.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: EmChipBar(
+                  labels: ['All', ..._categories.map((c) => c.name)],
+                  selected: selectedIndex < 0 ? 0 : selectedIndex,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  onSelected: (i) => _setCategory(i == 0 ? null : _categories[i - 1].code),
+                ),
+              ),
+            Expanded(
+              child: FutureBuilder<LearningCoursePage>(
+                future: _coursesFuture,
+                builder: (context, snapshot) {
+                  final (key, child) = _state(snapshot);
+                  return EmStateSwitcher(stateKey: key, child: child);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  (String, Widget) _state(AsyncSnapshot<LearningCoursePage> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+      return ('loading', const Padding(padding: EdgeInsets.only(top: 16), child: LearningCourseSkeleton()));
+    }
+    if (snapshot.hasError) {
+      return (
+        'error',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: EmStateView.error(message: '${snapshot.error}', onRetry: _reload),
+        )
+      );
+    }
+    final page = snapshot.requireData;
+    final courses = page.courses;
+    if (courses.isEmpty) {
+      return (
+        'empty',
+        LearningScrollableState(
+          onRefresh: _reload,
+          child: EmStateView(
+            icon: Icons.search_off_rounded,
+            title: 'No courses found',
+            message: _search.text.trim().isEmpty
+                ? 'There are no courses in this topic yet.'
+                : 'Nothing matches “${_search.text.trim()}”. Try another word or topic.',
+          ),
+        )
+      );
+    }
+    final count = page.total > courses.length ? page.total : courses.length;
+    return (
+      'results',
+      RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          itemCount: courses.length + 1,
+          separatorBuilder: (_, i) => SizedBox(height: i == 0 ? 10 : 12),
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return EmAnimatedSwap(
+                  valueKey: count,
+                  child: Text(
+                    '$count ${count == 1 ? 'course' : 'courses'}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  ));
+            }
+            final course = courses[i - 1];
+            return _entrance.wrap(i, LearningCourseRow(course: course, onTap: () => _openCourse(course)));
+          },
+        ),
+      )
     );
   }
 }

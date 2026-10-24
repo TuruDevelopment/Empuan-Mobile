@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Empuan adds your location to the SOS text for your trusted contacts, only when you send SOS.</string>
 </dict>
 </plist>

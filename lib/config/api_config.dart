@@ -30,6 +30,10 @@ class ApiConfig {
   // Check if running in production
   static bool get isProduction => _environment == 'production';
 
+  // Public. Tells this build whether it must or can update, see
+  // BACKEND_CHANGES.md ("App version gate").
+  static const String appVersion = '/app/version';
+
   // Auth endpoints
   static const String register = '/register';
   static const String login = '/login';
@@ -43,10 +47,16 @@ class ApiConfig {
       '/admin/users/username/$username';
   static const String userProfile = '/user/profile';
   static const String usersCurrent = '/users/current';
+  static const String changePassword = '/user/change-password';
 
-  // Catatan Haid endpoints
-  static const String catatanHaid = '/catatan-haid';
-  static String catatanHaidById(int id) => '/admin/catatan-haid/$id';
+  // Account endpoints that need backend support, see BACKEND_CHANGES.md.
+  static const String forgotPassword = '/password/forgot';
+  static const String deleteAccount = '/user/delete-account';
+
+  // Reporting and blocking (Google Play UGC and AI content policies).
+  // Needs backend support, see BACKEND_CHANGES.md.
+  static const String reports = '/reports';
+  static const String blocks = '/blocks';
 
   // Kontak Palsu endpoints
   static const String kontakPalsu = '/kontak-palsu';
@@ -65,6 +75,7 @@ class ApiConfig {
   static const String ruangPuan = '/ruang-puan';
   static String ruangPuanById(int id) => '/ruang-puan/$id';
   static String ruangPuanComments(int id) => '/ruang-puan/$id/comments';
+  static String ruangPuanLike(int id) => '/ruang-puan/$id/like';
 
   // For Her endpoints
   static const String untukPuan = '/untuk-puan';
@@ -82,13 +93,9 @@ class ApiConfig {
   static String questionOptions(int questionId) =>
       '/questions/$questionId/options';
 
-  // Wellness & Onboarding endpoints
-  static const String wellnessQuestions = '/wellness/questions';
-  static const String onboardingSubmit = '/onboarding/submit';
-  static const String wellnessProfile = '/wellness/profile';
-  static const String wellnessUpgradeToHealth = '/wellness/upgrade-to-health';
-  static const String wellnessAnswers = '/wellness/answers';
-  static const String wellnessStats = '/wellness/stats';
+  // Onboarding: what the user wants to learn about. Needs backend support,
+  // see BACKEND_CHANGES.md.
+  static const String onboardingInterests = '/onboarding/interests';
 
   // Chatbot endpoints
   static const String chatbotSend = '/chatbot/send';
@@ -98,6 +105,12 @@ class ApiConfig {
       '/chatbot/history/$sessionId';
   static String chatbotDeleteSession(String sessionId) =>
       '/chatbot/sessions/$sessionId';
+  // Empuan AI v2: streamed answers (Server-Sent Events) and feedback.
+  static const String chatbotStream = '/chatbot/stream';
+  static String chatbotRegenerate(String sessionId) =>
+      '/chatbot/sessions/$sessionId/regenerate';
+  static String chatbotFeedback(int messageId) =>
+      '/chatbot/messages/$messageId/feedback';
 
   // Learning endpoints (18+)
   static const String learningHome = '/learning/home';

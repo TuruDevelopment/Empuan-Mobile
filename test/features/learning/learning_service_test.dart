@@ -24,8 +24,53 @@ void main() {
     );
 
     expect(method, 'PATCH');
-    expect(
-        requestUri.toString(), '${ApiConfig.baseUrl}${ApiConfig.userProfile}');
+    expect(requestUri.toString(), '${ApiConfig.baseUrl}${ApiConfig.userProfile}');
     expect(requestBody, {'dob': '2000-01-02'});
+  });
+
+  test('reads earned certificates and skips malformed entries', () async {
+    Uri? requestUri;
+    final client = MockClient((request) async {
+      requestUri = request.url;
+      return http.Response(
+        jsonEncode({
+          'data': [
+            {
+              'public_id': 'abc',
+              'certificate_number': 'EMP-2026-00123',
+              'recipient_name': 'Ayu Lestari',
+              'course_title': 'Budgeting basics',
+              'course_slug': 'budgeting',
+              'issued_at': '2026-10-20T08:00:00Z',
+            },
+            'not a certificate',
+            {
+              'certificate_number': 'EMP-2026-00124',
+              'course': {'slug': 'salary', 'title': 'Negotiating your salary'},
+            },
+          ],
+        }),
+        200,
+      );
+    });
+
+    final certificates = await LearningService(client: client).getCertificates();
+
+    expect(requestUri.toString(), '${ApiConfig.baseUrl}${ApiConfig.learningCertificates}');
+    expect(certificates, hasLength(2));
+    expect(certificates.first.courseSlug, 'budgeting');
+    expect(certificates.first.issuedAt, DateTime.utc(2026, 10, 20, 8));
+    expect(certificates.last.courseSlug, 'salary');
+    expect(certificates.last.courseTitle, 'Negotiating your salary');
+  });
+
+  test('treats an unexpected certificates payload as an empty list', () async {
+    final client = MockClient((_) async => http.Response(
+        jsonEncode({
+          'data': {'total': 0}
+        }),
+        200));
+
+    expect(await LearningService(client: client).getCertificates(), isEmpty);
   });
 }
