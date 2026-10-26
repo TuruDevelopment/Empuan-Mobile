@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../ui/em_ui.dart';
 import 'login_screen.dart';
+import 'welcome_art.dart';
 import 'signup_flow.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -17,21 +18,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final _pages = PageController();
   int _index = 0;
 
+  /// In the order of [WelcomeArt.slide].
   static const _slides = [
     (
-      image: 'images/intro2.png',
       title: 'Look after yourself, with backup',
       body: 'Learn practical skills, talk with other women, and reach the people you trust with one hold of a button.',
     ),
     (
-      image: 'images/intro1.png',
       title: 'Learn at your own pace',
       body: 'Short courses on money, work and staying safe, made for women in Indonesia.',
     ),
     (
-      image: 'images/intro3.png',
       title: 'Help is one hold away',
       body: 'Hold SOS for 3 seconds and your trusted contacts get a text with your location.',
+    ),
+    (
+      title: 'Ask anything, any time',
+      body: 'Empuan AI answers questions about safety, work and money, and points you to the right course or help line.',
     ),
   ];
 
@@ -78,14 +81,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   final s = _slides[i];
                   return LayoutBuilder(
                     builder: (context, c) {
-                      final art = (c.maxHeight * 0.48).clamp(160.0, 300.0);
-                      final illustration = Container(
-                        width: art,
-                        height: art,
-                        decoration: const BoxDecoration(color: AppColors.blush, shape: BoxShape.circle),
-                        padding: EdgeInsets.all(art * 0.12),
-                        child: Image.asset(s.image, fit: BoxFit.contain, excludeFromSemantics: true),
-                      );
+                      // Takes whatever height the text leaves, up to its full size,
+                      // so small phones get a smaller picture instead of overflowing.
+                      final illustration = ConstrainedBox(constraints: const BoxConstraints(maxHeight: 330), child: WelcomeArt(i));
                       final title = Text(s.title, textAlign: TextAlign.center, style: text.headlineLarge);
                       final body = Text(s.body, textAlign: TextAlign.center, style: text.bodyMedium?.copyWith(color: AppColors.textSecondary));
                       return AnimatedBuilder(
@@ -96,22 +94,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           // Text fades out quickly so neighbouring slides cross-fade
                           // rather than sliding over each other.
                           final textOpacity = (1 - t.abs() * 1.6).clamp(0.0, 1.0);
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 28),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Illustration lags behind the page (parallax) and shrinks a touch.
-                                Transform.translate(
-                                  offset: Offset(t * c.maxWidth * 0.35, 0),
-                                  child: Transform.scale(scale: 1 - 0.12 * t.abs(), child: illustration),
+                          // Scrolls only when even the text doesn't fit, e.g. landscape
+                          // or very large text.
+                          return CustomScrollView(
+                            slivers: [
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Illustration lags behind the page (parallax) and shrinks a touch.
+                                      Flexible(
+                                        child: Transform.translate(
+                                          offset: Offset(t * c.maxWidth * 0.35, 0),
+                                          child: Transform.scale(scale: 1 - 0.12 * t.abs(), child: illustration),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Opacity(opacity: textOpacity, child: title),
+                                      const SizedBox(height: 12),
+                                      Opacity(opacity: textOpacity, child: body),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 28),
-                                Opacity(opacity: textOpacity, child: title),
-                                const SizedBox(height: 12),
-                                Opacity(opacity: textOpacity, child: body),
-                              ],
-                            ),
+                              ),
+                            ],
                           );
                         },
                       );
