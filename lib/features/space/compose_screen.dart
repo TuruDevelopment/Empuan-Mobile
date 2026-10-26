@@ -4,6 +4,7 @@ import '../../data/account_repository.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart';
 import '../../ui/em_ui.dart';
+import '../offline/offline_banner.dart';
 import '../profile/legal_screen.dart';
 
 /// New Her Space post. Pops with true once the post is published.
@@ -86,13 +87,15 @@ class _ComposeScreenState extends State<ComposeScreen> {
                     opacity: a,
                     child: ScaleTransition(scale: Tween(begin: 0.9, end: 1.0).animate(a), child: child),
                   ),
-                  child: EmButton(
-                    key: ValueKey(_hasText),
-                    label: 'Post',
-                    small: true,
-                    expand: false,
-                    loading: _posting,
-                    onPressed: _hasText ? _post : null,
+                  child: OfflineBuilder(
+                    builder: (context, offline) => EmButton(
+                      key: ValueKey(_hasText),
+                      label: 'Post',
+                      small: true,
+                      expand: false,
+                      loading: _posting,
+                      onPressed: _hasText && !offline ? _post : null,
+                    ),
                   ),
                 ),
               ),
@@ -122,6 +125,17 @@ class _ComposeScreenState extends State<ComposeScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  OfflineBuilder(
+                    builder: (context, offline) => !offline
+                        ? const SizedBox.shrink()
+                        : const Padding(
+                            padding: EdgeInsets.only(top: 14),
+                            child: EmNote(
+                              icon: Icons.wifi_off_rounded,
+                              child: Text('You’re offline. Keep writing and post when you’re back online.'),
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 14),
                   TextField(

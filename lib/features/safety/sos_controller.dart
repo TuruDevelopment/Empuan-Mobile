@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,17 +26,30 @@ class SosController extends ChangeNotifier {
   DateTime? get sentAt => _sentAt;
   List<Contact> get alerted => _alerted;
 
+  /// The latest list, for screens that show it: from the server, or the copy
+  /// saved on this phone when offline.
   Future<List<Contact>> trustedContacts() => _contacts.list();
+
+  /// The list for an SOS. Uses the saved copy straight away when there is one,
+  /// so an SOS never waits on the network, and refreshes it in the background
+  /// for next time.
+  Future<List<Contact>> contactsForSos() async {
+    // A stuck keystore must never hold up an SOS.
+    final saved = await _contacts.saved().timeout(const Duration(seconds: 2), onTimeout: () => null);
+    if (saved != null && saved.isNotEmpty) {
+      unawaited(_contacts.list().then((_) {}, onError: (_) {}));
+      return saved;
+    }
+    return _contacts.list();
+  }
 
   static const _disclosureKey = 'sos_location_disclosure_seen';
 
   /// Whether the location explanation screen was shown before asking the
   /// system for permission (Google Play prominent disclosure).
-  static Future<bool> disclosureSeen() async =>
-      (await SharedPreferences.getInstance()).getBool(_disclosureKey) ?? false;
+  static Future<bool> disclosureSeen() async => (await SharedPreferences.getInstance()).getBool(_disclosureKey) ?? false;
 
-  static Future<void> markDisclosureSeen() async =>
-      (await SharedPreferences.getInstance()).setBool(_disclosureKey, true);
+  static Future<void> markDisclosureSeen() async => (await SharedPreferences.getInstance()).setBool(_disclosureKey, true);
 
   /// Asks for foreground location permission. Returns false if the user
   /// declines or location services are off.
@@ -69,12 +84,16 @@ class SosController extends ChangeNotifier {
     }
   }
 
-  static String helpMessage(Position? position) {
+  static String helpMessage(Position? position, {DateTime? now}) {
     final base = 'I need help. This is an SOS from the Empuan app.';
     if (position == null) return '$base I couldn’t share my location, please call me.';
     final lat = position.latitude.toStringAsFixed(5);
     final lng = position.longitude.toStringAsFixed(5);
-    return '$base My location: https://maps.google.com/?q=$lat,$lng';
+    final link = '$base My location: https://maps.google.com/?q=$lat,$lng';
+    // A last known position can be old when GPS couldn't get a fresh fix.
+    final minutes = (now ?? DateTime.now()).difference(position.timestamp).inMinutes;
+    if (minutes < 2) return link;
+    return '$link (last known, about ${minutes < 60 ? '$minutes min' : '${minutes ~/ 60} h'} ago)';
   }
 
   static const safeMessage = 'I’m safe now. Thanks for checking on me.';

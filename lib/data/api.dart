@@ -8,9 +8,20 @@ import '../features/update/update_gate.dart';
 import '../services/app_info.dart';
 import '../services/auth_service.dart';
 import 'app_version_repository.dart';
+import 'offline.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.message, {this.statusCode, this.code, this.retryable = true, this.retryAfter});
+  const ApiException(this.message, {this.statusCode, this.code, this.retryable = true, this.retryAfter, this.offline = false});
+
+  /// The server couldn't be reached and nothing was saved for this screen.
+  const ApiException.offline([this.message = offlineMessage])
+      : statusCode = null,
+        code = 'offline',
+        retryable = true,
+        retryAfter = null,
+        offline = true;
+
+  static const offlineMessage = 'You’re offline. Connect to the internet and try again.';
 
   /// Builds the exception for a non-2xx response. Reads Laravel's
   /// `message`/`errors` and, where the server sends them, `code`, `retryable`
@@ -39,6 +50,9 @@ class ApiException implements Exception {
 
   /// How long to wait before trying again, for `rate_limited`.
   final Duration? retryAfter;
+
+  /// No response came back: no connection, or the server is unreachable.
+  final bool offline;
 
   /// The backend has no route for this yet (see BACKEND_CHANGES.md). A 404
   /// that carries a [code] is a real "not found", not a missing route.
@@ -70,13 +84,18 @@ class ApiException implements Exception {
 /// user out on 401, shows the update screen on 426, and turns
 /// network and server failures into [ApiException] with a message that can be
 /// shown to the user as is.
+///
+/// Signed-in GETs are saved in [OfflineCache]. Without a connection the saved
+/// copy comes back instead, and [OfflineStatus] notes that the app is offline.
 class Api {
   Api({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
   static const _timeout = Duration(seconds: 20);
 
-  Future<dynamic> get(String path, {Map<String, String>? query}) => send('GET', path, query: query);
+  /// [cache] false for data that must not sit in the plain-file cache, such as
+  /// contacts, which keep their own encrypted copy.
+  Future<dynamic> get(String path, {Map<String, String>? query, bool cache = true}) => send('GET', path, query: query, cache: cache);
 
   Future<dynamic> post(String path, {Object? body}) => send('POST', path, body: body);
 
@@ -92,14 +111,19 @@ class Api {
     Map<String, String>? query,
     Object? body,
     bool authenticated = true,
+    bool cache = true,
     Duration? timeout,
   }) async {
     final uri = Uri.parse(ApiConfig.getUrl(path)).replace(queryParameters: query == null || query.isEmpty ? null : query);
+    final cacheKey = method == 'GET' && authenticated && cache ? uri.toString() : null;
+    final status = OfflineStatus.instance;
+
+    // With no network at all, don't wait for a timeout.
+    if (status.noNetwork) return _fromCache(cacheKey);
+
     final request = http.Request(method, uri)
       ..headers.addAll(
-        authenticated
-            ? AuthService.getAuthHeaders()
-            : {...AppInfo.headers, 'Content-Type': 'application/json', 'Accept': 'application/json'},
+        authenticated ? AuthService.getAuthHeaders() : {...AppInfo.headers, 'Content-Type': 'application/json', 'Accept': 'application/json'},
       );
     if (body != null) request.body = jsonEncode(body);
 
@@ -107,10 +131,11 @@ class Api {
     try {
       response = await http.Response.fromStream(await _client.send(request).timeout(timeout ?? _timeout));
     } on TimeoutException {
-      throw const ApiException('The connection timed out. Check your internet and try again.');
+      return _fromCache(cacheKey, message: 'The connection timed out. Check your internet and try again.');
     } catch (_) {
-      throw const ApiException('Can’t reach Empuan right now. Check your internet and try again.');
+      return _fromCache(cacheKey, message: 'Can’t reach Empuan right now. Check your internet and try again.');
     }
+    status.reportReachable();
 
     dynamic decoded;
     if (response.body.isNotEmpty) {
@@ -133,7 +158,17 @@ class Api {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException.fromResponse(response.statusCode, decoded, headers: response.headers);
     }
+    if (cacheKey != null) unawaited(OfflineCache.instance.write(cacheKey, decoded));
     return decoded;
+  }
+
+  /// The saved copy for [key] when the server can't be reached, or an offline
+  /// [ApiException] when there is none.
+  Future<dynamic> _fromCache(String? key, {String message = ApiException.offlineMessage}) async {
+    final saved = key == null ? null : await OfflineCache.instance.read(key);
+    OfflineStatus.instance.reportUnreachable(servedFrom: saved?.savedAt);
+    if (saved == null) throw ApiException.offline(message);
+    return saved.data;
   }
 }
 

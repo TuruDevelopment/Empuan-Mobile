@@ -5,6 +5,7 @@ import '../../data/contacts_repository.dart';
 import '../../ui/em_ui.dart';
 import 'contact_sheet.dart';
 import 'fake_call_screen.dart';
+import 'help_lines.dart';
 import 'siren_screen.dart';
 import 'sos_controller.dart';
 import 'trusted_contacts_screen.dart';
@@ -134,6 +135,15 @@ class _SafetyTabState extends State<SafetyTab> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 22),
+              const EmFadeSlideIn(index: 6, child: EmSectionHeader('Emergency numbers')),
+              const SizedBox(height: 12),
+              const EmFadeSlideIn(index: 7, child: HelpLinesGroup()),
+              const SizedBox(height: 8),
+              EmFadeSlideIn(
+                index: 7,
+                child: Text('Calls use your phone network, so they work without internet.', style: Theme.of(context).textTheme.bodySmall),
               ),
             ],
           ),

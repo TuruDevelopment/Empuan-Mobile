@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -112,8 +113,8 @@ class LearningThumb extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: link == null || link.isEmpty
           ? placeholder
-          : Image.network(
-              link,
+          : Image(
+image: CachedNetworkImageProvider(link),
               width: width,
               height: height,
               fit: BoxFit.cover,

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'data/offline.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/tour/intro_prefs.dart';
 import 'services/api_client.dart';
@@ -11,6 +14,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppInfo.load();
   await AuthService.init();
+  unawaited(OfflineStatus.instance.start());
   // Before the splash can sign anyone out: was this person using the old app?
   await IntroPrefs.recordFirstLaunch(hadSession: AuthService.token?.isNotEmpty ?? false);
   runApp(const EmpuanApp());

@@ -9,6 +9,7 @@ import '../auth/form_motion.dart';
 import '../auth/interests_screen.dart';
 import '../auth/welcome_screen.dart';
 import '../learning/screens/learning_certificates_screen.dart';
+import '../offline/offline_settings_screen.dart';
 import '../safety/fake_call_screen.dart';
 import '../safety/trusted_contacts_screen.dart';
 import '../tour/app_tour.dart';
@@ -156,6 +157,12 @@ class _MeScreenState extends State<MeScreen> {
             _group('Account', [
               EmRow(leading: const EmIconTile(Icons.person_outline_rounded), title: 'Personal details', onTap: () => _open(const EditProfileScreen())),
               EmRow(leading: const EmIconTile(Icons.lock_outline_rounded), title: 'Change password', onTap: () => _open(const ChangePasswordScreen())),
+              EmRow(
+                leading: const EmIconTile(Icons.download_for_offline_outlined),
+                title: 'Saved for offline',
+                subtitle: 'Courses and articles you can read without internet',
+                onTap: () => _open(const OfflineSettingsScreen()),
+              ),
             ]),
             _group('About', [
               EmRow(leading: const EmIconTile(Icons.auto_awesome_outlined), title: 'What’s new in Empuan 2.0', onTap: _showWhatsNew),

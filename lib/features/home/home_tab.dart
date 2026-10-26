@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -6,6 +7,7 @@ import '../../data/account_repository.dart';
 import '../../data/contacts_repository.dart';
 import '../../data/content_repository.dart';
 import '../../data/daily_quiz_repository.dart';
+import '../../data/offline.dart';
 import '../../features/learning/models/learning_models.dart';
 import '../../features/learning/services/learning_service.dart';
 import '../../ui/em_ui.dart';
@@ -206,7 +208,9 @@ class _HomeTabState extends State<HomeTab> {
                 skeleton: const _CardSkeleton(height: 72),
                 builder: () => Padding(
                   padding: const EdgeInsets.only(bottom: 14),
-                  child: _contacts!.isEmpty ? _NoContactsCard(onAdd: _addContact) : _SosReadyCard(contacts: _contacts!),
+                  child: _contacts!.isEmpty
+                      ? _NoContactsCard(onAdd: _addContact)
+                      : ListenableBuilder(listenable: OfflineStatus.instance, builder: (_, __) => _SosReadyCard(contacts: _contacts!)),
                 ),
               ),
               Padding(
@@ -416,6 +420,7 @@ class _SosReadyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final names = contacts.length > 2 ? '${contacts.first.name} and ${contacts.length - 1} others' : namesList(contacts);
+    final offline = OfflineStatus.instance.offline;
     return EmCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       onTap: () => ShellScope.maybeOf(context)?.goTo(AppTab.safety),
@@ -427,9 +432,12 @@ class _SosReadyCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('SOS is ready', style: Theme.of(context).textTheme.titleSmall),
+                Text(offline ? 'SOS works offline' : 'SOS is ready', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 2),
-                Text('$names will get your location', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  offline ? '$names ${contacts.length == 1 ? 'is' : 'are'} saved on this phone' : '$names will get your location',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -579,8 +587,8 @@ class _CourseCard extends StatelessWidget {
               height: 76,
               child: course.thumbnailUrl == null
                   ? const ColoredBox(color: AppColors.blush, child: Icon(Icons.menu_book_outlined, color: AppColors.secondary))
-                  : Image.network(
-                      course.thumbnailUrl!,
+                  : Image(
+image: CachedNetworkImageProvider(course.thumbnailUrl!),
                       fit: BoxFit.cover,
                       excludeFromSemantics: true,
                       errorBuilder: (_, __, ___) => const ColoredBox(color: AppColors.blush),
@@ -638,7 +646,8 @@ class _ArticleRow extends StatelessWidget {
                 height: 64,
                 child: article.imageUrl == null
                     ? const ColoredBox(color: AppColors.blush)
-                    : Image.network(article.imageUrl!, fit: BoxFit.cover, excludeFromSemantics: true, errorBuilder: (_, __, ___) => const ColoredBox(color: AppColors.blush)),
+                    : Image(
+image: CachedNetworkImageProvider(article.imageUrl!), fit: BoxFit.cover, excludeFromSemantics: true, errorBuilder: (_, __, ___) => const ColoredBox(color: AppColors.blush)),
               ),
             ),
             const SizedBox(width: 14),

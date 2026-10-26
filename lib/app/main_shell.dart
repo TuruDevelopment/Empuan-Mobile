@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../data/account_repository.dart';
+import '../data/offline.dart';
 import '../features/home/home_tab.dart';
 import '../features/learn/learn_tab.dart';
+import '../features/offline/offline_banner.dart';
+import '../features/offline/offline_sync.dart';
 import '../features/safety/safety_tab.dart';
+import '../features/safety/sos_controller.dart';
 import '../features/safety/sos_flow.dart';
 import '../features/space/space_tab.dart';
 import '../features/tour/app_tour.dart';
@@ -56,6 +60,7 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     AppTour.replays.addListener(_startTour);
     WidgetsBinding.instance.addPostFrameCallback((_) => _runIntro());
+    OfflineSync.instance.start();
   }
 
   @override
@@ -121,8 +126,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     _built.add(_tab);
-    Widget page(AppTab tab, Widget Function() build) =>
-        _built.contains(tab) ? build() : const SizedBox.shrink();
+    Widget page(AppTab tab, Widget Function() build) => _built.contains(tab) ? build() : const SizedBox.shrink();
     final tour = _tour;
 
     return ShellScope(
@@ -149,26 +153,45 @@ class _MainShellState extends State<MainShell> {
                 body: Column(
                   children: [
                     const SosActiveBanner(),
+                    // Under the SOS strip, the status bar is already covered.
+                    ListenableBuilder(
+                      listenable: SosController.instance,
+                      builder: (context, _) => MediaQuery.removePadding(
+                        context: context,
+                        removeTop: SosController.instance.active,
+                        child: const OfflineBanner(),
+                      ),
+                    ),
                     Expanded(
-                      // Tabs keep their state in the IndexedStack; the switch itself
-                      // is a short fade-up so the change of place is visible.
-                      child: TweenAnimationBuilder<double>(
-                        key: ValueKey(_tab),
-                        tween: Tween(begin: EmMotion.reduced(context) ? 1 : 0, end: 1),
-                        duration: EmMotion.medium,
-                        curve: EmMotion.enter,
-                        builder: (_, t, child) => Opacity(
-                          opacity: t,
-                          child: Transform.translate(offset: Offset(0, 8 * (1 - t)), child: child),
+                      // A strip above already sits under the status bar, so the
+                      // tab below doesn't pad for it again.
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge([SosController.instance, OfflineStatus.instance]),
+                        builder: (context, child) => MediaQuery.removePadding(
+                          context: context,
+                          removeTop: SosController.instance.active || OfflineStatus.instance.offline,
+                          child: child!,
                         ),
-                        child: IndexedStack(
-                          index: _tab.index,
-                          children: [
-                            page(AppTab.home, () => const HomeTab()),
-                            page(AppTab.learn, () => const LearnTab()),
-                            page(AppTab.safety, () => const SafetyTab()),
-                            page(AppTab.space, () => const SpaceTab()),
-                          ],
+                        // Tabs keep their state in the IndexedStack; the switch itself
+                        // is a short fade-up so the change of place is visible.
+                        child: TweenAnimationBuilder<double>(
+                          key: ValueKey(_tab),
+                          tween: Tween(begin: EmMotion.reduced(context) ? 1 : 0, end: 1),
+                          duration: EmMotion.medium,
+                          curve: EmMotion.enter,
+                          builder: (_, t, child) => Opacity(
+                            opacity: t,
+                            child: Transform.translate(offset: Offset(0, 8 * (1 - t)), child: child),
+                          ),
+                          child: IndexedStack(
+                            index: _tab.index,
+                            children: [
+                              page(AppTab.home, () => const HomeTab()),
+                              page(AppTab.learn, () => const LearnTab()),
+                              page(AppTab.safety, () => const SafetyTab()),
+                              page(AppTab.space, () => const SpaceTab()),
+                            ],
+                          ),
                         ),
                       ),
                     ),

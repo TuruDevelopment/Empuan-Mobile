@@ -16,7 +16,7 @@ Future<void> startSosFlow(BuildContext context) async {
   final controller = SosController.instance;
   List<Contact> contacts;
   try {
-    contacts = await controller.trustedContacts();
+    contacts = await controller.contactsForSos();
   } catch (_) {
     contacts = const [];
   }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/api.dart';
@@ -163,8 +164,8 @@ class PlacePhoto extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: place.photoUrl == null
           ? placeholder
-          : Image.network(
-              place.photoUrl!,
+          : Image(
+image: CachedNetworkImageProvider(place.photoUrl!),
               width: width,
               height: height,
               fit: BoxFit.cover,

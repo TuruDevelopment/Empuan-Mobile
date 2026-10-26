@@ -3,16 +3,20 @@ import 'dart:convert';
 
 import 'package:Empuan/config/api_config.dart';
 import 'package:Empuan/data/app_version_repository.dart';
+import 'package:Empuan/data/offline.dart';
 import 'package:Empuan/features/learning/models/learning_models.dart';
 import 'package:Empuan/features/update/update_gate.dart';
 import 'package:Empuan/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class LearningApiException implements Exception {
-  const LearningApiException(this.message, {this.statusCode});
+  const LearningApiException(this.message, {this.statusCode, this.offline = false});
 
   final String message;
   final int? statusCode;
+
+  /// No response came back and nothing was saved for this screen.
+  final bool offline;
 
   bool get requiresDateOfBirth {
     final normalizedMessage = message.toLowerCase();
@@ -147,6 +151,9 @@ class LearningService {
     final uri = Uri.parse(ApiConfig.getUrl(path)).replace(
       queryParameters: query?.isEmpty == true ? null : query,
     );
+    // GETs are saved so courses keep working offline; see OfflineCache.
+    final cacheKey = method == 'GET' ? uri.toString() : null;
+    if (OfflineStatus.instance.noNetwork) return _fromCache(cacheKey);
 
     try {
       late http.Response response;
@@ -184,6 +191,7 @@ class LearningService {
           response = await _client.get(uri, headers: headers).timeout(_timeout);
       }
 
+      OfflineStatus.instance.reportReachable();
       final decoded = response.body.isEmpty ? <String, dynamic>{} : _map(jsonDecode(response.body));
 
       if (response.statusCode == 401) {
@@ -205,11 +213,10 @@ class LearningService {
         );
       }
 
+      if (cacheKey != null) unawaited(OfflineCache.instance.write(cacheKey, decoded));
       return decoded;
     } on TimeoutException {
-      throw const LearningApiException(
-        'The connection timed out. Check your internet connection and try again.',
-      );
+      return _fromCache(cacheKey, message: 'The connection timed out. Check your internet connection and try again.');
     } on FormatException {
       throw const LearningApiException(
         'The Learning response could not be read.',
@@ -217,10 +224,18 @@ class LearningService {
     } on LearningApiException {
       rethrow;
     } catch (_) {
-      throw const LearningApiException(
-        'Could not connect to Learning. Please try again.',
-      );
+      return _fromCache(cacheKey, message: 'Could not connect to Learning. Please try again.');
     }
+  }
+
+  /// The saved copy for [key] when the server can't be reached.
+  Future<Map<String, dynamic>> _fromCache(String? key, {String? message}) async {
+    final saved = key == null ? null : await OfflineCache.instance.read(key);
+    OfflineStatus.instance.reportUnreachable(servedFrom: saved?.savedAt);
+    if (saved == null) {
+      throw LearningApiException(message ?? 'You’re offline. Connect to the internet and try again.', offline: true);
+    }
+    return _map(saved.data);
   }
 
   Map<String, dynamic> _map(dynamic value) {

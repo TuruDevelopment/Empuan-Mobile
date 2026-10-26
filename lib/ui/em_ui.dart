@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../data/offline.dart';
 import '../styles/style.dart';
 import 'em_motion.dart';
 
@@ -793,7 +794,7 @@ class EmStateView extends StatelessWidget {
 
   factory EmStateView.error({required String message, VoidCallback? onRetry}) => EmStateView(
         icon: Icons.wifi_off_rounded,
-        title: 'Something went wrong',
+        title: OfflineStatus.instance.offline ? 'You’re offline' : 'Something went wrong',
         message: message,
         actionLabel: onRetry == null ? null : 'Try again',
         onAction: onRetry,

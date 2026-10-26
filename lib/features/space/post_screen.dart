@@ -6,6 +6,7 @@ import '../../components/send_button.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart';
 import '../../ui/em_ui.dart';
+import '../offline/offline_banner.dart';
 import 'post_widgets.dart';
 
 /// Returned when [PostScreen] closes, so the feed can show new counts or hide
@@ -215,11 +216,15 @@ class _PostScreenState extends State<PostScreen> {
                 ),
               ),
             ),
-            _ReplyBar(
-              controller: _input,
-              sending: _sending,
-              maxLength: _maxLength,
-              onSend: _sendReply,
+            OfflineBuilder(
+              builder: (context, offline) => offline
+                  ? const OfflineInputNote('Replies need internet. You can still read this conversation.')
+                  : _ReplyBar(
+                      controller: _input,
+                      sending: _sending,
+                      maxLength: _maxLength,
+                      onSend: _sendReply,
+                    ),
             ),
           ],
         ),

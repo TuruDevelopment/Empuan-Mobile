@@ -5,6 +5,7 @@ import '../../data/account_repository.dart';
 import '../../data/community_repository.dart';
 import '../../data/content_repository.dart';
 import '../../ui/em_ui.dart';
+import '../offline/offline_banner.dart';
 import '../learning/widgets/learning_widgets.dart';
 import '../moderation/report_sheet.dart';
 
@@ -209,7 +210,11 @@ class _ArticleScreenState extends State<ArticleScreen> {
               ],
             ),
           ),
-          _CommentBar(controller: _input, sending: _sending, onSend: _post),
+          OfflineBuilder(
+            builder: (context, offline) => offline
+                ? const OfflineInputNote('Comments need internet. The article is saved, so you can keep reading.')
+                : _CommentBar(controller: _input, sending: _sending, onSend: _post),
+          ),
         ],
       ),
     );

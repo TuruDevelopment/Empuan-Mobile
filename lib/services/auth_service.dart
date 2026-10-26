@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../data/app_version_repository.dart';
+import '../data/offline.dart';
 import '../features/auth/welcome_screen.dart';
 import '../features/update/update_gate.dart';
 import 'api_client.dart';
@@ -106,6 +107,8 @@ class AuthService {
     // Also clear any legacy copy.
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    // Saved content and contacts belong to this account.
+    await clearOfflineData();
     debugPrint('[LOGOUT] Done');
   }
 

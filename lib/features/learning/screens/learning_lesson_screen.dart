@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -246,8 +247,8 @@ class _LessonContent extends StatelessWidget {
       if (hasMedia && lesson.type == 'infographic') ...[
         ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: Image.network(
-            media,
+          child: Image(
+image: CachedNetworkImageProvider(media),
             fit: BoxFit.contain,
             semanticLabel: 'Infographic: ${lesson.title}',
             errorBuilder: (_, __, ___) => const _MediaError(),

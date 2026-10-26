@@ -12,6 +12,7 @@ import '../../components/send_button.dart';
 import '../../data/api.dart';
 import '../../data/community_repository.dart' show ReportTarget;
 import '../../data/content_repository.dart';
+import '../../data/offline.dart';
 import '../../models/chat_message.dart';
 import '../../services/chatbot_service.dart';
 import '../../ui/em_ui.dart';
@@ -22,6 +23,7 @@ import '../moderation/report_sheet.dart';
 import '../places/place_screen.dart';
 import '../places/places_screen.dart';
 import '../safety/fake_call_screen.dart';
+import '../safety/help_lines.dart';
 import '../safety/siren_screen.dart';
 import '../safety/trusted_contacts_screen.dart';
 import 'ai_history_screen.dart';
@@ -486,8 +488,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
     }
   }
 
+  // Empuan AI needs the server, so offline it says so and offers the help
+  // lines, which work over the phone network.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(listenable: OfflineStatus.instance, builder: (context, _) => _build(context));
+
+  Widget _build(BuildContext context) {
+    final offline = OfflineStatus.instance.offline;
     final empty = _messages.isEmpty && !_sending && !_loadingHistory && _historyError == null;
     return Scaffold(
       appBar: EmTopBar(
@@ -507,16 +514,18 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       ? 'error'
                       : empty
                           ? 'new'
-                          : 'chat-$_generation',
-              child: _body(empty),
+                          : offline && empty
+                              ? 'offline'
+                              : 'chat-$_generation',
+              child: offline && empty ? const _OfflineChat() : _body(empty),
             ),
           ),
-          _disclaimer(empty),
+          _disclaimer(empty && !offline),
           _InputBar(
             controller: _input,
-            hint: empty ? 'Message Empuan AI' : 'Ask a follow-up',
+            hint: offline ? 'You’re offline' : (empty ? 'Message Empuan AI' : 'Ask a follow-up'),
             sending: _sending,
-            enabled: !_loadingHistory && _historyError == null,
+            enabled: !offline && !_loadingHistory && _historyError == null,
             paused: _paused,
             maxLength: _maxLength,
             onSend: _submit,
@@ -699,6 +708,45 @@ class _ChatSkeleton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Shown instead of the suggestions while offline.
+class _OfflineChat extends StatelessWidget {
+  const _OfflineChat();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      children: [
+        EmFadeSlideIn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const EmIconTile(Icons.wifi_off_rounded, size: 48),
+              const SizedBox(height: 16),
+              Semantics(header: true, child: Text('Empuan AI needs internet', style: theme.headlineMedium)),
+              const SizedBox(height: 8),
+              Text(
+                'Connect to Wi-Fi or mobile data to ask a question. Your past chats will be here when you’re back online.',
+                style: theme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const EmFadeSlideIn(index: 1, child: EmSectionHeader('If you need help now')),
+        const SizedBox(height: 12),
+        const EmFadeSlideIn(index: 2, child: HelpLinesGroup()),
+        const SizedBox(height: 8),
+        EmFadeSlideIn(
+          index: 3,
+          child: Text('Calls use your phone network, not the internet. SOS works offline too.', style: theme.bodySmall),
+        ),
+      ],
     );
   }
 }
