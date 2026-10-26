@@ -12,6 +12,7 @@ class UserProfile {
     required this.username,
     required this.email,
     this.dob,
+    this.createdAt,
     this.interests = const [],
   });
 
@@ -20,6 +21,9 @@ class UserProfile {
   final String username;
   final String email;
   final DateTime? dob;
+
+  /// When the account was made; tells old-app users from new sign-ups.
+  final DateTime? createdAt;
 
   /// Picked topics plus the free-text "something else", as InterestsScreen expects.
   final List<String> interests;
@@ -32,6 +36,7 @@ class UserProfile {
         username: asString(json['username']),
         email: asString(json['email']),
         dob: parseDate(json['dob']),
+        createdAt: parseDate(json['created_at']),
         interests: [
           if (json['interests'] is List) ...(json['interests'] as List).map((e) => '$e').where((e) => e.isNotEmpty),
           if (asString(json['interests_other']).trim().isNotEmpty) asString(json['interests_other']).trim(),
@@ -39,7 +44,7 @@ class UserProfile {
       );
 
   UserProfile withInterests(List<String> value) =>
-      UserProfile(id: id, name: name, username: username, email: email, dob: dob, interests: value);
+      UserProfile(id: id, name: name, username: username, email: email, dob: dob, createdAt: createdAt, interests: value);
 }
 
 /// Holds the signed-in user so screens can show their name without refetching.

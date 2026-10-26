@@ -72,10 +72,20 @@ void main() {
       expect(await IntroPrefs.whatsNewDue(), isFalse);
     });
 
-    test('fresh installs never see What’s new', () async {
+    test('fresh installs with a new account never see What’s new', () async {
       await IntroPrefs.recordFirstLaunch(hadSession: false);
       await IntroPrefs.recordFirstLaunch(hadSession: true);
       expect(await IntroPrefs.whatsNewDue(), isFalse);
+      expect(await IntroPrefs.whatsNewDue(accountCreatedAt: IntroPrefs.v2Cutoff.add(const Duration(days: 1))), isFalse);
+    });
+
+    test('an account from the old app gets What’s new after logging in on a fresh install', () async {
+      await IntroPrefs.recordFirstLaunch(hadSession: false);
+      final oldAccount = DateTime.utc(2025, 3, 14);
+      expect(await IntroPrefs.whatsNewDue(accountCreatedAt: oldAccount), isTrue);
+
+      await IntroPrefs.markWhatsNewSeen();
+      expect(await IntroPrefs.whatsNewDue(accountCreatedAt: oldAccount), isFalse);
     });
 
     test('the tour is remembered once done', () async {

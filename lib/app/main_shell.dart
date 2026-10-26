@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../data/account_repository.dart';
 import '../features/home/home_tab.dart';
 import '../features/learn/learn_tab.dart';
 import '../features/safety/safety_tab.dart';
@@ -70,7 +71,7 @@ class _MainShellState extends State<MainShell> {
     await _routeSettled();
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
     var tour = !await IntroPrefs.tourDone();
-    if (await IntroPrefs.whatsNewDue()) {
+    if (await IntroPrefs.whatsNewDue(accountCreatedAt: Session.user.value?.createdAt)) {
       // Marked first, so it shows once even if the app is closed halfway.
       await IntroPrefs.markWhatsNewSeen();
       if (!mounted) return;
